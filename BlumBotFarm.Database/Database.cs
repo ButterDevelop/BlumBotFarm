@@ -1,0 +1,46 @@
+﻿using BlumBotFarm.Core;
+using Dapper;
+using Microsoft.Data.Sqlite;
+using System.Data;
+
+namespace BlumBotFarm.Database
+{
+    public static class Database
+    {
+        private static readonly string ConnectionString = AppConfig.DatabaseSettings.ConnectionString ?? "Data Source=blumbotfarmDefault.db";
+
+        public static void Initialize()
+        {
+            using (IDbConnection db = new SqliteConnection(ConnectionString))
+            {
+                db.Execute(@"
+                    CREATE TABLE IF NOT EXISTS Accounts (
+                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Username TEXT,
+                        Balance REAL,
+                        Tickets INTEGER,
+                        AccessToken TEXT,
+                        RefreshToken TEXT,
+                        UserAgent TEXT,
+                        Proxy TEXT,
+                        TimezoneOffset INTEGER
+                    );
+
+                    CREATE TABLE IF NOT EXISTS Tasks (
+                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        AccountId INTEGER,
+                        TaskType TEXT,
+                        ScheduleSeconds INTEGER,
+                        NextRunTime DATETIME,
+                        FOREIGN KEY(AccountId) REFERENCES Accounts(Id)
+                    );
+                ");
+            }
+        }
+
+        public static IDbConnection GetConnection()
+        {
+            return new SqliteConnection(ConnectionString);
+        }
+    }
+}

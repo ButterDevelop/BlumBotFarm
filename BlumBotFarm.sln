@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35004.147
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlumBotFarm.Startup", "BlumBotFarm.Startup\BlumBotFarm.Startup.csproj", "{CEAE3F83-2CA0-4028-BC61-2D35D2B81C32}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlumBotFarm.Core", "BlumBotFarm.Core\BlumBotFarm.Core.csproj", "{57164DA7-5151-4AB3-8EBA-C5B2CA79C313}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlumBotFarm.Database", "BlumBotFarm.Database\BlumBotFarm.Database.csproj", "{1BE2F905-13F9-47C8-8592-9DFC1232DA4E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlumBotFarm.Scheduler", "BlumBotFarm.Scheduler\BlumBotFarm.Scheduler.csproj", "{A1B8E4FF-B168-4F7B-A970-CA7D85317AE4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlumBotFarm.TelegramBot", "BlumBotFarm.TelegramBot\BlumBotFarm.TelegramBot.csproj", "{5C862978-DBE6-4168-B591-3F53B2DA567B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlumBotFarm.GameClient", "BlumBotFarm.GameClient\BlumBotFarm.GameClient.csproj", "{FCCFBB0E-56D7-4D40-93E1-3695635B3B69}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CEAE3F83-2CA0-4028-BC61-2D35D2B81C32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEAE3F83-2CA0-4028-BC61-2D35D2B81C32}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEAE3F83-2CA0-4028-BC61-2D35D2B81C32}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEAE3F83-2CA0-4028-BC61-2D35D2B81C32}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57164DA7-5151-4AB3-8EBA-C5B2CA79C313}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57164DA7-5151-4AB3-8EBA-C5B2CA79C313}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57164DA7-5151-4AB3-8EBA-C5B2CA79C313}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57164DA7-5151-4AB3-8EBA-C5B2CA79C313}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1BE2F905-13F9-47C8-8592-9DFC1232DA4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1BE2F905-13F9-47C8-8592-9DFC1232DA4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1BE2F905-13F9-47C8-8592-9DFC1232DA4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1BE2F905-13F9-47C8-8592-9DFC1232DA4E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B8E4FF-B168-4F7B-A970-CA7D85317AE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B8E4FF-B168-4F7B-A970-CA7D85317AE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B8E4FF-B168-4F7B-A970-CA7D85317AE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B8E4FF-B168-4F7B-A970-CA7D85317AE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C862978-DBE6-4168-B591-3F53B2DA567B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C862978-DBE6-4168-B591-3F53B2DA567B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C862978-DBE6-4168-B591-3F53B2DA567B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C862978-DBE6-4168-B591-3F53B2DA567B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCCFBB0E-56D7-4D40-93E1-3695635B3B69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCCFBB0E-56D7-4D40-93E1-3695635B3B69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCCFBB0E-56D7-4D40-93E1-3695635B3B69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCCFBB0E-56D7-4D40-93E1-3695635B3B69}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BB7B1E08-B994-4367-9F69-95006C0FE4FB}
+	EndGlobalSection
+EndGlobal

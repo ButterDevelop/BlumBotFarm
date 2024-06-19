@@ -1,0 +1,326 @@
+﻿using BlumBotFarm.Core.Models;
+using Microsoft.CSharp.RuntimeBinder;
+using Newtonsoft.Json.Linq;
+using xNet;
+
+namespace BlumBotFarm.GameClient
+{
+    public class GameApiClient
+    {
+        private const string BASE_GAMING_API_URL               = "https://game-domain.blum.codes/api/v1/",
+                             BASE_GATEWAY_API_URL              = "https://gateway.blum.codes/v1/",
+                             HTML_PAGE_URL                     = "https://telegram.blum.codes/",
+                             ABOUT_ME_REQUEST_ENDPOINT         = "user/me",
+                             REFRESH_AUTH_REQUEST_ENDPOINT     = "auth/refresh",
+                             GET_DAILY_REWARD_REQUEST_ENDPOINT = "daily-reward?offset=",
+                             START_GAME_REQUEST_ENDPOINT       = "game/play",
+                             END_GAME_REQUEST_ENDPOINT         = "game/claim",
+                             GET_USER_INFO_REQUEST_ENDPOINT    = "user/balance",
+                             START_FARMING_REQUEST_ENDPOINT    = "farming/start",
+                             CLAIM_FARMING_REQUEST_ENDPOINT    = "farming/claim";
+
+        private readonly Dictionary<string, string> _commonHeaders = new Dictionary<string, string>
+        {
+            { "Accept",             "application/json, text/plain, */*" },
+            { "Sec-fetch-site",     "cross-site" },
+            { "Sec-fetch-mode",     "cors" },
+            { "Sec-fetch-dest",     "empty" }
+        };
+
+        public GameApiClient()
+        {
+            
+        }
+
+        public static Dictionary<string, string> GetUniqueHeaders(Dictionary<string, string> sourceHeaders, string accessToken)
+        {
+            var headers = sourceHeaders.ToDictionary(entry => entry.Key, entry => entry.Value);
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                headers.Add("Authorization", "Bearer " + accessToken);
+            }
+
+            return headers;
+        }
+
+        public void GetMainPageHTML(Account account)
+        {
+            var headers = GetUniqueHeaders(_commonHeaders, string.Empty);
+            if (headers.ContainsKey("Accept")) headers["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7";
+
+            HttpStatusCode responseStatusCode = HttpStatusCode.None;
+
+            HTTPController.ExecuteFunctionUntilSuccess(() =>
+                HTTPController.SendRequest(HTML_PAGE_URL,
+                                           out responseStatusCode, RequestType.GET, account.Proxy, headers,
+                                           parameters: null, parametersString: null, parametersContentType: null, referer: null,
+                                           account.UserAgent)
+            );
+        }
+
+        public ApiResponse GetAboutMeInfo(Account account)
+        {
+            var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
+
+            HttpStatusCode responseStatusCode = HttpStatusCode.None;
+
+            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
+                                     HTTPController.SendRequest(BASE_GATEWAY_API_URL + ABOUT_ME_REQUEST_ENDPOINT,
+                                                                out responseStatusCode, RequestType.GET, account.Proxy, headers,
+                                                                parameters: null, parametersString: null, parametersContentType: null, referer: null,
+                                                                account.UserAgent)
+                                 );
+
+            if (responseStatusCode == HttpStatusCode.Unauthorized)
+            {
+                return ApiResponse.Unauthorized;
+            }
+
+            if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
+            {
+                return ApiResponse.Error;
+            }
+
+            return ApiResponse.Success;
+        }
+
+        public (ApiResponse response, string accessToken, string refreshToken) RefreshAuth(Account account)
+        {
+            var headers = GetUniqueHeaders(_commonHeaders, string.Empty);
+
+            HttpStatusCode responseStatusCode = HttpStatusCode.None;
+
+            string parametersString      = $"{{\"refresh\":\"{account.RefreshToken}\"}}";
+            string parametersContentType = "application/json";
+
+            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
+                                     HTTPController.SendRequest(BASE_GATEWAY_API_URL + REFRESH_AUTH_REQUEST_ENDPOINT,
+                                                                out responseStatusCode, RequestType.POST, account.Proxy, headers,
+                                                                parameters: null, parametersString, parametersContentType, referer: null,
+                                                                account.UserAgent)
+                                 );
+
+            if (responseStatusCode == HttpStatusCode.Unauthorized)
+            {
+                return (ApiResponse.Unauthorized, string.Empty, string.Empty);
+            }
+
+            if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
+            {
+                return (ApiResponse.Error, string.Empty, string.Empty);
+            }
+
+            try
+            {
+                dynamic json = JObject.Parse(jsonAnswer.Replace("'", "\\'").Replace("\"", "'"));
+
+                string accessToken  = json.access;
+                string refreshToken = json.refresh;
+
+                return (ApiResponse.Success, accessToken, refreshToken);
+            }
+            catch (RuntimeBinderException ex)
+            {
+                return (ApiResponse.Error, string.Empty, string.Empty);
+            }
+        }
+
+        public ApiResponse GetDailyReward(Account account)
+        {
+            var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
+
+            HttpStatusCode responseStatusCode = HttpStatusCode.None;
+
+            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
+                                     HTTPController.SendRequest(BASE_GAMING_API_URL + GET_DAILY_REWARD_REQUEST_ENDPOINT + account.TimezoneOffset.ToString(),
+                                                                out responseStatusCode, RequestType.POST, account.Proxy, headers,
+                                                                parameters: null, parametersString: null, parametersContentType: null, referer: null,
+                                                                account.UserAgent)
+                                 );
+
+            if (responseStatusCode == HttpStatusCode.Unauthorized)
+            {
+                return ApiResponse.Unauthorized;
+            }
+
+            if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
+            {
+                return ApiResponse.Error;
+            }
+            
+            return ApiResponse.Success;
+        }
+
+        public (ApiResponse response, string gameId) StartGame(Account account)
+        {
+            var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
+
+            HttpStatusCode responseStatusCode = HttpStatusCode.None;
+
+            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
+                                     HTTPController.SendRequest(BASE_GAMING_API_URL + START_GAME_REQUEST_ENDPOINT,
+                                                                out responseStatusCode, RequestType.POST, account.Proxy, headers,
+                                                                parameters: null, parametersString: null, parametersContentType: null, referer: null,
+                                                                account.UserAgent)
+                                 );
+
+            if (responseStatusCode == HttpStatusCode.Unauthorized)
+            {
+                return (ApiResponse.Unauthorized, string.Empty);
+            }
+
+            if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
+            {
+                return (ApiResponse.Error, string.Empty);
+            }
+
+            try
+            {
+                dynamic json = JObject.Parse(jsonAnswer.Replace("'", "\\'").Replace("\"", "'"));
+
+                string gameId = json.gameId;
+
+                return (ApiResponse.Success, gameId);
+            }
+            catch (RuntimeBinderException ex)
+            {
+                return (ApiResponse.Error, string.Empty);
+            }
+        }
+
+        public ApiResponse EndGame(Account account, string gameId, int points)
+        {
+            var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
+
+            string parametersString      = $"{{\"gameId\":\"{gameId}\",\"points\":{points}}}";
+            string parametersContentType = "application/json";
+
+            HttpStatusCode responseStatusCode = HttpStatusCode.None;
+
+            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
+                                     HTTPController.SendRequest(BASE_GAMING_API_URL + END_GAME_REQUEST_ENDPOINT,
+                                                                out responseStatusCode, RequestType.POST, account.Proxy, headers,
+                                                                parameters: null, parametersString, parametersContentType, referer: null,
+                                                                account.UserAgent)
+                                 );
+
+            if (responseStatusCode == HttpStatusCode.Unauthorized)
+            {
+                return ApiResponse.Unauthorized;
+            }
+
+            if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
+            {
+                return ApiResponse.Error;
+            }
+
+            return ApiResponse.Success;
+        }
+
+        public (ApiResponse response, double balance, int tickets) GetUserInfo(Account account)
+        {
+            var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
+
+            HttpStatusCode responseStatusCode = HttpStatusCode.None;
+
+            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
+                                     HTTPController.SendRequest(BASE_GAMING_API_URL + GET_USER_INFO_REQUEST_ENDPOINT,
+                                                                out responseStatusCode, RequestType.GET, account.Proxy, headers,
+                                                                parameters: null, parametersString: null, parametersContentType: null, referer: null,
+                                                                account.UserAgent)
+                                 );
+
+            if (responseStatusCode == HttpStatusCode.Unauthorized)
+            {
+                return (ApiResponse.Unauthorized, 0, 0);
+            }
+
+            if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
+            {
+                return (ApiResponse.Error, 0, 0);
+            }
+
+            try
+            {
+                dynamic json = JObject.Parse(jsonAnswer.Replace("'", "\\'").Replace("\"", "'"));
+
+                string availableBalanceString = json.availableBalance;
+                int    playPassesString       = json.playPasses;
+
+                double availableBalance = double.Parse(availableBalanceString.Replace(",", "."));
+
+                return (ApiResponse.Success, availableBalance, playPassesString);
+            }
+            catch (Exception ex)
+            {
+                return (ApiResponse.Error, 0, 0);
+            }
+        }
+
+        public ApiResponse StartFarming(Account account)
+        {
+            var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
+
+            HttpStatusCode responseStatusCode = HttpStatusCode.None;
+
+            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
+                                     HTTPController.SendRequest(BASE_GAMING_API_URL + START_FARMING_REQUEST_ENDPOINT,
+                                                                out responseStatusCode, RequestType.POST, account.Proxy, headers,
+                                                                parameters: null, parametersString: null, parametersContentType: null, referer: null,
+                                                                account.UserAgent)
+                                 );
+
+            if (responseStatusCode == HttpStatusCode.Unauthorized)
+            {
+                return ApiResponse.Unauthorized;
+            }
+
+            if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
+            {
+                return ApiResponse.Error;
+            }
+
+            return ApiResponse.Success;
+        }
+
+        public (ApiResponse response, double balance, int tickets) ClaimFarming(Account account)
+        {
+            var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
+
+            HttpStatusCode responseStatusCode = HttpStatusCode.None;
+
+            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
+                                     HTTPController.SendRequest(BASE_GAMING_API_URL + CLAIM_FARMING_REQUEST_ENDPOINT,
+                                                                out responseStatusCode, RequestType.POST, account.Proxy, headers,
+                                                                parameters: null, parametersString: null, parametersContentType: null, referer: null,
+                                                                account.UserAgent)
+                                 );
+
+            if (responseStatusCode == HttpStatusCode.Unauthorized)
+            {
+                return (ApiResponse.Unauthorized, 0, 0);
+            }
+
+            if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
+            {
+                return (ApiResponse.Error, 0, 0);
+            }
+
+            try
+            {
+                dynamic json = JObject.Parse(jsonAnswer.Replace("'", "\\'").Replace("\"", "'"));
+
+                string availableBalanceString = json.availableBalance;
+                int    playPassesString       = json.playPasses;
+
+                double availableBalance = double.Parse(availableBalanceString.Replace(",", "."));
+
+                return (ApiResponse.Success, availableBalance, playPassesString);
+            }
+            catch (Exception ex)
+            {
+                return (ApiResponse.Error, 0, 0);
+            }
+        }
+    }
+}
