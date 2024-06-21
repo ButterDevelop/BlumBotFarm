@@ -328,7 +328,7 @@ namespace BlumBotFarm.GameClient
             }
         }
 
-        public (ApiResponse response, List<(string id, string kind)> tasks) GetTasks(Account account)
+        public (ApiResponse response, List<(string id, string kind, string status)> tasks) GetTasks(Account account)
         {
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
@@ -343,30 +343,30 @@ namespace BlumBotFarm.GameClient
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
-                return (ApiResponse.Unauthorized, new List<(string id, string kind)>());
+                return (ApiResponse.Unauthorized, []);
             }
 
             if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
             {
-                return (ApiResponse.Error, new List<(string id, string kind)>());
+                return (ApiResponse.Error, []);
             }
 
             try
             {
-                dynamic json = JObject.Parse(jsonAnswer.Replace("'", "\\'").Replace("\"", "'"));
+                dynamic jsonArray = JArray.Parse(jsonAnswer.Replace("'", "\\'").Replace("\"", "'"));
 
-                var tasks = new List<(string id, string kind)>();
+                var tasks = new List<(string id, string kind, string status)>();
 
-                foreach (var task in json)
+                foreach (var task in jsonArray)
                 {
-                    tasks.Add((task.id, task.kind));
+                    tasks.Add((task["id"].ToString(), task["kind"].ToString(), task["status"].ToString()));
                 }
 
                 return (ApiResponse.Success, tasks);
             }
             catch (Exception ex)
             {
-                return (ApiResponse.Error, new List<(string id, string kind)>());
+                return (ApiResponse.Error, []);
             }
         }
 

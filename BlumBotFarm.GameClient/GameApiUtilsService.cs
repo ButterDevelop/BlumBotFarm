@@ -63,7 +63,7 @@ namespace BlumBotFarm.GameClient
 
             foreach (var task in tasks)
             {
-                if (task.kind == "INITIAL")
+                if (task.kind == "INITIAL" && task.status == "NOT_STARTED")
                 {
                     gameApiClient.StartTask(account, task.id);
                 }
@@ -75,7 +75,7 @@ namespace BlumBotFarm.GameClient
 
             foreach (var task in tasks)
             {
-                if (task.kind == "READY_FOR_CLAIM")
+                if (task.status == "READY_FOR_CLAIM")
                 {
                     gameApiClient.ClaimTask(account, task.id);
                 }
