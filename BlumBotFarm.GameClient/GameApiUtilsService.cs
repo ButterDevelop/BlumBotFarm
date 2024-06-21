@@ -20,7 +20,7 @@ namespace BlumBotFarm.GameClient
 
                 if (refreshAuthResult != ApiResponse.Success) return false;
 
-                account.AccessToken = newAccessToken;
+                account.AccessToken  = newAccessToken;
                 account.RefreshToken = newRefreshToken;
                 accountRepository.Update(account);
             }

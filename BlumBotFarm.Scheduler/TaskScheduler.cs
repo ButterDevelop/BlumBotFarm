@@ -5,6 +5,8 @@ namespace BlumBotFarm.Scheduler
 {
     public class TaskScheduler
     {
+        public const int MIN_MS_AMOUNT_TO_WAIT_BEFORE_JOB = 30 * 1000, MAX_MS_AMOUNT_TO_WAIT_BEFORE_JOB = 3 * 60 * 1000;
+
         private readonly IScheduler scheduler;
 
         public TaskScheduler()

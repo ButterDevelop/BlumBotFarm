@@ -3,7 +3,6 @@ using BlumBotFarm.Database.Repositories;
 using BlumBotFarm.GameClient;
 using Quartz;
 using Serilog;
-using System.Numerics;
 using Task = BlumBotFarm.Core.Models.Task;
 
 namespace BlumBotFarm.Scheduler.Jobs
@@ -28,6 +27,9 @@ namespace BlumBotFarm.Scheduler.Jobs
 
         public async System.Threading.Tasks.Task Execute(IJobExecutionContext context)
         {
+            Random random = new();
+            Thread.Sleep(random.Next(TaskScheduler.MIN_MS_AMOUNT_TO_WAIT_BEFORE_JOB, TaskScheduler.MAX_MS_AMOUNT_TO_WAIT_BEFORE_JOB + 1));
+
             var account   = (Account)context.MergedJobDataMap["account"];
             var task      = (Task)context.MergedJobDataMap["taskDailyCheckJob"];
             var isPlanned = (bool)context.MergedJobDataMap["isPlanned"];

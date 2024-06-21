@@ -26,6 +26,9 @@ namespace BlumBotFarm.Scheduler.Jobs
 
         public async System.Threading.Tasks.Task Execute(IJobExecutionContext context)
         {
+            Random random = new();
+            Thread.Sleep(random.Next(TaskScheduler.MIN_MS_AMOUNT_TO_WAIT_BEFORE_JOB, TaskScheduler.MAX_MS_AMOUNT_TO_WAIT_BEFORE_JOB + 1));
+
             var account   = (Account)context.MergedJobDataMap["account"];
             var task      = (Task)context.MergedJobDataMap["taskFarming"];
             var isPlanned = (bool)context.MergedJobDataMap["isPlanned"];
