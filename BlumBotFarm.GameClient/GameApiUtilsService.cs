@@ -33,7 +33,7 @@ namespace BlumBotFarm.GameClient
             Random random = new();
 
             int attempts = account.Tickets * 2;
-            while (attempts-- > 0 || account.Tickets > 0)
+            while (attempts-- > 0 && account.Tickets > 0)
             {
                 (ApiResponse createGameResponse, string gameId) = gameApiClient.StartGame(account);
 
@@ -57,5 +57,29 @@ namespace BlumBotFarm.GameClient
             }
         }
 
+        public static void StartAndClaimAllTasks(Account account, GameApiClient gameApiClient)
+        {
+            (ApiResponse response, var tasks) = gameApiClient.GetTasks(account);
+
+            foreach (var task in tasks)
+            {
+                if (task.kind == "INITIAL")
+                {
+                    gameApiClient.StartTask(account, task.id);
+                }
+            }
+
+            Thread.Sleep(3000);
+
+            (response, tasks) = gameApiClient.GetTasks(account);
+
+            foreach (var task in tasks)
+            {
+                if (task.kind == "READY_FOR_CLAIM")
+                {
+                    gameApiClient.ClaimTask(account, task.id);
+                }
+            }
+        }
     }
 }

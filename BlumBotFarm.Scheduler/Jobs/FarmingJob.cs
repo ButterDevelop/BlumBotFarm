@@ -35,9 +35,6 @@ namespace BlumBotFarm.Scheduler.Jobs
             // Auth check, first of all
             if (!GameApiUtilsService.AuthCheck(ref account, accountRepository, gameApiClient)) return;
 
-            // Getting the main page
-            //gameApiClient.GetMainPageHTML(account);
-
             // Doing claiming a farming stuff
             (ApiResponse claimResponse, double balance, int tickets) = gameApiClient.ClaimFarming(account);
             if (claimResponse == ApiResponse.Success)

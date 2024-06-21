@@ -88,7 +88,7 @@ namespace BlumBotFarm.Startup
                     }
                 }
             }
-
+            
             Log.Information("Started an infinite loop.");
 
             while (true)

@@ -1,6 +1,7 @@
 ﻿using BlumBotFarm.Core.Models;
 using Microsoft.CSharp.RuntimeBinder;
 using Newtonsoft.Json.Linq;
+using System.Threading.Tasks;
 using xNet;
 
 namespace BlumBotFarm.GameClient
@@ -17,7 +18,11 @@ namespace BlumBotFarm.GameClient
                              END_GAME_REQUEST_ENDPOINT         = "game/claim",
                              GET_USER_INFO_REQUEST_ENDPOINT    = "user/balance",
                              START_FARMING_REQUEST_ENDPOINT    = "farming/start",
-                             CLAIM_FARMING_REQUEST_ENDPOINT    = "farming/claim";
+                             CLAIM_FARMING_REQUEST_ENDPOINT    = "farming/claim",
+                             TASKS_INFO_REQUEST_ENDPOINT       = "tasks",
+                             START_TASK_REQUEST_ENDPOINT       = "tasks/{0}/start",
+                             CLAIM_TASK_REQUEST_ENDPOINT       = "tasks/{0}/claim",
+                             FRIENDS_CLAIM_REQUEST_ENDPOINT    = "friends/claim";
 
         private readonly Dictionary<string, string> _commonHeaders = new Dictionary<string, string>
         {
@@ -321,6 +326,126 @@ namespace BlumBotFarm.GameClient
             {
                 return (ApiResponse.Error, 0, 0);
             }
+        }
+
+        public (ApiResponse response, List<(string id, string kind)> tasks) GetTasks(Account account)
+        {
+            var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
+
+            HttpStatusCode responseStatusCode = HttpStatusCode.None;
+
+            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
+                                     HTTPController.SendRequest(BASE_GAMING_API_URL + TASKS_INFO_REQUEST_ENDPOINT,
+                                                                out responseStatusCode, RequestType.GET, account.Proxy, headers,
+                                                                parameters: null, parametersString: null, parametersContentType: null, referer: null,
+                                                                account.UserAgent)
+                                 );
+
+            if (responseStatusCode == HttpStatusCode.Unauthorized)
+            {
+                return (ApiResponse.Unauthorized, new List<(string id, string kind)>());
+            }
+
+            if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
+            {
+                return (ApiResponse.Error, new List<(string id, string kind)>());
+            }
+
+            try
+            {
+                dynamic json = JObject.Parse(jsonAnswer.Replace("'", "\\'").Replace("\"", "'"));
+
+                var tasks = new List<(string id, string kind)>();
+
+                foreach (var task in json)
+                {
+                    tasks.Add((task.id, task.kind));
+                }
+
+                return (ApiResponse.Success, tasks);
+            }
+            catch (Exception ex)
+            {
+                return (ApiResponse.Error, new List<(string id, string kind)>());
+            }
+        }
+
+        public ApiResponse StartTask(Account account, string taskId)
+        {
+            var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
+
+            HttpStatusCode responseStatusCode = HttpStatusCode.None;
+
+            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
+                                     HTTPController.SendRequest(BASE_GAMING_API_URL + string.Format(START_TASK_REQUEST_ENDPOINT, taskId),
+                                                                out responseStatusCode, RequestType.POST, account.Proxy, headers,
+                                                                parameters: null, parametersString: null, parametersContentType: null, referer: null,
+                                                                account.UserAgent)
+                                 );
+
+            if (responseStatusCode == HttpStatusCode.Unauthorized)
+            {
+                return ApiResponse.Unauthorized;
+            }
+
+            if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
+            {
+                return ApiResponse.Error;
+            }
+
+            return ApiResponse.Success;
+        }
+
+        public ApiResponse ClaimTask(Account account, string taskId)
+        {
+            var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
+
+            HttpStatusCode responseStatusCode = HttpStatusCode.None;
+
+            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
+                                     HTTPController.SendRequest(BASE_GAMING_API_URL + string.Format(CLAIM_TASK_REQUEST_ENDPOINT, taskId),
+                                                                out responseStatusCode, RequestType.POST, account.Proxy, headers,
+                                                                parameters: null, parametersString: null, parametersContentType: null, referer: null,
+                                                                account.UserAgent)
+                                 );
+
+            if (responseStatusCode == HttpStatusCode.Unauthorized)
+            {
+                return ApiResponse.Unauthorized;
+            }
+
+            if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
+            {
+                return ApiResponse.Error;
+            }
+
+            return ApiResponse.Success;
+        }
+
+        public ApiResponse ClaimFriends(Account account)
+        {
+            var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
+
+            HttpStatusCode responseStatusCode = HttpStatusCode.None;
+
+            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
+                                     HTTPController.SendRequest(BASE_GATEWAY_API_URL + FRIENDS_CLAIM_REQUEST_ENDPOINT,
+                                                                out responseStatusCode, RequestType.POST, account.Proxy, headers,
+                                                                parameters: null, parametersString: null, parametersContentType: null, referer: null,
+                                                                account.UserAgent)
+                                 );
+
+            if (responseStatusCode == HttpStatusCode.Unauthorized)
+            {
+                return ApiResponse.Unauthorized;
+            }
+
+            if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
+            {
+                return ApiResponse.Error;
+            }
+
+            return ApiResponse.Success;
         }
     }
 }

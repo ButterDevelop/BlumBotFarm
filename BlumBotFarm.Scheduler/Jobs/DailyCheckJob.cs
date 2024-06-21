@@ -37,14 +37,17 @@ namespace BlumBotFarm.Scheduler.Jobs
             // Auth check, first of all
             if (!GameApiUtilsService.AuthCheck(ref account, accountRepository, gameApiClient)) return;
 
-            // Getting the main page
-            //gameApiClient.GetMainPageHTML(account);
-
             // Doing Daily Reward Job
             if (gameApiClient.GetDailyReward(account) != ApiResponse.Success)
             {
                 Log.Information("Can't take daily reward for some reason.");
             }
+
+            // Starting and claiming all the tasks
+            GameApiUtilsService.StartAndClaimAllTasks(account, gameApiClient);
+
+            // Claiming our possible reward for friends
+            var friendsClaimResponse = gameApiClient.ClaimFriends(account);
 
             // Updating user info
             (ApiResponse result, double balance, int tickets) = gameApiClient.GetUserInfo(account);
