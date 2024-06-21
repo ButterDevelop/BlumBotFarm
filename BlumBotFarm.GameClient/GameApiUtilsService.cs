@@ -7,8 +7,8 @@ namespace BlumBotFarm.GameClient
     {
         private const int MIN_GAME_POINTS = 200,
                           MAX_GAME_POINTS = 300,
-                          MIN_AMOUNT_OF_SECONDS_TO_WAIT = 65,
-                          MAX_AMOUNT_OF_SECONDS_TO_WAIT = 80;
+                          MIN_AMOUNT_OF_SECONDS_TO_WAIT = 35,
+                          MAX_AMOUNT_OF_SECONDS_TO_WAIT = 50;
 
         public static bool AuthCheck(ref Account account, AccountRepository accountRepository, GameApiClient gameApiClient)
         {

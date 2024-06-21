@@ -1,7 +1,6 @@
 ﻿using BlumBotFarm.Core.Models;
 using Microsoft.CSharp.RuntimeBinder;
 using Newtonsoft.Json.Linq;
-using System.Threading.Tasks;
 using xNet;
 
 namespace BlumBotFarm.GameClient
