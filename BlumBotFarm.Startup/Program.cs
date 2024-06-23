@@ -4,7 +4,6 @@ using BlumBotFarm.GameClient;
 using BlumBotFarm.Scheduler.Jobs;
 using Quartz;
 using Serilog;
-using static Quartz.Logging.OperationName;
 using TaskScheduler = BlumBotFarm.Scheduler.TaskScheduler;
 
 namespace BlumBotFarm.Startup
@@ -38,10 +37,12 @@ namespace BlumBotFarm.Startup
             // Настройка Telegram-бота через конфигурацию
             var botToken       = AppConfig.BotSettings.Token;
             var adminUsernames = AppConfig.BotSettings.AdminUsernames;
-            if (botToken != null && adminUsernames != null)
+            var adminChatIds   = AppConfig.BotSettings.AdminChatIds;
+            if (botToken != null && adminUsernames != null && adminChatIds != null)
             {
-                var telegramBot = new TelegramBot.TelegramBot(botToken, adminUsernames);
+                var telegramBot = new TelegramBot.TelegramBot(botToken, adminUsernames, adminChatIds);
                 telegramBot.Start();
+                Log.Information("Started Telegram bot.");
             }
 
             // Создание экземпляра планировщика задач
@@ -78,10 +79,14 @@ namespace BlumBotFarm.Startup
                                 .StartAt(task.NextRunTime)
                                 .Build();
 
+                            Log.Information($"Schedule task - accountId: {account.Id}, accountUsername: {account.Username}, taskId: {task.Id}, taskType: {task.TaskType}");
+
                             await taskScheduler.ScheduleTask(task.Id.ToString(), task.Id.ToString(), job, trigger);
                         }
                         else
                         {
+                            Log.Information($"Reschedule missed task - accountId: {account.Id}, accountUsername: {account.Username}, taskId: {task.Id}, taskType: {task.TaskType}");
+
                             // Перепланировать задачи, которые были пропущены
                             await RescheduleMissedTask(taskScheduler, account, task, taskRepo);
                         }
@@ -91,9 +96,10 @@ namespace BlumBotFarm.Startup
             
             Log.Information("Started an infinite loop.");
 
+            DateTime start = DateTime.Now;
             while (true)
             {
-                Log.Information("Infinite loop: I am working.");
+                Log.Information($"Infinite loop: I am working. Uptime: {DateTime.Now - start:hh\\:mm\\:ss}");
 
                 Thread.Sleep(60 * 1000); // Wait 1 minute
             }

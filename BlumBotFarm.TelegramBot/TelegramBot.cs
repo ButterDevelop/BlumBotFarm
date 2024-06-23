@@ -4,6 +4,7 @@ using BlumBotFarm.GameClient;
 using BlumBotFarm.Scheduler.Jobs;
 using Quartz;
 using Serilog;
+using System.Reflection.Metadata.Ecma335;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
@@ -17,14 +18,16 @@ namespace BlumBotFarm.TelegramBot
     {
         private readonly ITelegramBotClient botClient;
         private readonly string[] adminUsernames;
+        private readonly long[]   adminChatIds;
         private readonly AccountRepository accountRepository;
         private readonly TaskRepository    taskRepository;
         private readonly TaskScheduler     taskScheduler;
 
-        public TelegramBot(string token, string[] adminUsernames)
+        public TelegramBot(string token, string[] adminUsernames, long[] adminChatIds)
         {
             botClient = new TelegramBotClient(token);
             this.adminUsernames = adminUsernames;
+            this.adminChatIds   = adminChatIds;
             using (var db = Database.Database.GetConnection())
             {
                 accountRepository = new AccountRepository(db);
@@ -56,35 +59,85 @@ namespace BlumBotFarm.TelegramBot
                 {
                     await HandleAdminMessage(message);
                 }
+                else
+                {
+                    Log.Information("Someone, not admin, tried to execute bot. " +
+                                    $"Username: @{username ?? "-"}, userId: {message.From.Id}, " +
+                                    $"chatId: {message.Chat.Id}, name: {message.From.FirstName ?? "-"} {message.From.LastName ?? "-"}\n" +
+                                    $"Their message to bot: {message.Text}");
+
+                    foreach (var adminChatId in adminChatIds)
+                    {
+                        await botClient.SendTextMessageAsync(adminChatId, 
+                                                             "<b>Someone, not admin, tried to execute bot.</b>\n" +
+                                                             $"Their info - username: <b>@{username ?? "-"}</b>, userId: <b>{message.From.Id}</b>, " +
+                                                             $"chatId: <b>{message.Chat.Id}</b>, " +
+                                                             $"name: <b>{message.From.FirstName ?? "-"} {message.From.LastName ?? "-"}</b>\n" +
+                                                             $"Their message to bot: <code>{message.Text}</code>", null, ParseMode.Html);
+                    }
+                }
             }
         }
 
         private async Task HandleAdminMessage(Message message)
         {
-            if (message.Text is null) return;
+            if (message.Text is null || message.From is null) return;
 
             var parts   = message.Text.Split(' ');
             var command = parts[0].ToLower();
 
+            Log.Information($"Command called by {message.From.Username}: {message.Text}");
+
             switch (command)
             {
                 case "/start":
-                    await botClient.SendTextMessageAsync(message.Chat, "Hello. You are admin. You can see the whole list of commands by typing '/'.", null, ParseMode.Html);
+                    await botClient.SendTextMessageAsync(message.Chat, "Hello. You are admin. You can see the whole list of commands by typing '/'.\n" +
+                                                                       $"Your Telegram Chat Id with me is: <code>{message.Chat.Id}</code>",
+                                                                       null, ParseMode.Html);
                     break;
                 case "/addaccount":
+                    if (parts.Length == 3 || parts.Length == 4)
+                    {
+                        var username     = parts[1];
+                        var refreshToken = parts[2];
+                        var proxy        = parts.Length == 4 ? parts[3] : "";
+
+                        if (username is null || refreshToken is null || proxy is null)
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, "Something went wrong with your data, please, try again.", null, ParseMode.Html);
+                            return;
+                        }
+
+                        var account = accountRepository.GetAll().FirstOrDefault(user => user.Username == username);
+                        if (account != null)
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, "The account with this username <b>already exists</b>.", null, ParseMode.Html);
+                            return;
+                        }
+
+                        await AddAccount(username, refreshToken, proxy);
+                        await botClient.SendTextMessageAsync(message.Chat, $"Account <b>{username}</b> added successfully.", null, ParseMode.Html);
+
+                        Log.Information($"Account {username} added successfully.");
+                    }
+                    else
                     if (parts.Length == 5 || parts.Length == 6)
                     {
-                        var username       = parts[1];
-                        var accessToken    = parts[2];
-                        var refreshToken   = parts[3];
+                        var username     = parts[1];
+                        var accessToken  = parts[2];
+                        var refreshToken = parts[3];
+                        var proxy        = parts.Length == 6 ? parts[5] : "";
                         if (!int.TryParse(parts[4], out int timezoneOffset))
                         {
                             await botClient.SendTextMessageAsync(message.Chat, "Something wrong with <b>Timezone Offset</b>.", null, ParseMode.Html);
                             return;
                         }
 
-                        string proxy = "";
-                        if (parts.Length == 6) proxy = parts[5];
+                        if (username is null || accessToken is null || refreshToken is null || proxy is null)
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, "Something went wrong with your data, please, try again.", null, ParseMode.Html);
+                            return;
+                        }
 
                         var account = accountRepository.GetAll().FirstOrDefault(user => user.Username == username);
                         if (account != null)
@@ -95,10 +148,13 @@ namespace BlumBotFarm.TelegramBot
 
                         await AddAccount(username, accessToken, refreshToken, proxy, timezoneOffset);
                         await botClient.SendTextMessageAsync(message.Chat, $"Account <b>{username}</b> added successfully.", null, ParseMode.Html);
+
+                        Log.Information($"Account {username} added successfully.");
                     }
                     else
                     {
-                        await botClient.SendTextMessageAsync(message.Chat, "Usage: /addaccount <username> <accessToken> <refreshToken> <timezoneOffset> [<proxy>]");
+                        await botClient.SendTextMessageAsync(message.Chat, "Usage: /addaccount <username> <accessToken> <refreshToken> <timezoneOffset> [<proxy>]\n" +
+                                                                           "Or: /addaccount <username> <refreshToken> [<proxy>]");
                     }
                     break;
                 case "/stats":
@@ -123,10 +179,12 @@ namespace BlumBotFarm.TelegramBot
 
                         if (proxy == null)
                         {
+                            Log.Information($"Proxy for account {username} has been removed.");
                             await botClient.SendTextMessageAsync(message.Chat, $"Proxy for account <b>{username}</b> has been <b>removed</b>.", null, ParseMode.Html);
                         }
                         else
                         {
+                            Log.Information($"Proxy for account {username} has been updated to {proxy}.");
                             await botClient.SendTextMessageAsync(message.Chat, $"Proxy for account <b>{username}</b> has been updated to <b>{proxy}</b>.", null, ParseMode.Html);
                         }
                     }
@@ -141,6 +199,10 @@ namespace BlumBotFarm.TelegramBot
             }
         }
 
+        private async Task AddAccount(string username, string refreshToken, string proxy)
+        {
+            await AddAccount(username, accessToken: "", refreshToken, proxy, timezoneOffset: -180);
+        }
         private async Task AddAccount(string username, string accessToken, string refreshToken, string proxy, int timezoneOffset)
         {
             var account = new Account
@@ -187,7 +249,9 @@ namespace BlumBotFarm.TelegramBot
             var job1 = JobBuilder.Create<DailyCheckJob>().Build();
             await ScheduleATaskAsync(account, taskDailyCheckJob, job1, now);
             var job2 = JobBuilder.Create<FarmingJob>().Build();
-            await ScheduleATaskAsync(account, taskFarming,       job2, now);
+            await ScheduleATaskAsync(account, taskFarming,       job2, now.AddMilliseconds(TaskScheduler.MAX_MS_AMOUNT_TO_WAIT_BEFORE_JOB));
+
+            Log.Information($"AddAccount: Scheduled tasks and added it to the DB: {username}");
         }
 
         private async Task ScheduleATaskAsync(Account account, Core.Models.Task task, IJobDetail job, DateTime now)
@@ -212,16 +276,66 @@ namespace BlumBotFarm.TelegramBot
             var accounts     = accountRepository.GetAll();
             var totalBalance = accounts.Sum(a => a.Balance);
             var totalTickets = accounts.Sum(a => a.Tickets);
+
+            var now        = DateTime.Now;
+            var startOfDay = now.Date;
+            var endOfDay   = startOfDay.AddDays(1);
+
+            var tasks = taskRepository.GetAll();
+
+            int executedDailyJobs    = 0;
+            int notExecutedDailyJobs = 0;
+            int executedFarming      = 0;
+            int notExecutedFarming   = 0;
+
+            foreach (var task in tasks)
+            {
+                if (task.TaskType == "DailyCheckJob" || task.TaskType == "Farming")
+                {
+                    // Посчет выполненных задач от текущего времени до начала дня
+                    var previousRunTime = task.NextRunTime;
+                    while (previousRunTime > startOfDay)
+                    {
+                        if (previousRunTime <= now)
+                        {
+                            if (task.TaskType == "DailyCheckJob")
+                                executedDailyJobs++;
+                            else if (task.TaskType == "Farming")
+                                executedFarming++;
+                        }
+
+                        previousRunTime = previousRunTime.AddSeconds(-task.ScheduleSeconds);
+                    }
+
+                    // Подсчет оставшихся задач от текущего времени до конца дня
+                    var nextRunTime = task.NextRunTime;
+                    while (nextRunTime < endOfDay)
+                    {
+                        if (nextRunTime >= now)
+                        {
+                            if (task.TaskType == "DailyCheckJob")
+                                notExecutedDailyJobs++;
+                            else if (task.TaskType == "Farming")
+                                notExecutedFarming++;
+                        }
+
+                        nextRunTime = nextRunTime.AddSeconds(task.ScheduleSeconds);
+                    }
+                }
+            }
+
             return $"<b>CZ time:</b> <code>{DateTime.UtcNow.AddHours(2):dd.MM.yyyy HH:mm:ss}</code>\n" +
                    $"<b>MSK time:</b> <code>{DateTime.UtcNow.AddHours(3):dd.MM.yyyy HH:mm:ss}</code>\n" +
                    $"Total accounts: <b>{accounts.Count()}</b>\n" +
                    $"Total balance: <b>{totalBalance}</b> $\n" +
-                   $"Total tickets: <b>{totalTickets}</b>";
+                   $"Total tickets: <b>{totalTickets}</b>\n" +
+                   $"Executed daily jobs today: <b>{executedDailyJobs + executedFarming}</b>\n" +
+                   $"Remaining daily jobs today: <b>{notExecutedDailyJobs + notExecutedFarming}</b>\n";
         }
 
         private Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
         {
-            Log.Error(exception.Message);
+            Log.Error($"Telegram Bot HandleErrorAsync: {exception}");
             return Task.CompletedTask;
         }
     }

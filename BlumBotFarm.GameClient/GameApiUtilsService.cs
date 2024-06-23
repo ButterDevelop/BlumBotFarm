@@ -1,5 +1,6 @@
 ﻿using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Repositories;
+using Serilog;
 
 namespace BlumBotFarm.GameClient
 {
@@ -18,7 +19,11 @@ namespace BlumBotFarm.GameClient
             {
                 (ApiResponse refreshAuthResult, string newAccessToken, string newRefreshToken) = gameApiClient.RefreshAuth(account);
 
-                if (refreshAuthResult != ApiResponse.Success) return false;
+                if (refreshAuthResult != ApiResponse.Success)
+                {
+                    Log.Warning($"AuthCheck not passed for account with Id: {account.Id}, Username: {account.Username}");
+                    return false;
+                }
 
                 account.AccessToken  = newAccessToken;
                 account.RefreshToken = newRefreshToken;

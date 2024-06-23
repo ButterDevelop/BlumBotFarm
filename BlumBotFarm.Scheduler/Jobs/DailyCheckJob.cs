@@ -27,22 +27,39 @@ namespace BlumBotFarm.Scheduler.Jobs
 
         public async System.Threading.Tasks.Task Execute(IJobExecutionContext context)
         {
-            Random random = new();
-            Thread.Sleep(random.Next(TaskScheduler.MIN_MS_AMOUNT_TO_WAIT_BEFORE_JOB, TaskScheduler.MAX_MS_AMOUNT_TO_WAIT_BEFORE_JOB + 1));
-
             var account   = (Account)context.MergedJobDataMap["account"];
             var task      = (Task)context.MergedJobDataMap["taskDailyCheckJob"];
             var isPlanned = (bool)context.MergedJobDataMap["isPlanned"];
 
-            if (account is null || task == null) return;
+            if (account is null || task == null)
+            {
+                Log.Warning($"Exiting Daily Check Job because of: Account is " + (account is null ? "NULL" : "NOT NULL") +
+                                                                  ", Task is " + (task    is null ? "NULL" : "NOT NULL"));
+                return;
+            }
+
+            account = accountRepository.GetById(account.Id);
+            if (account == null)
+            {
+                Log.Warning("Exiting Daily Check Job because of: Account is NULL after getting it from the Database.");
+                return;
+            }
+
+            Log.Information($"Started Daily Check Job for an account with Id: {account.Id}, Username: {account.Username}");
+
+            Random random = new();
+            Thread.Sleep(random.Next(TaskScheduler.MIN_MS_AMOUNT_TO_WAIT_BEFORE_JOB, TaskScheduler.MAX_MS_AMOUNT_TO_WAIT_BEFORE_JOB + 1));
 
             // Auth check, first of all
             if (!GameApiUtilsService.AuthCheck(ref account, accountRepository, gameApiClient)) return;
 
+            // Updating user info (maybe auth changed)
+            accountRepository.Update(account);
+
             // Doing Daily Reward Job
             if (gameApiClient.GetDailyReward(account) != ApiResponse.Success)
             {
-                Log.Information("Can't take daily reward for some reason.");
+                Log.Information($"Can't take daily reward for some reason for an account with Id: {account.Id}, Username: {account.Username}.");
             }
 
             // Starting and claiming all the tasks
@@ -50,6 +67,10 @@ namespace BlumBotFarm.Scheduler.Jobs
 
             // Claiming our possible reward for friends
             var friendsClaimResponse = gameApiClient.ClaimFriends(account);
+            if (friendsClaimResponse != ApiResponse.Success)
+            {
+                Log.Information($"Can't take friends reward for some reason for an account with Id: {account.Id}, Username: {account.Username}.");
+            }
 
             // Updating user info
             (ApiResponse result, double balance, int tickets) = gameApiClient.GetUserInfo(account);
@@ -67,10 +88,12 @@ namespace BlumBotFarm.Scheduler.Jobs
                 if (result == ApiResponse.Success)
                 {
                     nextRunTime = DateTime.Now.AddHours(24); // Запланировать задание снова через 24 часа
+                    Log.Information($"Daily Check Job is planned to be executed in 24 hours as usual for an account with Id: {account.Id}, Username: {account.Username}.");
                 }
                 else
                 {
                     nextRunTime = DateTime.Now.AddHours(1); // Запланировать задание снова через 1 час
+                    Log.Warning($"Daily Check Job is planned to be executed in 1 hour because of not successful server's answer for an account with Id: {account.Id}, Username: {account.Username}.");
                 }
 
                 // Update the existing trigger with the new schedule
@@ -92,6 +115,8 @@ namespace BlumBotFarm.Scheduler.Jobs
                 task.NextRunTime = nextRunTime;
                 taskRepository.Update(task);
             }
+
+            Log.Information($"Daily Check Job is done for an account with Id: {account.Id}, Username: {account.Username}");
         }
     }
 }
