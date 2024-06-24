@@ -1,6 +1,7 @@
 ﻿using BlumBotFarm.Core.Models;
 using Microsoft.CSharp.RuntimeBinder;
 using Newtonsoft.Json.Linq;
+using Serilog;
 using xNet;
 
 namespace BlumBotFarm.GameClient
@@ -47,19 +48,21 @@ namespace BlumBotFarm.GameClient
             return headers;
         }
 
-        public void GetMainPageHTML(Account account)
+        public bool GetMainPageHTML(Account account)
         {
             var headers = GetUniqueHeaders(_commonHeaders, string.Empty);
             if (headers.ContainsKey("Accept")) headers["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7";
 
             HttpStatusCode responseStatusCode = HttpStatusCode.None;
 
-            HTTPController.ExecuteFunctionUntilSuccess(() =>
+            var answer = HTTPController.ExecuteFunctionUntilSuccess(() =>
                 HTTPController.SendRequest(HTML_PAGE_URL,
                                            out responseStatusCode, RequestType.GET, account.Proxy, headers,
                                            parameters: null, parametersString: null, parametersContentType: null, referer: null,
                                            account.UserAgent)
             );
+
+            return answer != null && answer.Length > 0 && responseStatusCode == HttpStatusCode.OK;
         }
 
         public ApiResponse GetAboutMeInfo(Account account)
@@ -77,11 +80,13 @@ namespace BlumBotFarm.GameClient
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
+                Log.Error($"GameApiClient GetAboutMeInfo (Account with Id: {account.Id}, Username: {account.Username}) responseStatusCode - Unauthorized!");
                 return ApiResponse.Unauthorized;
             }
 
             if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
             {
+                Log.Error($"GameApiClient GetAboutMeInfo (Account with Id: {account.Id}, Username: {account.Username}) JSON answer: {jsonAnswer}");
                 return ApiResponse.Error;
             }
 
@@ -106,11 +111,13 @@ namespace BlumBotFarm.GameClient
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
+                Log.Error($"GameApiClient RefreshAuth (Account with Id: {account.Id}, Username: {account.Username}) responseStatusCode - Unauthorized!");
                 return (ApiResponse.Unauthorized, string.Empty, string.Empty);
             }
 
             if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
             {
+                Log.Error($"GameApiClient RefreshAuth (Account with Id: {account.Id}, Username: {account.Username}) JSON answer: {jsonAnswer}");
                 return (ApiResponse.Error, string.Empty, string.Empty);
             }
 
@@ -125,6 +132,7 @@ namespace BlumBotFarm.GameClient
             }
             catch (RuntimeBinderException ex)
             {
+                Log.Error($"GameApiClient RefreshAuth (Account with Id: {account.Id}, Username: {account.Username}) Exception: {ex}");
                 return (ApiResponse.Error, string.Empty, string.Empty);
             }
         }
@@ -144,11 +152,13 @@ namespace BlumBotFarm.GameClient
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
+                Log.Error($"GameApiClient GetDailyReward (Account with Id: {account.Id}, Username: {account.Username}) responseStatusCode - Unauthorized!");
                 return ApiResponse.Unauthorized;
             }
 
             if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
             {
+                Log.Error($"GameApiClient GetDailyReward (Account with Id: {account.Id}, Username: {account.Username}) JSON answer: {jsonAnswer}");
                 return ApiResponse.Error;
             }
             
@@ -170,11 +180,13 @@ namespace BlumBotFarm.GameClient
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
+                Log.Error($"GameApiClient StartGame (Account with Id: {account.Id}, Username: {account.Username}) responseStatusCode - Unauthorized!");
                 return (ApiResponse.Unauthorized, string.Empty);
             }
 
             if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
             {
+                Log.Error($"GameApiClient StartGame (Account with Id: {account.Id}, Username: {account.Username}) JSON answer: {jsonAnswer}");
                 return (ApiResponse.Error, string.Empty);
             }
 
@@ -188,6 +200,7 @@ namespace BlumBotFarm.GameClient
             }
             catch (RuntimeBinderException ex)
             {
+                Log.Error($"GameApiClient StartGame (Account with Id: {account.Id}, Username: {account.Username}) Exception: {ex}");
                 return (ApiResponse.Error, string.Empty);
             }
         }
@@ -210,11 +223,13 @@ namespace BlumBotFarm.GameClient
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
+                Log.Error($"GameApiClient EndGame (Account with Id: {account.Id}, Username: {account.Username}) responseStatusCode - Unauthorized!");
                 return ApiResponse.Unauthorized;
             }
 
             if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
             {
+                Log.Error($"GameApiClient EndGame (Account with Id: {account.Id}, Username: {account.Username}) JSON answer: {jsonAnswer}");
                 return ApiResponse.Error;
             }
 
@@ -236,11 +251,13 @@ namespace BlumBotFarm.GameClient
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
+                Log.Error($"GameApiClient GetUserInfo (Account with Id: {account.Id}, Username: {account.Username}) responseStatusCode - Unauthorized!");
                 return (ApiResponse.Unauthorized, 0, 0);
             }
 
             if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
             {
+                Log.Error($"GameApiClient GetUserInfo (Account with Id: {account.Id}, Username: {account.Username}) JSON answer: {jsonAnswer}");
                 return (ApiResponse.Error, 0, 0);
             }
 
@@ -257,6 +274,7 @@ namespace BlumBotFarm.GameClient
             }
             catch (Exception ex)
             {
+                Log.Error($"GameApiClient GetUserInfo (Account with Id: {account.Id}, Username: {account.Username}) Exception: {ex}");
                 return (ApiResponse.Error, 0, 0);
             }
         }
@@ -276,11 +294,13 @@ namespace BlumBotFarm.GameClient
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
+                Log.Error($"GameApiClient StartFarming (Account with Id: {account.Id}, Username: {account.Username}) responseStatusCode - Unauthorized!");
                 return ApiResponse.Unauthorized;
             }
 
             if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
             {
+                Log.Error($"GameApiClient StartFarming (Account with Id: {account.Id}, Username: {account.Username}) JSON answer: {jsonAnswer}");
                 return ApiResponse.Error;
             }
 
@@ -302,11 +322,13 @@ namespace BlumBotFarm.GameClient
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
+                Log.Error($"GameApiClient ClaimFarming (Account with Id: {account.Id}, Username: {account.Username}) responseStatusCode - Unauthorized!");
                 return (ApiResponse.Unauthorized, 0, 0);
             }
 
             if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
             {
+                Log.Error($"GameApiClient ClaimFarming (Account with Id: {account.Id}, Username: {account.Username}) JSON answer: {jsonAnswer}");
                 return (ApiResponse.Error, 0, 0);
             }
 
@@ -323,6 +345,7 @@ namespace BlumBotFarm.GameClient
             }
             catch (Exception ex)
             {
+                Log.Error($"GameApiClient ClaimFarming (Account with Id: {account.Id}, Username: {account.Username}) Exception: {ex}");
                 return (ApiResponse.Error, 0, 0);
             }
         }
@@ -342,11 +365,13 @@ namespace BlumBotFarm.GameClient
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
+                Log.Error($"GameApiClient GetTasks (Account with Id: {account.Id}, Username: {account.Username}) responseStatusCode - Unauthorized!");
                 return (ApiResponse.Unauthorized, []);
             }
 
             if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
             {
+                Log.Error($"GameApiClient GetTasks (Account with Id: {account.Id}, Username: {account.Username}) JSON answer: {jsonAnswer}");
                 return (ApiResponse.Error, []);
             }
 
@@ -365,6 +390,7 @@ namespace BlumBotFarm.GameClient
             }
             catch (Exception ex)
             {
+                Log.Error($"GameApiClient GetTasks (Account with Id: {account.Id}, Username: {account.Username}) Exception: {ex}");
                 return (ApiResponse.Error, []);
             }
         }
@@ -384,11 +410,13 @@ namespace BlumBotFarm.GameClient
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
+                Log.Error($"GameApiClient StartTask (Account with Id: {account.Id}, Username: {account.Username}) responseStatusCode - Unauthorized!");
                 return ApiResponse.Unauthorized;
             }
 
             if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
             {
+                Log.Error($"GameApiClient StartTask (Account with Id: {account.Id}, Username: {account.Username}) JSON answer: {jsonAnswer}");
                 return ApiResponse.Error;
             }
 
@@ -410,11 +438,13 @@ namespace BlumBotFarm.GameClient
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
+                Log.Error($"GameApiClient ClaimTask (Account with Id: {account.Id}, Username: {account.Username}) responseStatusCode - Unauthorized!");
                 return ApiResponse.Unauthorized;
             }
 
             if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
             {
+                Log.Error($"GameApiClient ClaimTask (Account with Id: {account.Id}, Username: {account.Username}) JSON answer: {jsonAnswer}");
                 return ApiResponse.Error;
             }
 
@@ -436,11 +466,13 @@ namespace BlumBotFarm.GameClient
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
+                Log.Error($"GameApiClient ClaimFriends (Account with Id: {account.Id}, Username: {account.Username}) responseStatusCode - Unauthorized!");
                 return ApiResponse.Unauthorized;
             }
 
             if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
             {
+                Log.Error($"GameApiClient ClaimFriends (Account with Id: {account.Id}, Username: {account.Username}) JSON answer: {jsonAnswer}");
                 return ApiResponse.Error;
             }
 

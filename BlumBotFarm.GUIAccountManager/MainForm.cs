@@ -42,7 +42,7 @@ namespace BlumBotFarm.GUIAccountManager
                 return;
             }
 
-            var tdataPath = Path.Combine(accountName, "tdata");
+            var tdataPath = Path.Combine(accountName, $"tdata{accountNumber}");
             if (!Directory.Exists(tdataPath))
             {
                 MessageBox.Show("No tdata directory found in your account folder!", "BlumBotFarm TG account manager", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -62,8 +62,8 @@ namespace BlumBotFarm.GUIAccountManager
                 return;
             }
 
-            Clipboard.SetText(account.ProxyForFidler);
-            MessageBox.Show($"Proxy FOR Fiddler ({account.ProxyForFidler}) for this account was copied to your clipboard!", "BlumBotFarm TG account manager", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            Clipboard.SetText(account.Proxy);
+            MessageBox.Show($"Proxy FOR Fiddler ({account.Proxy}) for this account was copied to your clipboard!", "BlumBotFarm TG account manager", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
             // Closing all Telegram processes
             Process[] workers = Process.GetProcessesByName("Telegram");
@@ -74,7 +74,7 @@ namespace BlumBotFarm.GUIAccountManager
                 worker.Dispose();
             }
 
-            string destTDataPath = Path.Combine(Directory.GetCurrentDirectory(), "tdata");
+            string destTDataPath = Path.Combine(Directory.GetCurrentDirectory(), $"tdata");
             if (!Directory.Exists(destTDataPath))
             {
                 Directory.CreateDirectory(destTDataPath);
@@ -88,7 +88,7 @@ namespace BlumBotFarm.GUIAccountManager
 
             File.Copy("settingss_Fiddler", Path.Combine(tdataPath, "settingss"), true);
 
-            richTextBoxTelegramAddCommand.Text = $"/addaccount USERNAME REFRESH_TOKEN {account.ProxyForProgram}";
+            richTextBoxTelegramAddCommand.Text = $"/addaccount USERNAME REFRESH_TOKEN http://{account.Proxy}";
 
             var result = MessageBox.Show("Everything is ready to start. You agree? If yes, it will be started in 3 seconds.", "BlumBotFarm TG account manager", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (result == DialogResult.No)

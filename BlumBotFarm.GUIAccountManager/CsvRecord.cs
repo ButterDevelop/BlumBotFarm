@@ -13,11 +13,8 @@ namespace BlumBotFarm.GUIAccountManager
         [Name("Telegram Name")]
         public string TelegramName { get; set; } = string.Empty;
 
-        [Name("Proxy For Program")]
-        public string ProxyForProgram { get; set; } = string.Empty;
-
-        [Name("Proxy For Fidler")]
-        public string ProxyForFidler { get; set; } = string.Empty;
+        [Name("Proxy")]
+        public string Proxy { get; set; } = string.Empty;
 
         [Name("Access Token")]
         public string AccessToken { get; set; } = string.Empty;
@@ -27,5 +24,8 @@ namespace BlumBotFarm.GUIAccountManager
 
         [Name(" Refferal Link")]
         public string ReferralLink { get; set; } = string.Empty;
+
+        [Name("Telegram Add Command")]
+        public string TelegramAddCommand { get; set; } = string.Empty;
     }
 }

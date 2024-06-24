@@ -4,7 +4,6 @@ using BlumBotFarm.GameClient;
 using BlumBotFarm.Scheduler.Jobs;
 using Quartz;
 using Serilog;
-using System.Reflection.Metadata.Ecma335;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
@@ -45,6 +44,14 @@ namespace BlumBotFarm.TelegramBot
             botClient.StartReceiving(HandleUpdateAsync, HandleErrorAsync, receiverOptions, cancellationToken: CancellationToken.None);
         }
 
+        public async Task SendMessageToAdmins(string message)
+        {
+            foreach (var adminChatId in adminChatIds)
+            {
+                await botClient.SendTextMessageAsync(adminChatId, message, null, ParseMode.Html);
+            }
+        }
+
         private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
             if (update.Message is null) return;
@@ -66,15 +73,11 @@ namespace BlumBotFarm.TelegramBot
                                     $"chatId: {message.Chat.Id}, name: {message.From.FirstName ?? "-"} {message.From.LastName ?? "-"}\n" +
                                     $"Their message to bot: {message.Text}");
 
-                    foreach (var adminChatId in adminChatIds)
-                    {
-                        await botClient.SendTextMessageAsync(adminChatId, 
-                                                             "<b>Someone, not admin, tried to execute bot.</b>\n" +
-                                                             $"Their info - username: <b>@{username ?? "-"}</b>, userId: <b>{message.From.Id}</b>, " +
-                                                             $"chatId: <b>{message.Chat.Id}</b>, " +
-                                                             $"name: <b>{message.From.FirstName ?? "-"} {message.From.LastName ?? "-"}</b>\n" +
-                                                             $"Their message to bot: <code>{message.Text}</code>", null, ParseMode.Html);
-                    }
+                    await SendMessageToAdmins("<b>Someone, not admin, tried to execute bot.</b>\n" +
+                                              $"Their info - username: <b>@{username ?? "-"}</b>, userId: <b>{message.From.Id}</b>, " +
+                                              $"chatId: <b>{message.Chat.Id}</b>, " +
+                                              $"name: <b>{message.From.FirstName ?? "-"} {message.From.LastName ?? "-"}</b>\n" +
+                                              $"Their message to bot: <code>{message.Text}</code>");
                 }
             }
         }
@@ -240,11 +243,19 @@ namespace BlumBotFarm.TelegramBot
             // Получаем только что добавленную задачу с присвоенным ID
             taskRepository.Add(taskDailyCheckJob);
             taskDailyCheckJob = taskRepository.GetAll().FirstOrDefault(t => t.AccountId == account.Id && t.TaskType == "DailyCheckJob");
-            if (taskDailyCheckJob == null) return;
+            if (taskDailyCheckJob == null)
+            {
+                Log.Error("TelegramBot AddAccount: task Daily Check Job is NULL after getting it from the DB!");
+                return;
+            }
 
             taskRepository.Add(taskFarming);
             taskFarming = taskRepository.GetAll().FirstOrDefault(t => t.AccountId == account.Id && t.TaskType == "Farming");
-            if (taskFarming == null) return;
+            if (taskFarming == null)
+            {
+                Log.Error("TelegramBot AddAccount: task Farming is NULL after getting it from the DB!");
+                return;
+            }
 
             var job1 = JobBuilder.Create<DailyCheckJob>().Build();
             await ScheduleATaskAsync(account, taskDailyCheckJob, job1, now);
@@ -327,10 +338,10 @@ namespace BlumBotFarm.TelegramBot
             return $"<b>CZ time:</b> <code>{DateTime.UtcNow.AddHours(2):dd.MM.yyyy HH:mm:ss}</code>\n" +
                    $"<b>MSK time:</b> <code>{DateTime.UtcNow.AddHours(3):dd.MM.yyyy HH:mm:ss}</code>\n" +
                    $"Total accounts: <b>{accounts.Count()}</b>\n" +
-                   $"Total balance: <b>{totalBalance}</b> $\n" +
+                   $"Total balance: <b>{totalBalance:N2}</b> ฿\n" +
                    $"Total tickets: <b>{totalTickets}</b>\n" +
-                   $"Executed daily jobs today: <b>{executedDailyJobs + executedFarming}</b>\n" +
-                   $"Remaining daily jobs today: <b>{notExecutedDailyJobs + notExecutedFarming}</b>\n";
+                   $"Executed jobs today: <b>{executedDailyJobs + executedFarming}</b>\n" +
+                   $"Remaining jobs today: <b>{notExecutedDailyJobs + notExecutedFarming}</b>\n";
         }
 
         private Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
