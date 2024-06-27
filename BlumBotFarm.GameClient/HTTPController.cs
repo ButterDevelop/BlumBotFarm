@@ -1,7 +1,9 @@
 ﻿using Serilog;
+using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
-using xNet;
+using System.Text;
+using Yove.Proxy;
 
 namespace BlumBotFarm.GameClient
 {
@@ -18,6 +20,11 @@ namespace BlumBotFarm.GameClient
         private static string[] _userAgents = Array.Empty<string>();
         private static Random   _rnd        = new();
 
+        private static bool ServerCertificateValidationCallback(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
+        {
+            return true;
+        }
+
         public static void Initialize(string uas)
         {
             _userAgents = uas.Split(new char[2] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
@@ -29,127 +36,151 @@ namespace BlumBotFarm.GameClient
             return _userAgents[_rnd.Next(_userAgents.Length)];
         }
 
-        public static bool ServerCertificateValidationCallback(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
+        private static HttpClient GenerateClient(string proxy)
         {
-            return true;
-        }
-
-        public static string? SendRequest(string url, out HttpStatusCode responseStatusCode, RequestType type, string proxy = "",
-                                         Dictionary<string, string>? headers = null, Dictionary<string, string>? parameters = null,
-                                         string? parametersString = null, string? parametersContentType = null,
-                                         string? referer = null, string? userAgent = null, int connectTimeoutMs = 1000)
-        {
-            try
+            HttpClientHandler handler = new()
             {
-                string html = "";
-                using (var request = new HttpRequest())
+                ServerCertificateCustomValidationCallback = ServerCertificateValidationCallback
+            };
+
+            if (!string.IsNullOrEmpty(proxy))
+            {
+                string? proxyAddress;
+                string? username = null;
+                string? password = null;
+
+                ProxyType proxyType = proxy.Contains("socks5") ? ProxyType.Socks5 : (proxy.Contains("socks4") ? ProxyType.Socks4 : ProxyType.Http);
+                ProxyClient? proxyYove = null;
+
+                // Проверяем наличие логина и пароля в строке прокси
+                if (proxy.Contains('@'))
                 {
-                    request.SslCertificateValidatorCallback += ServerCertificateValidationCallback;
-                    request.IgnoreProtocolErrors = true;
-                    request.ConnectTimeout = connectTimeoutMs;
+                    // Пример: protocol://ip:port@login:password
+                    var protocolSplit = proxy.Split(new[] { "://" }, 2, StringSplitOptions.None);
+                    var protocol = protocolSplit[0];
+                    var rest     = protocolSplit[1];
 
-                    if (referer != null) request.Referer = referer;
+                    var atIndex     = rest.LastIndexOf('@');
+                    var addressPart = rest[..atIndex];
+                    var loginPart   = rest[(atIndex + 1)..];
 
-                    request.UserAgent = userAgent ?? GetRandomUserAgent();
-                    request.KeepAlive = true;
+                    var addressParts = addressPart.Split(':');
+                    var ip   = addressParts[0];
+                    var port = addressParts.Length > 1 ? addressParts[1] : string.Empty;
 
-                    if (!string.IsNullOrEmpty(proxy))
+                    var loginParts = loginPart.Split(':');
+                    username = loginParts.Length > 1 ? loginParts[0] : null;
+                    password = loginParts.Length > 1 ? loginParts[1] : null;
+
+                    proxyAddress = $"{ip}:{port}";
+
+                    if (username != null && password != null)
                     {
-                        if (proxy.StartsWith("socks4"))
-                        {
-                            request.Proxy = Socks5ProxyClient.Parse(proxy.Replace("socks4://", ""));
-                        }
-                        else
-                        if (proxy.StartsWith("socks5"))
-                        {
-                            request.Proxy = Socks5ProxyClient.Parse(proxy.Replace("socks5://", ""));
-                        }
-                        else
-                        if (proxy.StartsWith("http"))
-                        {
-                            request.Proxy = HttpProxyClient.Parse(proxy.Replace("http://", "").Replace("https://", ""));
-                        }
-                    }
-
-                    if (headers != null)
-                    {
-                        foreach (var header in headers)
-                        {
-                            request.AddHeader(header.Key, header.Value);
-                        }
-                    }
-
-                    RequestParams? reqParams = null;
-                    if (parameters != null)
-                    {
-                        reqParams = new RequestParams();
-                        foreach (var param in parameters)
-                        {
-                            reqParams[param.Key] = param.Value;
-                        }
-                    }
-
-                    HttpResponse? response = null;
-                    if (type == RequestType.GET)
-                    {
-                        response = request.Get(url, reqParams);
+                        proxyYove = new ProxyClient(proxyAddress, username, password, proxyType);
                     }
                     else
                     {
-                        if (parameters != null)
-                        {
-                            response = request.Post(url, reqParams);
-                        }
-                        else
-                        if (parametersString != null && !string.IsNullOrEmpty(parametersContentType))
-                        {
-                            response = request.Post(url, parametersString, parametersContentType);
-                        }
-                        else
-                        {
-                            response = request.Post(url);
-                        }
+                        proxyYove = new ProxyClient(proxyAddress, proxyType);
                     }
-
-                    responseStatusCode = response.StatusCode;
-
-                    html = response.ToString();
-                    return html;
                 }
+                else
+                {
+                    proxyAddress = proxy.Replace("socks5://", "").Replace("socks4://", "").Replace("http://", "");
+
+                    proxyYove = new ProxyClient(proxyAddress, proxyType);
+                }
+
+                handler.Proxy = proxyYove;
+                handler.UseProxy = true;
+            }
+
+            HttpClient client = new(handler);
+            return client;
+        }
+
+        public static async Task<(string? answer, HttpStatusCode responseStatusCode)> SendRequestAsync(string url, RequestType type, string proxy = "",
+                                 Dictionary<string, string>? headers = null, Dictionary<string, string>? parameters = null,
+                                 string? parametersString = null, string? parametersContentType = null,
+                                 string? referer = null, string? userAgent = null, int connectTimeoutMs = 10000)
+        {
+            try
+            {
+                var client = GenerateClient(proxy);
+
+                client.Timeout = TimeSpan.FromMilliseconds(connectTimeoutMs);
+
+                if (!string.IsNullOrEmpty(referer))
+                {
+                    client.DefaultRequestHeaders.Referrer = new Uri(referer);
+                }
+
+                client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent ?? GetRandomUserAgent());
+
+                if (headers != null)
+                {
+                    foreach (var header in headers)
+                    {
+                        client.DefaultRequestHeaders.TryAddWithoutValidation(header.Key, header.Value);
+                    }
+                }
+
+                HttpResponseMessage? response = null;
+                if (type == RequestType.GET)
+                {
+                    var requestUri = parameters != null ? QueryHelpers.AddQueryString(url, parameters) : url;
+                    response = await client.GetAsync(requestUri);
+                }
+                else if (type == RequestType.POST)
+                {
+                    if (parameters != null)
+                    {
+                        var content = new FormUrlEncodedContent(parameters);
+                        response = await client.PostAsync(url, content);
+                    }
+                    else if (!string.IsNullOrEmpty(parametersString) && !string.IsNullOrEmpty(parametersContentType))
+                    {
+                        var content = new StringContent(parametersString, Encoding.UTF8, parametersContentType);
+                        response = await client.PostAsync(url, content);
+                    }
+                    else
+                    {
+                        response = await client.PostAsync(url, null);
+                    }
+                }
+
+                if (response == null) throw new Exception("Response is NULL!");
+
+                return (await response.Content.ReadAsStringAsync(), response.StatusCode);
             }
             catch (Exception ex)
             {
-                responseStatusCode = HttpStatusCode.None;
-                Log.Error("{HTTPController SendRequest} Error: " + ex.ToString());
-                return null;
+                Log.Error($"HTTPController SendRequestAsync Exception: {ex}");
+                return (null, HttpStatusCode.ServiceUnavailable);
             }
         }
 
-        public static string? DownloadImageBase64FromURL(string imageUrl, int connectTimeoutMs = 1000)
+        public static async Task<string?> DownloadImageBase64FromURLAsync(string imageUrl, string proxy, int connectTimeoutMs = 5000)
         {
             try
             {
-                using (HttpRequest request = new HttpRequest())
+                var client = GenerateClient(proxy);
+
+                client.Timeout = TimeSpan.FromMilliseconds(connectTimeoutMs);
+                client.DefaultRequestHeaders.UserAgent.ParseAdd(GetRandomUserAgent());
+
+                var response = await client.GetAsync(imageUrl);
+
+                if (response.IsSuccessStatusCode)
                 {
-                    request.SslCertificateValidatorCallback += ServerCertificateValidationCallback;
-                    request.IgnoreProtocolErrors = true;
-                    request.ConnectTimeout = connectTimeoutMs;
-                    request.UserAgent = GetRandomUserAgent();
+                    byte[] imageBytes = await response.Content.ReadAsByteArrayAsync();
 
-                    HttpResponse response = request.Get(imageUrl);
-
-                    if (response.IsOK)
-                    {
-                        byte[] imageBytes = response.ToBytes();
-
-                        // Преобразуем массив байтов в строку Base64
-                        string base64Image = Convert.ToBase64String(imageBytes);
-                        return base64Image;
-                    }
-                    else
-                    {
-                        return null;
-                    }
+                    // Преобразуем массив байтов в строку Base64
+                    string base64Image = Convert.ToBase64String(imageBytes);
+                    return base64Image;
+                }
+                else
+                {
+                    return null;
                 }
             }
             catch
@@ -158,16 +189,36 @@ namespace BlumBotFarm.GameClient
             }
         }
 
-        public static string? ExecuteFunctionUntilSuccess(Func<string?> function, int countOfAttempts = COUNT_OF_REQUEST_ATTEMPTS)
+        public static async Task<(string? answer, HttpStatusCode responseStatusCode)> ExecuteFunctionUntilSuccessAsync(
+            Func<Task<(string?, HttpStatusCode)>> function, int countOfAttempts = COUNT_OF_REQUEST_ATTEMPTS)
         {
-            string? result = null;
+            (string? answer, HttpStatusCode responseStatusCode) result = (null, HttpStatusCode.ServiceUnavailable);
             int attempts = 0;
             while (attempts++ < countOfAttempts)
             {
-                result = function();
-                if (result != null) break;
+                result = await function();
+                if (result.answer != null) break;
             }
             return result;
+        }
+    }
+
+    public static class QueryHelpers
+    {
+        public static string AddQueryString(string uri, IDictionary<string, string> parameters)
+        {
+            var builder = new UriBuilder(uri);
+            var query = new StringBuilder();
+            foreach (var parameter in parameters)
+            {
+                if (query.Length > 0)
+                {
+                    query.Append('&');
+                }
+                query.AppendFormat("{0}={1}", WebUtility.UrlEncode(parameter.Key), WebUtility.UrlEncode(parameter.Value));
+            }
+            builder.Query = query.ToString();
+            return builder.ToString();
         }
     }
 }

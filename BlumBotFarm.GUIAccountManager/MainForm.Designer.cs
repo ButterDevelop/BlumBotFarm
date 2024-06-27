@@ -72,6 +72,7 @@
             groupBoxIPOptions.TabIndex = 2;
             groupBoxIPOptions.TabStop = false;
             groupBoxIPOptions.Text = "IP options";
+            groupBoxIPOptions.Visible = false;
             // 
             // radioButtonThroughFiddler
             // 

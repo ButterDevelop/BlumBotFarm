@@ -11,6 +11,7 @@
     <ProjectReference Include="..\BlumBotFarm.Core\BlumBotFarm.Core.csproj" />
     <ProjectReference Include="..\BlumBotFarm.Database\BlumBotFarm.Database.csproj" />
     <ProjectReference Include="..\BlumBotFarm.GameClient\BlumBotFarm.GameClient.csproj" />
+    <ProjectReference Include="..\BlumBotFarm.MessageProcessor\BlumBotFarm.MessageProcessor.csproj" />
     <ProjectReference Include="..\BlumBotFarm.Scheduler\BlumBotFarm.Scheduler.csproj" />
     <ProjectReference Include="..\BlumBotFarm.TelegramBot\BlumBotFarm.TelegramBot.csproj" />
   </ItemGroup>

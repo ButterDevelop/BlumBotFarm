@@ -15,10 +15,4 @@
     <ProjectReference Include="..\BlumBotFarm.Database\BlumBotFarm.Database.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="xNet">
-      <HintPath>..\..\ProjectBeta\ProjectBeta\ProjectBeta\bin\Debug\xNet.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>

@@ -15,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlumBotFarm.TelegramBot", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlumBotFarm.GameClient", "BlumBotFarm.GameClient\BlumBotFarm.GameClient.csproj", "{FCCFBB0E-56D7-4D40-93E1-3695635B3B69}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlumBotFarm.GUIAccountManager", "BlumBotFarm.GUIAccountManager\BlumBotFarm.GUIAccountManager.csproj", "{2395CE4A-CFE8-44D6-8371-EC8EEDE9423E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlumBotFarm.GUIAccountManager", "BlumBotFarm.GUIAccountManager\BlumBotFarm.GUIAccountManager.csproj", "{2395CE4A-CFE8-44D6-8371-EC8EEDE9423E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlumBotFarm.MessageProcessor", "BlumBotFarm.MessageProcessor\BlumBotFarm.MessageProcessor.csproj", "{6078E1E1-3419-41B2-8AFA-0EF56582108E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{2395CE4A-CFE8-44D6-8371-EC8EEDE9423E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2395CE4A-CFE8-44D6-8371-EC8EEDE9423E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2395CE4A-CFE8-44D6-8371-EC8EEDE9423E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6078E1E1-3419-41B2-8AFA-0EF56582108E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6078E1E1-3419-41B2-8AFA-0EF56582108E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6078E1E1-3419-41B2-8AFA-0EF56582108E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6078E1E1-3419-41B2-8AFA-0EF56582108E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

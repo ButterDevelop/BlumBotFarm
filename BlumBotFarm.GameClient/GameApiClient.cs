@@ -2,7 +2,7 @@
 using Microsoft.CSharp.RuntimeBinder;
 using Newtonsoft.Json.Linq;
 using Serilog;
-using xNet;
+using System.Net;
 
 namespace BlumBotFarm.GameClient
 {
@@ -51,16 +51,14 @@ namespace BlumBotFarm.GameClient
         public bool GetMainPageHTML(Account account)
         {
             var headers = GetUniqueHeaders(_commonHeaders, string.Empty);
-            if (headers.ContainsKey("Accept")) headers["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7";
+            if (headers.ContainsKey("Accept")) headers["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application07";
 
-            HttpStatusCode responseStatusCode = HttpStatusCode.None;
-
-            var answer = HTTPController.ExecuteFunctionUntilSuccess(() =>
-                HTTPController.SendRequest(HTML_PAGE_URL,
-                                           out responseStatusCode, RequestType.GET, account.Proxy, headers,
-                                           parameters: null, parametersString: null, parametersContentType: null, referer: null,
-                                           account.UserAgent)
+            var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
+                await HTTPController.SendRequestAsync(HTML_PAGE_URL, RequestType.GET, account.Proxy, headers,
+                                                      parameters: null, parametersString: null, parametersContentType: null, referer: null,
+                                                      account.UserAgent)
             );
+            (string? answer, HttpStatusCode responseStatusCode) = taskResult.Result;
 
             return answer != null && answer.Length > 0 && responseStatusCode == HttpStatusCode.OK;
         }
@@ -69,14 +67,13 @@ namespace BlumBotFarm.GameClient
         {
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
-            HttpStatusCode responseStatusCode = HttpStatusCode.None;
-
-            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
-                                     HTTPController.SendRequest(BASE_GATEWAY_API_URL + ABOUT_ME_REQUEST_ENDPOINT,
-                                                                out responseStatusCode, RequestType.GET, account.Proxy, headers,
-                                                                parameters: null, parametersString: null, parametersContentType: null, referer: null,
-                                                                account.UserAgent)
-                                 );
+            var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
+                await HTTPController.SendRequestAsync(BASE_GATEWAY_API_URL + ABOUT_ME_REQUEST_ENDPOINT,
+                                                      RequestType.GET, account.Proxy, headers,
+                                                      parameters: null, parametersString: null, parametersContentType: null, referer: null,
+                                                      account.UserAgent)
+            );
+            (string? jsonAnswer, HttpStatusCode responseStatusCode) = taskResult.Result;
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
@@ -97,17 +94,16 @@ namespace BlumBotFarm.GameClient
         {
             var headers = GetUniqueHeaders(_commonHeaders, string.Empty);
 
-            HttpStatusCode responseStatusCode = HttpStatusCode.None;
-
             string parametersString      = $"{{\"refresh\":\"{account.RefreshToken}\"}}";
             string parametersContentType = "application/json";
 
-            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
-                                     HTTPController.SendRequest(BASE_GATEWAY_API_URL + REFRESH_AUTH_REQUEST_ENDPOINT,
-                                                                out responseStatusCode, RequestType.POST, account.Proxy, headers,
-                                                                parameters: null, parametersString, parametersContentType, referer: null,
-                                                                account.UserAgent)
-                                 );
+            var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
+                await HTTPController.SendRequestAsync(BASE_GATEWAY_API_URL + REFRESH_AUTH_REQUEST_ENDPOINT,
+                                                      RequestType.POST, account.Proxy, headers,
+                                                      parameters: null, parametersString, parametersContentType, referer: null,
+                                                      account.UserAgent)
+            );
+            (string? jsonAnswer, HttpStatusCode responseStatusCode) = taskResult.Result;
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
@@ -141,14 +137,13 @@ namespace BlumBotFarm.GameClient
         {
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
-            HttpStatusCode responseStatusCode = HttpStatusCode.None;
-
-            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
-                                     HTTPController.SendRequest(BASE_GAMING_API_URL + GET_DAILY_REWARD_REQUEST_ENDPOINT + account.TimezoneOffset.ToString(),
-                                                                out responseStatusCode, RequestType.POST, account.Proxy, headers,
-                                                                parameters: null, parametersString: null, parametersContentType: null, referer: null,
-                                                                account.UserAgent)
-                                 );
+            var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
+                await HTTPController.SendRequestAsync(BASE_GAMING_API_URL + GET_DAILY_REWARD_REQUEST_ENDPOINT + account.TimezoneOffset.ToString(),
+                                                      RequestType.POST, account.Proxy, headers,
+                                                      parameters: null, parametersString: null, parametersContentType: null, referer: null,
+                                                      account.UserAgent)
+            );
+            (string? jsonAnswer, HttpStatusCode responseStatusCode) = taskResult.Result;
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
@@ -169,14 +164,13 @@ namespace BlumBotFarm.GameClient
         {
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
-            HttpStatusCode responseStatusCode = HttpStatusCode.None;
-
-            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
-                                     HTTPController.SendRequest(BASE_GAMING_API_URL + START_GAME_REQUEST_ENDPOINT,
-                                                                out responseStatusCode, RequestType.POST, account.Proxy, headers,
-                                                                parameters: null, parametersString: null, parametersContentType: null, referer: null,
-                                                                account.UserAgent)
-                                 );
+            var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
+                await HTTPController.SendRequestAsync(BASE_GAMING_API_URL + START_GAME_REQUEST_ENDPOINT,
+                                                      RequestType.POST, account.Proxy, headers,
+                                                      parameters: null, parametersString: null, parametersContentType: null, referer: null,
+                                                      account.UserAgent)
+            );
+            (string? jsonAnswer, HttpStatusCode responseStatusCode) = taskResult.Result;
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
@@ -212,14 +206,13 @@ namespace BlumBotFarm.GameClient
             string parametersString      = $"{{\"gameId\":\"{gameId}\",\"points\":{points}}}";
             string parametersContentType = "application/json";
 
-            HttpStatusCode responseStatusCode = HttpStatusCode.None;
-
-            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
-                                     HTTPController.SendRequest(BASE_GAMING_API_URL + END_GAME_REQUEST_ENDPOINT,
-                                                                out responseStatusCode, RequestType.POST, account.Proxy, headers,
-                                                                parameters: null, parametersString, parametersContentType, referer: null,
-                                                                account.UserAgent)
-                                 );
+            var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
+                await HTTPController.SendRequestAsync(BASE_GAMING_API_URL + END_GAME_REQUEST_ENDPOINT,
+                                                      RequestType.POST, account.Proxy, headers,
+                                                      parameters: null, parametersString, parametersContentType, referer: null,
+                                                      account.UserAgent)
+            );
+            (string? jsonAnswer, HttpStatusCode responseStatusCode) = taskResult.Result;
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
@@ -240,14 +233,13 @@ namespace BlumBotFarm.GameClient
         {
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
-            HttpStatusCode responseStatusCode = HttpStatusCode.None;
-
-            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
-                                     HTTPController.SendRequest(BASE_GAMING_API_URL + GET_USER_INFO_REQUEST_ENDPOINT,
-                                                                out responseStatusCode, RequestType.GET, account.Proxy, headers,
-                                                                parameters: null, parametersString: null, parametersContentType: null, referer: null,
-                                                                account.UserAgent)
-                                 );
+            var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
+                await HTTPController.SendRequestAsync(BASE_GAMING_API_URL + GET_USER_INFO_REQUEST_ENDPOINT,
+                                                      RequestType.GET, account.Proxy, headers,
+                                                      parameters: null, parametersString: null, parametersContentType: null, referer: null,
+                                                      account.UserAgent)
+            );
+            (string? jsonAnswer, HttpStatusCode responseStatusCode) = taskResult.Result;
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
@@ -283,14 +275,13 @@ namespace BlumBotFarm.GameClient
         {
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
-            HttpStatusCode responseStatusCode = HttpStatusCode.None;
-
-            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
-                                     HTTPController.SendRequest(BASE_GAMING_API_URL + START_FARMING_REQUEST_ENDPOINT,
-                                                                out responseStatusCode, RequestType.POST, account.Proxy, headers,
-                                                                parameters: null, parametersString: null, parametersContentType: null, referer: null,
-                                                                account.UserAgent)
-                                 );
+            var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
+                await HTTPController.SendRequestAsync(BASE_GAMING_API_URL + START_FARMING_REQUEST_ENDPOINT,
+                                                      RequestType.POST, account.Proxy, headers,
+                                                      parameters: null, parametersString: null, parametersContentType: null, referer: null,
+                                                      account.UserAgent)
+            );
+            (string? jsonAnswer, HttpStatusCode responseStatusCode) = taskResult.Result;
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
@@ -311,14 +302,13 @@ namespace BlumBotFarm.GameClient
         {
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
-            HttpStatusCode responseStatusCode = HttpStatusCode.None;
-
-            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
-                                     HTTPController.SendRequest(BASE_GAMING_API_URL + CLAIM_FARMING_REQUEST_ENDPOINT,
-                                                                out responseStatusCode, RequestType.POST, account.Proxy, headers,
-                                                                parameters: null, parametersString: null, parametersContentType: null, referer: null,
-                                                                account.UserAgent)
-                                 );
+            var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
+                await HTTPController.SendRequestAsync(BASE_GAMING_API_URL + CLAIM_FARMING_REQUEST_ENDPOINT,
+                                                      RequestType.POST, account.Proxy, headers,
+                                                      parameters: null, parametersString: null, parametersContentType: null, referer: null,
+                                                      account.UserAgent)
+            );
+            (string? jsonAnswer, HttpStatusCode responseStatusCode) = taskResult.Result;
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
@@ -354,14 +344,13 @@ namespace BlumBotFarm.GameClient
         {
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
-            HttpStatusCode responseStatusCode = HttpStatusCode.None;
-
-            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
-                                     HTTPController.SendRequest(BASE_GAMING_API_URL + TASKS_INFO_REQUEST_ENDPOINT,
-                                                                out responseStatusCode, RequestType.GET, account.Proxy, headers,
-                                                                parameters: null, parametersString: null, parametersContentType: null, referer: null,
-                                                                account.UserAgent)
-                                 );
+            var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
+                await HTTPController.SendRequestAsync(BASE_GAMING_API_URL + TASKS_INFO_REQUEST_ENDPOINT,
+                                                      RequestType.GET, account.Proxy, headers,
+                                                      parameters: null, parametersString: null, parametersContentType: null, referer: null,
+                                                      account.UserAgent)
+            );
+            (string? jsonAnswer, HttpStatusCode responseStatusCode) = taskResult.Result;
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
@@ -399,14 +388,13 @@ namespace BlumBotFarm.GameClient
         {
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
-            HttpStatusCode responseStatusCode = HttpStatusCode.None;
-
-            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
-                                     HTTPController.SendRequest(BASE_GAMING_API_URL + string.Format(START_TASK_REQUEST_ENDPOINT, taskId),
-                                                                out responseStatusCode, RequestType.POST, account.Proxy, headers,
+            var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
+                                     await HTTPController.SendRequestAsync(BASE_GAMING_API_URL + string.Format(START_TASK_REQUEST_ENDPOINT, taskId),
+                                                                RequestType.POST, account.Proxy, headers,
                                                                 parameters: null, parametersString: null, parametersContentType: null, referer: null,
                                                                 account.UserAgent)
                                  );
+            (string? jsonAnswer, HttpStatusCode responseStatusCode) = taskResult.Result;
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
@@ -423,46 +411,57 @@ namespace BlumBotFarm.GameClient
             return ApiResponse.Success;
         }
 
-        public ApiResponse ClaimTask(Account account, string taskId)
+        public (ApiResponse response, double reward) ClaimTask(Account account, string taskId)
         {
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
-            HttpStatusCode responseStatusCode = HttpStatusCode.None;
-
-            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
-                                     HTTPController.SendRequest(BASE_GAMING_API_URL + string.Format(CLAIM_TASK_REQUEST_ENDPOINT, taskId),
-                                                                out responseStatusCode, RequestType.POST, account.Proxy, headers,
+            var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
+                                     await HTTPController.SendRequestAsync(BASE_GAMING_API_URL + string.Format(CLAIM_TASK_REQUEST_ENDPOINT, taskId),
+                                                                RequestType.POST, account.Proxy, headers,
                                                                 parameters: null, parametersString: null, parametersContentType: null, referer: null,
                                                                 account.UserAgent)
                                  );
+            (string? jsonAnswer, HttpStatusCode responseStatusCode) = taskResult.Result;
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
                 Log.Error($"GameApiClient ClaimTask (Account with Id: {account.Id}, Username: {account.Username}) responseStatusCode - Unauthorized!");
-                return ApiResponse.Unauthorized;
+                return (ApiResponse.Unauthorized, 0);
             }
 
             if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
             {
                 Log.Error($"GameApiClient ClaimTask (Account with Id: {account.Id}, Username: {account.Username}) JSON answer: {jsonAnswer}");
-                return ApiResponse.Error;
+                return (ApiResponse.Error, 0);
             }
 
-            return ApiResponse.Success;
+            try
+            {
+                dynamic json = JObject.Parse(jsonAnswer.Replace("'", "\\'").Replace("\"", "'"));
+
+                string rewardString = json.reward;
+                int reward = int.Parse(rewardString);
+
+                return (ApiResponse.Success, reward);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"GameApiClient ClaimTask (Account with Id: {account.Id}, Username: {account.Username}) Exception: {ex}");
+                return (ApiResponse.Error, 0);
+            }
         }
 
         public ApiResponse ClaimFriends(Account account)
         {
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
-            HttpStatusCode responseStatusCode = HttpStatusCode.None;
-
-            string? jsonAnswer = HTTPController.ExecuteFunctionUntilSuccess(() =>
-                                     HTTPController.SendRequest(BASE_GATEWAY_API_URL + FRIENDS_CLAIM_REQUEST_ENDPOINT,
-                                                                out responseStatusCode, RequestType.POST, account.Proxy, headers,
+            var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
+                                     await HTTPController.SendRequestAsync(BASE_GATEWAY_API_URL + FRIENDS_CLAIM_REQUEST_ENDPOINT,
+                                                                RequestType.POST, account.Proxy, headers,
                                                                 parameters: null, parametersString: null, parametersContentType: null, referer: null,
                                                                 account.UserAgent)
                                  );
+            (string? jsonAnswer, HttpStatusCode responseStatusCode) = taskResult.Result;
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {

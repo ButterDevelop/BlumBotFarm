@@ -6,7 +6,7 @@ namespace BlumBotFarm.Database.Repositories
 {
     public class AccountRepository
     {
-        private static readonly object dbLock = new object();
+        private static readonly object dbLock = new();
 
         private readonly IDbConnection _db;
 

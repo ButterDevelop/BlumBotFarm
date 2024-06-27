@@ -20,6 +20,7 @@ namespace BlumBotFarm.TelegramBot
         private readonly long[]   adminChatIds;
         private readonly AccountRepository accountRepository;
         private readonly TaskRepository    taskRepository;
+        private readonly EarningRepository earningRepository;
         private readonly TaskScheduler     taskScheduler;
 
         public TelegramBot(string token, string[] adminUsernames, long[] adminChatIds)
@@ -31,6 +32,7 @@ namespace BlumBotFarm.TelegramBot
             {
                 accountRepository = new AccountRepository(db);
                 taskRepository    = new TaskRepository(db);
+                earningRepository = new EarningRepository(db);
             }
             taskScheduler = new TaskScheduler();
         }
@@ -82,7 +84,7 @@ namespace BlumBotFarm.TelegramBot
             }
         }
 
-        private async Task HandleAdminMessage(Message message)
+        private async Task HandleAdminMessage(Telegram.Bot.Types.Message message)
         {
             if (message.Text is null || message.From is null) return;
 
@@ -196,6 +198,84 @@ namespace BlumBotFarm.TelegramBot
                         await botClient.SendTextMessageAsync(message.Chat, "Usage: /proxy <username> [<proxy>]");
                     }
                     break;
+                case "/forcedailyjobforeveryone":
+                    Log.Information($"{message.From.Username} forced unscheduled Daily Job.");
+                    await SendMessageToAdmins($"<b>{message.From.Username}</b> forced unscheduled Daily Job.");
+
+                    var accounts = accountRepository.GetAll().OrderBy(account => account.Id);
+                    int counter = 0;
+                    foreach (var account in accounts)
+                    {
+                        ++counter;
+
+                        var job = JobBuilder.Create<DailyCheckJob>().Build();
+
+                        var task = new Core.Models.Task
+                        {
+                            AccountId       = account.Id,
+                            ScheduleSeconds = -1,
+                            NextRunTime     = new DateTime(1990, 1, 1),
+                            TaskType        = "DailyCheckJob"
+                        };
+
+                        // Создание задачи для DailyCheckJob
+                        job.JobDataMap.Put("accountId", account.Id);
+                        job.JobDataMap.Put("taskId" + task.TaskType, task.Id);
+                        job.JobDataMap.Put("isPlanned", false);
+
+                        var now = DateTime.Now;
+
+                        var trigger = TriggerBuilder.Create()
+                            .WithSimpleSchedule(schedule => schedule.WithRepeatCount(0))
+                            .StartAt(now.AddSeconds(task.TaskType.Length + (counter * 10)))
+                            .Build();
+
+                        await taskScheduler.ScheduleTask(account.Id.ToString(), account.Id.ToString(), job, trigger);
+                    }
+
+                    await SendMessageToAdmins($"Forced unscheduled Daily Job will start soon.");
+                    Log.Information($"Forced unscheduled Daily Job will start soon.");
+                    break;
+                case "/refreshtoken":
+                    if (parts.Length == 3)
+                    {
+                        var username     = parts[1];
+                        var refreshToken = parts[2];
+
+                        if (username is null || refreshToken is null)
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, "Something went wrong with your data, please, try again.", null, ParseMode.Html);
+                            return;
+                        }
+
+                        var account = accountRepository.GetAll().FirstOrDefault(user => user.Username == username);
+                        if (account == null)
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, "The account with this username <b>does not exist</b>.", null, ParseMode.Html);
+                            return;
+                        }
+
+                        account.RefreshToken = refreshToken;
+                        accountRepository.Update(account);
+
+                        await botClient.SendTextMessageAsync(message.Chat, $"<b>{username}</b>'s refresh token updated successfully.", null, ParseMode.Html);
+
+                        Log.Information($"{username}'s refresh token updated successfully.");
+                    }
+                    else
+                    {
+                        await botClient.SendTextMessageAsync(message.Chat, "Usage: /refreshtoken <username> <refreshToken>\n");
+                    }
+                    break;
+                case "/restartapp":
+                    await SendMessageToAdmins($"<b>{message.From.Username}</b> forced restarting the app.");
+                    Log.Information($"{message.From.Username} forced restarting the app.");
+                    new Thread(() =>
+                    {
+                        Thread.Sleep(10000);
+                        Environment.Exit(0);
+                    }).Start();
+                    break;
                 default:
                     await botClient.SendTextMessageAsync(message.Chat, "Unknown command.", null, ParseMode.Html);
                     break;
@@ -268,8 +348,8 @@ namespace BlumBotFarm.TelegramBot
         private async Task ScheduleATaskAsync(Account account, Core.Models.Task task, IJobDetail job, DateTime now)
         {
             // Создание задачи для DailyCheckJob
-            job.JobDataMap.Put("account", account);
-            job.JobDataMap.Put("task" + task.TaskType, task);
+            job.JobDataMap.Put("accountId", account.Id);
+            job.JobDataMap.Put("taskId" + task.TaskType, task.Id);
             job.JobDataMap.Put("isPlanned", true);
 
             var trigger = TriggerBuilder.Create()
@@ -335,13 +415,18 @@ namespace BlumBotFarm.TelegramBot
                 }
             }
 
+            var todayDateTime    = DateTime.Today;
+            var todayEarnings    = earningRepository.GetAll().Where(earning => earning.Created > todayDateTime);
+            var todayEarningsSum = todayEarnings.Sum(earning => earning.Total);
+
             return $"<b>CZ time:</b> <code>{DateTime.UtcNow.AddHours(2):dd.MM.yyyy HH:mm:ss}</code>\n" +
                    $"<b>MSK time:</b> <code>{DateTime.UtcNow.AddHours(3):dd.MM.yyyy HH:mm:ss}</code>\n" +
                    $"Total accounts: <b>{accounts.Count()}</b>\n" +
                    $"Total balance: <b>{totalBalance:N2}</b> ฿\n" +
                    $"Total tickets: <b>{totalTickets}</b>\n" +
                    $"Executed jobs today: <b>{executedDailyJobs + executedFarming}</b>\n" +
-                   $"Remaining jobs today: <b>{notExecutedDailyJobs + notExecutedFarming}</b>\n";
+                   $"Remaining jobs today: <b>{notExecutedDailyJobs + notExecutedFarming}</b>\n" + 
+                   $"Today earnings: <b>{todayEarningsSum:N2}</b> ฿";
         }
 
         private Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)

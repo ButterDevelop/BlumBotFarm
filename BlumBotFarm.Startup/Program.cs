@@ -42,7 +42,11 @@ namespace BlumBotFarm.Startup
             {
                 var telegramBot = new TelegramBot.TelegramBot(botToken, adminUsernames, adminChatIds);
                 telegramBot.Start();
-                Log.Information("Started Telegram bot.");
+
+                var messageProcessor = new MessageProcessor.MessageProcessor(botToken, adminUsernames, adminChatIds, new CancellationToken());
+                await Task.Factory.StartNew(messageProcessor.StartAsync);
+
+                Log.Information("Started Telegram bot and Message processor.");
             }
 
             // Создание экземпляра планировщика задач
@@ -50,8 +54,8 @@ namespace BlumBotFarm.Startup
 
             using (var db = Database.Database.GetConnection())
             {
-                var accountRepo = new AccountRepository(db);
-                var taskRepo    = new TaskRepository(db);
+                var accountRepo  = new AccountRepository(db);
+                var taskRepo     = new TaskRepository(db);
 
                 // Получение всех аккаунтов из базы данных
                 var accounts = accountRepo.GetAll();
@@ -68,8 +72,8 @@ namespace BlumBotFarm.Startup
                         {
                             IJobDetail job = task.TaskType == "DailyCheckJob" 
                                              ? JobBuilder.Create<DailyCheckJob>().Build() : JobBuilder.Create<FarmingJob>().Build();
-                            job.JobDataMap.Put("account",              account);
-                            job.JobDataMap.Put("task" + task.TaskType, task);
+                            job.JobDataMap.Put("accountId",              account.Id);
+                            job.JobDataMap.Put("taskId" + task.TaskType, task.Id);
                             job.JobDataMap.Put("isPlanned", true);
 
                             var trigger = TriggerBuilder.Create()
@@ -121,8 +125,8 @@ namespace BlumBotFarm.Startup
             taskRepo.Update(task);
 
             IJobDetail job = task.TaskType == "DailyCheckJob" ? JobBuilder.Create<DailyCheckJob>().Build() : JobBuilder.Create<FarmingJob>().Build();
-            job.JobDataMap.Put("account", account);
-            job.JobDataMap.Put("task" + task.TaskType, task);
+            job.JobDataMap.Put("accountId", account.Id);
+            job.JobDataMap.Put("taskId" + task.TaskType, task.Id);
             job.JobDataMap.Put("isPlanned", true);
 
             var trigger = TriggerBuilder.Create()
@@ -139,8 +143,8 @@ namespace BlumBotFarm.Startup
         {
             // Создание задачи для DailyCheckJob
             IJobDetail job = task.TaskType == "DailyCheckJob" ? JobBuilder.Create<DailyCheckJob>().Build() : JobBuilder.Create<FarmingJob>().Build();
-            job.JobDataMap.Put("account", account);
-            job.JobDataMap.Put("task" + task.TaskType, task);
+            job.JobDataMap.Put("accountId", account.Id);
+            job.JobDataMap.Put("taskId" + task.TaskType, task.Id);
             job.JobDataMap.Put("isPlanned", false);
 
             var trigger = TriggerBuilder.Create()

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace BlumBotFarm.GUIAccountManager
 {
@@ -33,45 +34,47 @@ namespace BlumBotFarm.GUIAccountManager
                 return;
             }
 
-            string accountName = account.AccountName;
-
-            accountName = accountName.Replace(".zip", "");
-            if (!Directory.Exists(accountName))
-            {
-                MessageBox.Show("No directory found associated with your account name!", "BlumBotFarm TG account manager", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            var tdataPath = Path.Combine(accountName, $"tdata{accountNumber}");
+            var tdataPath = $"tdata{accountNumber}";
             if (!Directory.Exists(tdataPath))
             {
-                MessageBox.Show("No tdata directory found in your account folder!", "BlumBotFarm TG account manager", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            if (!File.Exists("settingss_Fiddler"))
-            {
-                MessageBox.Show("File \"settingss_Fiddler\" does not exist!", "BlumBotFarm TG account manager", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("No tdata directory found associated with your account number!", "BlumBotFarm TG account manager", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
             var files = Directory.GetFiles(Directory.GetCurrentDirectory());
-            if (!files.Any(file => file.EndsWith("Telegram.exe")))
+            var regexTelegramExe = new Regex("Telegram\\d{0,4}\\.exe");
+            if (!files.Any(regexTelegramExe.IsMatch))
             {
                 MessageBox.Show("Found no Telegram.exe file!", "BlumBotFarm TG account manager", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            Clipboard.SetText(account.Proxy);
-            MessageBox.Show($"Proxy FOR Fiddler ({account.Proxy}) for this account was copied to your clipboard!", "BlumBotFarm TG account manager", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-            // Closing all Telegram processes
-            Process[] workers = Process.GetProcessesByName("Telegram");
-            foreach (Process worker in workers)
+            string telegramExeName = "";
+            foreach (var file in files)
             {
-                worker.Kill();
-                worker.WaitForExit();
-                worker.Dispose();
+                if (regexTelegramExe.IsMatch(file))
+                {
+                    telegramExeName = file;
+                    break;
+                }
+            }
+
+            //Clipboard.SetText(account.Proxy);
+            //MessageBox.Show($"Proxy FOR Fiddler ({account.Proxy}) for this account was copied to your clipboard!", "BlumBotFarm TG account manager", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+            List<string> postfixTelegramNames = [""];
+            for (int i = 0; i <= 111; i++) postfixTelegramNames.Add(i.ToString());
+
+            foreach (var postfix in postfixTelegramNames)
+            {
+                // Closing all original Telegram processes
+                Process[] workers = Process.GetProcessesByName("Telegram" + postfix);
+                foreach (Process worker in workers)
+                {
+                    worker.Kill();
+                    worker.WaitForExit();
+                    worker.Dispose();
+                }
             }
 
             string destTDataPath = Path.Combine(Directory.GetCurrentDirectory(), $"tdata");
@@ -86,9 +89,14 @@ namespace BlumBotFarm.GUIAccountManager
             if (File.Exists("log.txt")) File.Delete("log.txt");
             CopyFilesRecursively(tdataPath, destTDataPath);
 
-            File.Copy("settingss_Fiddler", Path.Combine(tdataPath, "settingss"), true);
+            string username     = string.IsNullOrEmpty(account.TelegramName) ? "USERNAME"      : account.TelegramName;
+            string refreshToken = string.IsNullOrEmpty(account.RefreshToken) ? "REFRESH_TOKEN" : account.RefreshToken;
+            string proxy        = string.IsNullOrEmpty(account.Proxy)        ? "PROXY"         : account.Proxy;
+            richTextBoxTelegramAddCommand.Text = $"/addaccount {username} {refreshToken} socks5://{proxy}";
 
-            richTextBoxTelegramAddCommand.Text = $"/addaccount USERNAME REFRESH_TOKEN http://{account.Proxy}";
+            // Rename TelegramN.exe as necessary
+            string newTelegramExeName = $"Telegram{accountNumber}.exe";
+            File.Move(telegramExeName, newTelegramExeName);
 
             var result = MessageBox.Show("Everything is ready to start. You agree? If yes, it will be started in 3 seconds.", "BlumBotFarm TG account manager", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (result == DialogResult.No)
@@ -99,7 +107,7 @@ namespace BlumBotFarm.GUIAccountManager
 
             Thread.Sleep(3000);
 
-            Process.Start("Telegram.exe");
+            Process.Start(newTelegramExeName);
         }
 
         private static void CopyFilesRecursively(string sourcePath, string targetPath)

@@ -15,7 +15,7 @@ namespace BlumBotFarm.GameClient
                           MIN_AMOUNT_OF_SECONDS_TO_WAIT = 35,
                           MAX_AMOUNT_OF_SECONDS_TO_WAIT = 50;
 
-        public static bool AuthCheck(ref Account account, AccountRepository accountRepository, GameApiClient gameApiClient)
+        public static bool AuthCheck(Account account, AccountRepository accountRepository, GameApiClient gameApiClient)
         {
             var result  = ApiResponse.Error;
 
@@ -37,7 +37,7 @@ namespace BlumBotFarm.GameClient
             return true;
         }
 
-        public static void PlayGamesForAllTickets(ref Account account, AccountRepository accountRepository, GameApiClient gameApiClient)
+        public static void PlayGamesForAllTickets(ref Account account, AccountRepository accountRepository, EarningRepository earningRepository, GameApiClient gameApiClient)
         {
             Random random = new();
 
@@ -70,6 +70,16 @@ namespace BlumBotFarm.GameClient
                     {
                         // Updating user info
                         (ApiResponse result, double balance, int tickets) = gameApiClient.GetUserInfo(account);
+
+                        // TODO: CHANGE EARNING REPOSITORY, CHECK USER'S BALANCE IN THE START OF THE JOB AND AT THE END, DON'T CARE ABOUT THE JOB RESULT
+                        earningRepository.Add(new Earning
+                        {
+                            AccountId = account.Id,
+                            Created   = DateTime.Now,
+                            Action    = "PlayGamesForAllTickets",
+                            Total     = balance - account.Balance,
+                        });
+
                         account.Balance = balance;
                         account.Tickets = tickets;
                         accountRepository.Update(account);
@@ -80,7 +90,7 @@ namespace BlumBotFarm.GameClient
             }
         }
 
-        public static bool StartAndClaimAllTasks(Account account, GameApiClient gameApiClient)
+        public static bool StartAndClaimAllTasks(Account account, EarningRepository earningRepository, GameApiClient gameApiClient)
         {
             var random = new Random();
             int wholeCount = 0, errorsCount = 0;
@@ -109,9 +119,21 @@ namespace BlumBotFarm.GameClient
             {
                 if (task.status == "READY_FOR_CLAIM")
                 {
-                    response = gameApiClient.ClaimTask(account, task.id);
+                    (response, double reward) = gameApiClient.ClaimTask(account, task.id);
                     ++wholeCount;
-                    if (response != ApiResponse.Success) ++errorsCount; else Thread.Sleep(1000 + random.Next(-100, 100));
+                    if (response != ApiResponse.Success) ++errorsCount;
+                    else
+                    {
+                        earningRepository.Add(new Earning
+                        {
+                            AccountId = account.Id,
+                            Created   = DateTime.Now,
+                            Action    = "ClaimTask",
+                            Total     = reward,
+                        });
+
+                        Thread.Sleep(1000 + random.Next(-100, 100));
+                    }
                 }
             }
 

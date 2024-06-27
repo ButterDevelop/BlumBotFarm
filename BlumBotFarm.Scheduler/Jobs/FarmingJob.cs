@@ -3,7 +3,6 @@ using BlumBotFarm.Database.Repositories;
 using BlumBotFarm.GameClient;
 using Quartz;
 using Serilog;
-using Task = BlumBotFarm.Core.Models.Task;
 
 namespace BlumBotFarm.Scheduler.Jobs
 {
@@ -12,6 +11,7 @@ namespace BlumBotFarm.Scheduler.Jobs
         private readonly GameApiClient     gameApiClient;
         private readonly AccountRepository accountRepository;
         private readonly TaskRepository    taskRepository;
+        private readonly EarningRepository earningRepository;
         private readonly TaskScheduler     taskScheduler;
         
         public FarmingJob()
@@ -21,27 +21,25 @@ namespace BlumBotFarm.Scheduler.Jobs
             {
                 accountRepository = new AccountRepository(db);
                 taskRepository    = new TaskRepository(db);
+                earningRepository = new EarningRepository(db);
             }
             taskScheduler = new TaskScheduler();
         }
 
         public async System.Threading.Tasks.Task Execute(IJobExecutionContext context)
         {
-            var account   = (Account)context.MergedJobDataMap["account"];
-            var task      = (Task)context.MergedJobDataMap["taskFarming"];
+            var accountId = (int)context.MergedJobDataMap["accountId"];
+            var taskId    = (int)context.MergedJobDataMap["taskIdFarming"];
             var isPlanned = (bool)context.MergedJobDataMap["isPlanned"];
 
-            if (account is null || task == null)
+            var account = accountRepository.GetById(accountId);
+            var task    = taskRepository.GetById(taskId);
+
+            if (account is null || (task == null && isPlanned))
             {
                 Log.Error($"Exiting Farming Job because of: Account is " + (account is null ? "NULL" : "NOT NULL") + 
-                                                            ", Task is " + (task    is null ? "NULL" : "NOT NULL"));
-                return;
-            }
-
-            account = accountRepository.GetById(account.Id);
-            if (account == null) 
-            {
-                Log.Error("Exiting Farming Job because of: Account is NULL after getting it from the Database.");
+                                                            ", Task is " + (task    is null ? "NULL" : "NOT NULL") +
+                                                            " after getting it from the Database.");
                 return;
             }
 
@@ -56,61 +54,86 @@ namespace BlumBotFarm.Scheduler.Jobs
                 Log.Warning($"Farming Job, GetMainPageHTML: returned FALSE for an account with Id: {account.Id}, Username: {account.Username}.");
             }
 
+            ApiResponse startFarmingResponse = ApiResponse.Error;
+            bool isAuthGood = false;
+
             // Auth check, first of all
-            if (!GameApiUtilsService.AuthCheck(ref account, accountRepository, gameApiClient)) return;
-
-            // Updating user info (maybe auth changed)
-            accountRepository.Update(account);
-
-            // Doing claiming a farming stuff
-            (ApiResponse claimResponse, double balance, int tickets) = gameApiClient.ClaimFarming(account);
-            if (claimResponse == ApiResponse.Success)
+            if (!GameApiUtilsService.AuthCheck(account, accountRepository, gameApiClient))
             {
-                // Updating user info
-                account.Balance = balance;
-                account.Tickets = tickets;
-                accountRepository.Update(account);
+                Log.Error($"Farming Job, GameApiUtilsService.AuthCheck: UNABLE TO REAUTH! Account with Id: {account.Id}, Username: {account.Username}.");
+                MessageProcessor.MessageProcessor.Instance.SendMessageToAdminsInQueue("<b>UNABLE TO REAUTH!</b>\nFarming Job!\n" +
+                                                                                      $"Account with Id: <code>{account.Id}</code>, Username: <code>{account.Username}</code>");
+                isAuthGood = false;
             }
-
-            // Doing starting farming stuff
-            var startFarmingResponse = gameApiClient.StartFarming(account);
-
-            if (isPlanned)
+            else
             {
-                DateTime nextRunTime;
-                if (startFarmingResponse == ApiResponse.Success)
+                isAuthGood = true;
+
+                account = accountRepository.GetById(accountId);
+                if (account == null)
                 {
-                    // Запланировать задание снова через 8 часов
-                    nextRunTime = DateTime.Now.AddHours(8);
-                    Log.Information("Farming Job is planned to be executed in 8 hours as usual for an account with Id: " +
-                                    $"{account.Id}, Username: {account.Username}.");
-                }
-                else
-                {
-                    // Запланировать задание снова через 30 минут
-                    nextRunTime = DateTime.Now.AddMinutes(30);
-                    Log.Warning("Farming Job is planned to be executed in 30 minutes because of not successful server's answer " +
-                                $"for an account with Id: {account.Id}, Username: {account.Username}.");
+                    Log.Error("Farming Job, the Account is NULL from DB after reauth.");
+                    return;
                 }
 
-                // Update the existing trigger with the new schedule
-                var trigger = context.Trigger as ICronTrigger;
-                if (trigger != null)
+                // Doing claiming a farming stuff
+                (ApiResponse claimResponse, double balance, int tickets) = gameApiClient.ClaimFarming(account);
+                if (claimResponse == ApiResponse.Success)
                 {
-                    trigger = (ICronTrigger)TriggerBuilder.Create()
-                        .WithIdentity(context.Trigger.Key)
-                        .WithSimpleSchedule(schedule => schedule
-                                        .WithIntervalInSeconds(task.ScheduleSeconds)
-                                        .RepeatForever())
-                        .StartAt(nextRunTime)
-                        .Build();
+                    earningRepository.Add(new Earning
+                    {
+                        AccountId = account.Id,
+                        Created   = DateTime.Now,
+                        Action    = "ClaimFarming",
+                        Total     = balance - account.Balance,
+                    });
 
-                    await context.Scheduler.RescheduleJob(trigger.Key, trigger);
+                    // Updating user info
+                    account.Balance = balance;
+                    account.Tickets = tickets;
+                    accountRepository.Update(account);
                 }
 
-                // Обновление записи задачи в базе данных
-                task.NextRunTime = nextRunTime;
-                taskRepository.Update(task);
+                // Doing starting farming stuff
+                startFarmingResponse = gameApiClient.StartFarming(account);
+
+                if (isPlanned && task != null)
+                {
+                    DateTime nextRunTime;
+                    if (startFarmingResponse == ApiResponse.Success && isAuthGood)
+                    {
+                        // Запланировать задание снова через 8 часов
+                        nextRunTime = DateTime.Now.AddHours(8);
+                        Log.Information("Farming Job is planned to be executed in 8 hours as usual for an account with Id: " +
+                                        $"{account.Id}, Username: {account.Username}.");
+                    }
+                    else
+                    {
+                        // Запланировать задание снова через 30 минут
+                        nextRunTime = DateTime.Now.AddMinutes(30);
+                        Log.Warning("Farming Job is planned to be executed in 30 minutes because of not successful server's answer " +
+                                    $"for an account with Id: {account.Id}, Username: {account.Username}.");
+                    }
+
+                    // Update the existing trigger with the new schedule
+                    var trigger = context.Trigger as ICronTrigger;
+                    if (trigger != null)
+                    {
+                        trigger = (ICronTrigger)TriggerBuilder.Create()
+                            .WithIdentity(context.Trigger.Key)
+                            .WithSimpleSchedule(schedule => schedule
+                                            .WithIntervalInSeconds(task.ScheduleSeconds)
+                                            .RepeatForever())
+                            .StartAt(nextRunTime)
+                            .Build();
+
+                        await context.Scheduler.RescheduleJob(trigger.Key, trigger);
+                    }
+
+                    // Обновление записи задачи в базе данных
+                    task.NextRunTime = nextRunTime;
+                    taskRepository.Update(task);
+                }
             }
 
             Log.Information($"Farming Job is done for an account with Id: {account.Id}, Username: {account.Username}");

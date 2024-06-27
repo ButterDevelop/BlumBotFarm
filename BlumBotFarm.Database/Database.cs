@@ -34,6 +34,22 @@ namespace BlumBotFarm.Database
                         NextRunTime DATETIME,
                         FOREIGN KEY(AccountId) REFERENCES Accounts(Id)
                     );
+
+                    CREATE TABLE IF NOT EXISTS Messages (
+                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        ChatId TEXT,
+                        MessageText TEXT,
+                        CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+                    );
+
+                    CREATE TABLE IF NOT EXISTS Earnings (
+                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        AccountId INTEGER,
+                        Total REAL,
+                        Created DATETIME,
+                        Action TEXT,
+                        FOREIGN KEY(AccountId) REFERENCES Accounts(Id)
+                    );
                 ");
             }
         }
