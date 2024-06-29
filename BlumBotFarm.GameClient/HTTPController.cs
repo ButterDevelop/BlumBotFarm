@@ -17,7 +17,7 @@ namespace BlumBotFarm.GameClient
     {
         public const int COUNT_OF_REQUEST_ATTEMPTS = 3;
 
-        private static string[] _userAgents = Array.Empty<string>();
+        private static string[] _userAgents = [];
         private static Random   _rnd        = new();
 
         private static bool ServerCertificateValidationCallback(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
@@ -154,7 +154,7 @@ namespace BlumBotFarm.GameClient
             }
             catch (Exception ex)
             {
-                Log.Error($"HTTPController SendRequestAsync Exception: {ex}");
+                Log.Error($"HTTPController SendRequestAsync. Proxy: {proxy}, Exception: {ex.Message}");
                 return (null, HttpStatusCode.ServiceUnavailable);
             }
         }

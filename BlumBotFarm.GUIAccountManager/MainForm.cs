@@ -34,36 +34,48 @@ namespace BlumBotFarm.GUIAccountManager
                 return;
             }
 
-            var tdataPath = $"tdata{accountNumber}";
-            if (!Directory.Exists(tdataPath))
+            var workingPath = $"{accountNumber}";
+            if (!Directory.Exists(workingPath))
             {
-                MessageBox.Show("No tdata directory found associated with your account number!", "BlumBotFarm TG account manager", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("No directory found associated with your account number!", "BlumBotFarm TG account manager", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            var files = Directory.GetFiles(Directory.GetCurrentDirectory());
-            var regexTelegramExe = new Regex("Telegram\\d{0,4}\\.exe");
-            if (!files.Any(regexTelegramExe.IsMatch))
+            var tdataPath = Path.Combine(workingPath, "tdata");
+            if (!Directory.Exists(workingPath))
             {
-                MessageBox.Show("Found no Telegram.exe file!", "BlumBotFarm TG account manager", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("No tdata directory found in account directory associated with your account number!", "BlumBotFarm TG account manager", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
             string telegramExeName = "";
-            foreach (var file in files)
+            bool foundTelegramExe  = false;
+            var regexTelegramExe   = new Regex("Telegram\\d{0,4}\\.exe");
+            foreach (var dir in Directory.GetDirectories(Directory.GetCurrentDirectory()))
             {
-                if (regexTelegramExe.IsMatch(file))
+                var files = Directory.GetFiles(dir);
+                foreach (var file in files)
                 {
-                    telegramExeName = file;
-                    break;
+                    if (regexTelegramExe.IsMatch(file))
+                    {
+                        telegramExeName  = file;
+                        foundTelegramExe = true;
+                        break;
+                    }
                 }
+            }
+
+            if (!foundTelegramExe)
+            {
+                MessageBox.Show("Found no Telegram.exe file!", "BlumBotFarm TG account manager", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
 
             //Clipboard.SetText(account.Proxy);
             //MessageBox.Show($"Proxy FOR Fiddler ({account.Proxy}) for this account was copied to your clipboard!", "BlumBotFarm TG account manager", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
             List<string> postfixTelegramNames = [""];
-            for (int i = 0; i <= 111; i++) postfixTelegramNames.Add(i.ToString());
+            for (int i = 0; i <= 150; i++) postfixTelegramNames.Add(i.ToString());
 
             foreach (var postfix in postfixTelegramNames)
             {
@@ -77,17 +89,8 @@ namespace BlumBotFarm.GUIAccountManager
                 }
             }
 
-            string destTDataPath = Path.Combine(Directory.GetCurrentDirectory(), $"tdata");
-            if (!Directory.Exists(destTDataPath))
-            {
-                Directory.CreateDirectory(destTDataPath);
-            }
-            else
-            {
-                Directory.Delete(destTDataPath, true);
-            }
-            if (File.Exists("log.txt")) File.Delete("log.txt");
-            CopyFilesRecursively(tdataPath, destTDataPath);
+            string logFilePath = Path.Combine(workingPath, "log.txt");
+            if (File.Exists(logFilePath)) File.Delete(logFilePath);
 
             string username     = string.IsNullOrEmpty(account.TelegramName) ? "USERNAME"      : account.TelegramName;
             string refreshToken = string.IsNullOrEmpty(account.RefreshToken) ? "REFRESH_TOKEN" : account.RefreshToken;
@@ -95,7 +98,7 @@ namespace BlumBotFarm.GUIAccountManager
             richTextBoxTelegramAddCommand.Text = $"/addaccount {username} {refreshToken} socks5://{proxy}";
 
             // Rename TelegramN.exe as necessary
-            string newTelegramExeName = $"Telegram{accountNumber}.exe";
+            string newTelegramExeName = Path.Combine(workingPath, $"Telegram{accountNumber}.exe");
             File.Move(telegramExeName, newTelegramExeName);
 
             var result = MessageBox.Show("Everything is ready to start. You agree? If yes, it will be started in 3 seconds.", "BlumBotFarm TG account manager", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);

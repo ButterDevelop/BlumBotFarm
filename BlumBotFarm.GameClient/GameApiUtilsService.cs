@@ -10,7 +10,7 @@ namespace BlumBotFarm.GameClient
 
         private const int MIN_GAME_POINTS               = 180,
                           MAX_GAME_POINTS               = 220,
-                          BOMB_MINUS_AMOUNT             = -100,
+                          BOMB_MINUS_ABS_AMOUNT         = 100,
                           BOMB_CLICK_CHANCE_PERCENT     = 1,
                           MIN_AMOUNT_OF_SECONDS_TO_WAIT = 35,
                           MAX_AMOUNT_OF_SECONDS_TO_WAIT = 50;
@@ -32,14 +32,22 @@ namespace BlumBotFarm.GameClient
                 account.AccessToken  = newAccessToken;
                 account.RefreshToken = newRefreshToken;
                 accountRepository.Update(account);
+
+                Log.Information("GameApiUtilsService AuthCheck: successfully reauthenticated " +
+                                $"for account with Id: {account.Id}, Username: {account.Username}");
             }
+
+            Log.Information($"GameApiUtilsService AuthCheck: auth is actual for account with Id: {account.Id}, Username: {account.Username}");
 
             return true;
         }
 
-        public static void PlayGamesForAllTickets(ref Account account, AccountRepository accountRepository, EarningRepository earningRepository, GameApiClient gameApiClient)
+        public static void PlayGamesForAllTickets(Account account, AccountRepository accountRepository, EarningRepository earningRepository, GameApiClient gameApiClient)
         {
             Random random = new();
+
+            Log.Information("GameApiUtilsService PlayGamesForAllTickets: started playing for all tickets " +
+                            $"for an account with Id: {account.Id}, Username: {account.Username}, tickets: {account.Tickets}");
 
             int attempts = account.Tickets * 2;
             while (attempts-- > 0 && account.Tickets > 0)
@@ -48,6 +56,9 @@ namespace BlumBotFarm.GameClient
 
                 if (createGameResponse == ApiResponse.Success)
                 {
+                    Log.Information($"GameApiUtilsService PlayGamesForAllTickets: successfully started a game with id {gameId} " +
+                                    $"for an account with Id: {account.Id}, Username: {account.Username}");
+
                     int secondsToSleep = random.Next(MIN_AMOUNT_OF_SECONDS_TO_WAIT, MAX_AMOUNT_OF_SECONDS_TO_WAIT);
                     Thread.Sleep(secondsToSleep * 1000);
 
@@ -58,34 +69,53 @@ namespace BlumBotFarm.GameClient
                     {
                         if (bombRandom.Next(0, 100) < BOMB_CLICK_CHANCE_PERCENT)
                         {
-                            points -= BOMB_MINUS_AMOUNT;
+                            points -= BOMB_MINUS_ABS_AMOUNT;
                             Log.Information($"GameApiUtilsService PlayGamesForAllTickets: Bomb worked with chance of {BOMB_CLICK_CHANCE_PERCENT}% for an " +
                                             $"account with Id: {account.Id}, Username: {account.Username}. " +
-                                            $"Total points: {points}, bomb minus amount: {BOMB_MINUS_AMOUNT}");
+                                            $"Total points: {points}, bomb minus amount: {BOMB_MINUS_ABS_AMOUNT}");
                         }
                     }
 
                     var endGameResponse = gameApiClient.EndGame(account, gameId, points);
                     if (endGameResponse == ApiResponse.Success)
                     {
+                        Log.Information($"GameApiUtilsService PlayGamesForAllTickets: successfully ended a game with id {gameId} and points {points} " +
+                                        $"for an account with Id: {account.Id}, Username: {account.Username}");
+
                         // Updating user info
                         (ApiResponse result, double balance, int tickets) = gameApiClient.GetUserInfo(account);
 
-                        // TODO: CHANGE EARNING REPOSITORY, CHECK USER'S BALANCE IN THE START OF THE JOB AND AT THE END, DON'T CARE ABOUT THE JOB RESULT
-                        earningRepository.Add(new Earning
+                        if (result == ApiResponse.Success)
                         {
-                            AccountId = account.Id,
-                            Created   = DateTime.Now,
-                            Action    = "PlayGamesForAllTickets",
-                            Total     = balance - account.Balance,
-                        });
+                            account.Balance = balance;
+                            account.Tickets = tickets;
+                            accountRepository.Update(account);
 
-                        account.Balance = balance;
-                        account.Tickets = tickets;
-                        accountRepository.Update(account);
+                            Log.Information("GameApiUtilsService PlayGamesForAllTickets: getting info after ending the game. " +
+                                            $"Balance is {balance}, ticket's count is {tickets} " +
+                                            $"for an account with Id: {account.Id}, Username: {account.Username}.");
+                        }
+                        else
+                        {
+                            Log.Error("GameApiUtilsService PlayGamesForAllTickets: error in getting user info " +
+                                      $"for an account with Id: {account.Id}, Username: {account.Username}. Server answer: {result}, " +
+                                      $"attempts: {attempts}, tickets: {account.Tickets}");
+                        }
 
                         Thread.Sleep(1000 + random.Next(-100, 100));
                     }
+                    else
+                    {
+                        Log.Error($"GameApiUtilsService PlayGamesForAllTickets: error in ending a game with id {gameId}, points {points} " +
+                                  $"for an account with Id: {account.Id}, Username: {account.Username}. Server answer: {endGameResponse}, " +
+                                  $"attempts: {attempts}, tickets: {account.Tickets}");
+                    }
+                }
+                else
+                {
+                    Log.Error($"GameApiUtilsService PlayGamesForAllTickets: error in starting a game with id {gameId} " +
+                              $"for an account with Id: {account.Id}, Username: {account.Username}. Server answer: {createGameResponse}, " +
+                              $"attempts: {attempts}, tickets: {account.Tickets}");
                 }
             }
         }
@@ -97,7 +127,17 @@ namespace BlumBotFarm.GameClient
 
             (ApiResponse response, var tasks) = gameApiClient.GetTasks(account);
             ++wholeCount;
-            if (response != ApiResponse.Success) ++errorsCount;
+            if (response != ApiResponse.Success)
+            {
+                Log.Error("GameApiUtilsService StartAndClaimAllTasks, error while trying to get tasks list " +
+                          $"for an account Id: {account.Id}, Username: {account.Username}.");
+                ++errorsCount;
+            }
+            else
+            {
+                Log.Information($"GameApiUtilsService StartAndClaimAllTasks, got tasks list " +
+                                $"for an account Id: {account.Id}, Username: {account.Username}.");
+            }
 
             foreach (var task in tasks)
             {
@@ -105,7 +145,18 @@ namespace BlumBotFarm.GameClient
                 {
                     response = gameApiClient.StartTask(account, task.id);
                     ++wholeCount;
-                    if (response != ApiResponse.Success) ++errorsCount; else Thread.Sleep(1000 + random.Next(-100, 100));
+                    if (response != ApiResponse.Success)
+                    {
+                        Log.Error($"GameApiUtilsService StartAndClaimAllTasks, error while starting task ({task.id}, {task.kind}, {task.status}) " +
+                                  $"for an account Id: {account.Id}, Username: {account.Username}.");
+                        ++errorsCount;
+                    }
+                    else
+                    {
+                        Log.Information($"GameApiUtilsService StartAndClaimAllTasks, started task ({task.id}, {task.kind}, {task.status}) " +
+                                        $"for an account Id: {account.Id}, Username: {account.Username}.");
+                        Thread.Sleep(1000 + random.Next(-100, 100));
+                    }
                 }
             }
 
@@ -113,7 +164,17 @@ namespace BlumBotFarm.GameClient
 
             (response, tasks) = gameApiClient.GetTasks(account);
             ++wholeCount;
-            if (response != ApiResponse.Success) ++errorsCount;
+            if (response != ApiResponse.Success)
+            {
+                Log.Error($"GameApiUtilsService StartAndClaimAllTasks, error while trying to get tasks list once again " +
+                          $"for an account Id: {account.Id}, Username: {account.Username}.");
+                ++errorsCount;
+            }
+            else
+            {
+                Log.Information($"GameApiUtilsService StartAndClaimAllTasks, got tasks list once again " +
+                                $"for an account Id: {account.Id}, Username: {account.Username}.");
+            }
 
             foreach (var task in tasks)
             {
@@ -121,17 +182,14 @@ namespace BlumBotFarm.GameClient
                 {
                     (response, double reward) = gameApiClient.ClaimTask(account, task.id);
                     ++wholeCount;
-                    if (response != ApiResponse.Success) ++errorsCount;
+                    if (response != ApiResponse.Success)
+                    {
+                        Log.Error($"GameApiUtilsService StartAndClaimAllTasks, error while claiming task ({task.id}, {task.kind}, {task.status}) for an account Id: {account.Id}, Username: {account.Username}.");
+                        ++errorsCount;
+                    }
                     else
                     {
-                        earningRepository.Add(new Earning
-                        {
-                            AccountId = account.Id,
-                            Created   = DateTime.Now,
-                            Action    = "ClaimTask",
-                            Total     = reward,
-                        });
-
+                        Log.Information($"GameApiUtilsService StartAndClaimAllTasks, claimed task ({task.id}, {task.kind}, {task.status}) for an account Id: {account.Id}, Username: {account.Username}.");
                         Thread.Sleep(1000 + random.Next(-100, 100));
                     }
                 }

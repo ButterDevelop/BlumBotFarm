@@ -48,14 +48,14 @@ namespace BlumBotFarm.Scheduler.Jobs
             Log.Information($"Started Daily Check Job for an account with Id: {account.Id}, Username: {account.Username}");
 
             Random random = new();
-            //Thread.Sleep(random.Next(TaskScheduler.MIN_MS_AMOUNT_TO_WAIT_BEFORE_JOB, TaskScheduler.MAX_MS_AMOUNT_TO_WAIT_BEFORE_JOB + 1));
+            Thread.Sleep(random.Next(TaskScheduler.MIN_MS_AMOUNT_TO_WAIT_BEFORE_JOB, TaskScheduler.MAX_MS_AMOUNT_TO_WAIT_BEFORE_JOB + 1));
 
             // Getting the frontend part
             if (!gameApiClient.GetMainPageHTML(account))
             {
                 Log.Warning($"Daily Check Job, GetMainPageHTML: returned FALSE for an account with Id: {account.Id}, Username: {account.Username}.");
             }
-
+            
             ApiResponse dailyClaimResponse = ApiResponse.Error, friendsClaimResponse = ApiResponse.Error, getUserInfoResult = ApiResponse.Error;
             bool startAndClaimAllTasksIsGood = false, isAuthGood = false;
 
@@ -69,6 +69,8 @@ namespace BlumBotFarm.Scheduler.Jobs
             }
             else
             {
+                Log.Information($"Daily Check Job, Auth is good for an account with Id: {account.Id}, Username: {account.Username}.");
+
                 isAuthGood = true;
 
                 account = accountRepository.GetById(accountId);
@@ -78,50 +80,78 @@ namespace BlumBotFarm.Scheduler.Jobs
                     return;
                 }
 
+                // Updating user info
+                (getUserInfoResult, var balance1, var tickets) = gameApiClient.GetUserInfo(account);
+                if (getUserInfoResult == ApiResponse.Success)
+                {
+                    account.Balance = balance1;
+                    account.Tickets = tickets;
+                    accountRepository.Update(account);
+                    Log.Information($"Daily Check Job, balance is {balance1}, ticket's count is {tickets} for an account with Id: {account.Id}, Username: {account.Username}.");
+                }
+                else
+                {
+                    Log.Error($"Daily Check Job, error while getting user info for an account with Id: {account.Id}, Username: {account.Username}.");
+                }
+
                 // Doing Daily Reward Job
                 dailyClaimResponse = gameApiClient.GetDailyReward(account);
                 if (dailyClaimResponse != ApiResponse.Success)
                 {
-                    Log.Information($"Can't take daily reward for some reason for an account with Id: {account.Id}, Username: {account.Username}.");
+                    Log.Information($"Daily Check Job, can't take daily reward for some reason for an account with Id: {account.Id}, Username: {account.Username}.");
+                }
+                else
+                {
+                    Log.Information($"Daily Check Job, ended working with daily reward for an account Id: {account.Id}, Username: {account.Username}.");
                 }
 
                 // Starting and claiming all the tasks
                 startAndClaimAllTasksIsGood = GameApiUtilsService.StartAndClaimAllTasks(account, earningRepository, gameApiClient);
-
-                // Updating user info after claiming tasks
-                (getUserInfoResult, double balance, int tickets) = gameApiClient.GetUserInfo(account);
-                account.Balance = balance;
-                account.Tickets = tickets;
-                accountRepository.Update(account);
+                Log.Information($"Daily Check Job, ended working with tasks for an account Id: {account.Id}, Username: {account.Username}.");
 
                 // Claiming our possible reward for friends
                 friendsClaimResponse = gameApiClient.ClaimFriends(account);
                 if (friendsClaimResponse != ApiResponse.Success)
                 {
-                    Log.Information($"Can't take friends reward for some reason for an account with Id: {account.Id}, Username: {account.Username}.");
+                    Log.Information($"Daily Check Job, can't take friends reward for some reason for an account with Id: {account.Id}, Username: {account.Username}.");
+                }
+                else
+                {
+                    Log.Information($"Daily Check Job, ended working with friends reward for an account Id: {account.Id}, Username: {account.Username}.");
                 }
 
-                // Updating user info
-                (getUserInfoResult, balance, tickets) = gameApiClient.GetUserInfo(account);
-
-                earningRepository.Add(new Earning
-                {
-                    AccountId = account.Id,
-                    Created   = DateTime.Now,
-                    Action    = "GetUserInfo",
-                    Total     = balance - account.Balance,
-                });
-
-                account.Balance = balance;
-                account.Tickets = tickets;
-                accountRepository.Update(account);
-
                 // Playing games with all the tickets
-                GameApiUtilsService.PlayGamesForAllTickets(ref account, accountRepository, earningRepository, gameApiClient);
+                GameApiUtilsService.PlayGamesForAllTickets(account, accountRepository, earningRepository, gameApiClient);
+                Log.Information($"Daily Check Job, ended playing for all tickets for an account Id: {account.Id}, Username: {account.Username}, " +
+                                $"Balance: {account.Balance}, Tickets: {account.Tickets}.");
+
+                account = accountRepository.GetById(accountId);
+                if (account == null)
+                {
+                    Log.Error("Daily Check Job, the Account is NULL from DB after playing for all tickets.");
+                    return;
+                }
+
+                if (getUserInfoResult == ApiResponse.Success)
+                {
+                    var total = account.Balance - balance1;
+
+                    earningRepository.Add(new Earning
+                    {
+                        AccountId = account.Id,
+                        Created   = DateTime.Now,
+                        Action    = "GetUserInfo",
+                        Total     = total,
+                    });
+
+                    Log.Information($"Daily Check Job, added earning with total {total} for an account Id: {account.Id}, Username: {account.Username}");
+                }
             }
 
             if (isPlanned && task != null)
             {
+                Log.Information($"Daily Check Job, planning future Jobs for an account Id: {account.Id}, Username: {account.Username}.");
+
                 // Determine the next run time based on the result
                 DateTime nextRunTime;
                 if (getUserInfoResult == ApiResponse.Success && dailyClaimResponse == ApiResponse.Success && 

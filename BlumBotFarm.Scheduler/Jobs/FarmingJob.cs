@@ -67,6 +67,8 @@ namespace BlumBotFarm.Scheduler.Jobs
             }
             else
             {
+                Log.Information($"Farming Job, Auth is good for an account with Id: {account.Id}, Username: {account.Username}.");
+
                 isAuthGood = true;
 
                 account = accountRepository.GetById(accountId);
@@ -80,6 +82,8 @@ namespace BlumBotFarm.Scheduler.Jobs
                 (ApiResponse claimResponse, double balance, int tickets) = gameApiClient.ClaimFarming(account);
                 if (claimResponse == ApiResponse.Success)
                 {
+                    Log.Information($"Farming Job, claimed farming successfully for an account Id: {account.Id}, Username: {account.Username}.");
+
                     earningRepository.Add(new Earning
                     {
                         AccountId = account.Id,
@@ -93,12 +97,26 @@ namespace BlumBotFarm.Scheduler.Jobs
                     account.Tickets = tickets;
                     accountRepository.Update(account);
                 }
+                else
+                {
+                    Log.Error($"Farming Job, error while claiming farming for an account Id: {account.Id}, Username: {account.Username}.");
+                }
 
                 // Doing starting farming stuff
                 startFarmingResponse = gameApiClient.StartFarming(account);
+                if (startFarmingResponse == ApiResponse.Success)
+                {
+                    Log.Information($"Farming Job, started farming successfully for an account Id: {account.Id}, Username: {account.Username}.");
+                }
+                else
+                {
+                    Log.Error($"Farming Job, error while starting farming for an account Id: {account.Id}, Username: {account.Username}.");
+                }
 
                 if (isPlanned && task != null)
                 {
+                    Log.Information($"Farming Job, planning future Jobs for an account Id: {account.Id}, Username: {account.Username}.");
+
                     DateTime nextRunTime;
                     if (startFarmingResponse == ApiResponse.Success && isAuthGood)
                     {

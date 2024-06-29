@@ -198,6 +198,100 @@ namespace BlumBotFarm.TelegramBot
                         await botClient.SendTextMessageAsync(message.Chat, "Usage: /proxy <username> [<proxy>]");
                     }
                     break;
+                case "/info":
+                    if (parts.Length == 2)
+                    {
+                        var username = parts[1];
+
+                        if (string.IsNullOrEmpty(username))
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, "The username <b>is empty</b>.", null, ParseMode.Html);
+                            return;
+                        }
+
+                        var account = accountRepository.GetAll().FirstOrDefault(user => user.Username == username);
+                        if (account == null)
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, "The account with this username <b>does not exist</b>.", null, ParseMode.Html);
+                            return;
+                        }
+
+                        await botClient.SendTextMessageAsync(message.Chat, $"You called info.\n" +
+                                                                           $"Id: <b>{account.Id}</b>\n" + 
+                                                                           $"Username: <b>{account.Username}</b>\n" + 
+                                                                           $"Balance: <b>{account.Balance}</b> ฿\n" + 
+                                                                           $"Tickets: <b>{account.Tickets}</b>\n" +
+                                                                           $"UserAgent: <code>{account.UserAgent}</code>\n" + 
+                                                                           $"Proxy: <code>{account.Proxy}</code>\n" +
+                                                                           $"Timezone offset: <b>{account.TimezoneOffset}</b>",
+                                                                           null, ParseMode.Html);
+
+                        Log.Information($"{message.From.Username} called info for {username}.");
+                    }
+                    else
+                    {
+                        await botClient.SendTextMessageAsync(message.Chat, "Usage: /info <username>");
+                    }
+                    break;
+                case "/ticketsinfo":
+
+                    break;
+                case "/accountsinfo":
+
+                    break;
+                case "/forcedailyjob":
+                    if (parts.Length == 2)
+                    {
+                        var username = parts[1];
+
+                        if (string.IsNullOrEmpty(username))
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, "The username <b>is empty</b>.", null, ParseMode.Html);
+                            return;
+                        }
+
+                        Log.Information($"{message.From.Username} forced unscheduled Daily Job for {username}.");
+                        await SendMessageToAdmins($"<b>{message.From.Username}</b> forced unscheduled Daily Job for <b>{username}</b>.");
+
+                        var account = accountRepository.GetAll().FirstOrDefault(user => user.Username == username);
+                        if (account == null)
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, "The account with this username <b>does not exist</b>.", null, ParseMode.Html);
+                            return;
+                        }
+
+                        var job = JobBuilder.Create<DailyCheckJob>().Build();
+                        
+                        var task = new Core.Models.Task
+                        {
+                            AccountId       = account.Id,
+                            ScheduleSeconds = -1,
+                            NextRunTime     = new DateTime(1990, 1, 1),
+                            TaskType        = "DailyCheckJob"
+                        };
+                        
+                        // Создание задачи для DailyCheckJob
+                        job.JobDataMap.Put("accountId", account.Id);
+                        job.JobDataMap.Put("taskId" + task.TaskType, task.Id);
+                        job.JobDataMap.Put("isPlanned", false);
+                        
+                        var now = DateTime.Now;
+                        
+                        var trigger = TriggerBuilder.Create()
+                                .WithSimpleSchedule(schedule => schedule.WithRepeatCount(0))
+                                .StartAt(now.AddSeconds(task.TaskType.Length))
+                                .Build();
+                        
+                        await taskScheduler.ScheduleTask(account.Id.ToString(), account.Id.ToString(), job, trigger);
+
+                        await SendMessageToAdmins($"Forced unscheduled Daily Job for <b>{username}</b> will start soon.");
+                        Log.Information($"Forced unscheduled Daily Job for {username} will start soon.");
+                    }
+                    else
+                    {
+                        await botClient.SendTextMessageAsync(message.Chat, "Usage: /forcedailyjob <username>");
+                    }
+                    break;
                 case "/forcedailyjobforeveryone":
                     Log.Information($"{message.From.Username} forced unscheduled Daily Job.");
                     await SendMessageToAdmins($"<b>{message.From.Username}</b> forced unscheduled Daily Job.");
@@ -264,7 +358,7 @@ namespace BlumBotFarm.TelegramBot
                     }
                     else
                     {
-                        await botClient.SendTextMessageAsync(message.Chat, "Usage: /refreshtoken <username> <refreshToken>\n");
+                        await botClient.SendTextMessageAsync(message.Chat, "Usage: /refreshtoken <username> <refreshToken>");
                     }
                     break;
                 case "/restartapp":
@@ -284,7 +378,7 @@ namespace BlumBotFarm.TelegramBot
 
         private async Task AddAccount(string username, string refreshToken, string proxy)
         {
-            await AddAccount(username, accessToken: "", refreshToken, proxy, timezoneOffset: -180);
+            await AddAccount(username, accessToken: "", refreshToken, proxy, timezoneOffset: -120);
         }
         private async Task AddAccount(string username, string accessToken, string refreshToken, string proxy, int timezoneOffset)
         {
@@ -426,7 +520,7 @@ namespace BlumBotFarm.TelegramBot
                    $"Total tickets: <b>{totalTickets}</b>\n" +
                    $"Executed jobs today: <b>{executedDailyJobs + executedFarming}</b>\n" +
                    $"Remaining jobs today: <b>{notExecutedDailyJobs + notExecutedFarming}</b>\n" + 
-                   $"Today earnings: <b>{todayEarningsSum:N2}</b> ฿";
+                   $"Today earnings: ≈<b>{todayEarningsSum:N2}</b> ฿";
         }
 
         private Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)

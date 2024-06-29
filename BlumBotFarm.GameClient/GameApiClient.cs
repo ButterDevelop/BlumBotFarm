@@ -151,6 +151,12 @@ namespace BlumBotFarm.GameClient
                 return ApiResponse.Unauthorized;
             }
 
+            if (jsonAnswer != null && jsonAnswer.Contains("same day", StringComparison.CurrentCultureIgnoreCase))
+            {
+                Log.Information($"GameApiClient GetDailyReward (Account with Id: {account.Id}, Username: {account.Username}). Same day! JSON answer: {jsonAnswer}");
+                return ApiResponse.Success;
+            }
+
             if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
             {
                 Log.Error($"GameApiClient GetDailyReward (Account with Id: {account.Id}, Username: {account.Username}) JSON answer: {jsonAnswer}");

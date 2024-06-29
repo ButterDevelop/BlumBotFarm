@@ -5,7 +5,7 @@ namespace BlumBotFarm.GUIAccountManager
     public class CsvRecord
     {
         [Name("Number")]
-        public int Number { get; set; }
+        public int? Number { get; set; }
 
         [Name("Account Name")]
         public string AccountName { get; set; } = string.Empty;
@@ -21,6 +21,9 @@ namespace BlumBotFarm.GUIAccountManager
 
         [Name("Refresh Token")]
         public string RefreshToken { get; set; } = string.Empty;
+
+        [Name("Auth TG Query Link")]
+        public string AuthTGQueryLink { get; set; } = string.Empty;
 
         [Name(" Refferal Link")]
         public string ReferralLink { get; set; } = string.Empty;
