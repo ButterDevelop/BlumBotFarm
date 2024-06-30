@@ -35,7 +35,7 @@ namespace BlumBotFarm.Database.Repositories
         {
             lock (dbLock)
             {
-                var sql = "INSERT INTO Accounts (Username, Balance, Tickets, AccessToken, RefreshToken, UserAgent, Proxy, TimezoneOffset) VALUES (@Username, @Balance, @Tickets, @AccessToken, @RefreshToken, @UserAgent, @Proxy, @TimezoneOffset)";
+                var sql = "INSERT INTO Accounts (Username, Balance, Tickets, AccessToken, RefreshToken, ProviderToken, UserAgent, Proxy, TimezoneOffset) VALUES (@Username, @Balance, @Tickets, @AccessToken, @RefreshToken, @ProviderToken, @UserAgent, @Proxy, @TimezoneOffset)";
                 _db.Execute(sql, account);
             }
         }
@@ -44,7 +44,7 @@ namespace BlumBotFarm.Database.Repositories
         {
             lock (dbLock)
             {
-                var sql = "UPDATE Accounts SET Username = @Username, Balance = @Balance, Tickets = @Tickets, AccessToken = @AccessToken, RefreshToken = @RefreshToken, UserAgent = @UserAgent, Proxy = @Proxy, TimezoneOffset = @TimezoneOffset WHERE Id = @Id";
+                var sql = "UPDATE Accounts SET Username = @Username, Balance = @Balance, Tickets = @Tickets, AccessToken = @AccessToken, RefreshToken = @RefreshToken, ProviderToken = @ProviderToken, UserAgent = @UserAgent, Proxy = @Proxy, TimezoneOffset = @TimezoneOffset WHERE Id = @Id";
                 _db.Execute(sql, account);
             }
         }

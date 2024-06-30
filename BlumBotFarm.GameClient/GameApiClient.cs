@@ -8,21 +8,22 @@ namespace BlumBotFarm.GameClient
 {
     public class GameApiClient
     {
-        private const string BASE_GAMING_API_URL               = "https://game-domain.blum.codes/api/v1/",
-                             BASE_GATEWAY_API_URL              = "https://gateway.blum.codes/v1/",
-                             HTML_PAGE_URL                     = "https://telegram.blum.codes/",
-                             ABOUT_ME_REQUEST_ENDPOINT         = "user/me",
-                             REFRESH_AUTH_REQUEST_ENDPOINT     = "auth/refresh",
-                             GET_DAILY_REWARD_REQUEST_ENDPOINT = "daily-reward?offset=",
-                             START_GAME_REQUEST_ENDPOINT       = "game/play",
-                             END_GAME_REQUEST_ENDPOINT         = "game/claim",
-                             GET_USER_INFO_REQUEST_ENDPOINT    = "user/balance",
-                             START_FARMING_REQUEST_ENDPOINT    = "farming/start",
-                             CLAIM_FARMING_REQUEST_ENDPOINT    = "farming/claim",
-                             TASKS_INFO_REQUEST_ENDPOINT       = "tasks",
-                             START_TASK_REQUEST_ENDPOINT       = "tasks/{0}/start",
-                             CLAIM_TASK_REQUEST_ENDPOINT       = "tasks/{0}/claim",
-                             FRIENDS_CLAIM_REQUEST_ENDPOINT    = "friends/claim";
+        private const string BASE_GAMING_API_URL                   = "https://game-domain.blum.codes/api/v1/",
+                             BASE_GATEWAY_API_URL                  = "https://gateway.blum.codes/v1/",
+                             HTML_PAGE_URL                         = "https://telegram.blum.codes/",
+                             ABOUT_ME_REQUEST_ENDPOINT             = "user/me",
+                             GET_AUTH_BY_PROVIDER_REQUEST_ENDPOINT = "auth/provider/PROVIDER_TELEGRAM_MINI_APP",
+                             REFRESH_AUTH_REQUEST_ENDPOINT         = "auth/refresh",
+                             GET_DAILY_REWARD_REQUEST_ENDPOINT     = "daily-reward?offset=",
+                             START_GAME_REQUEST_ENDPOINT           = "game/play",
+                             END_GAME_REQUEST_ENDPOINT             = "game/claim",
+                             GET_USER_INFO_REQUEST_ENDPOINT        = "user/balance",
+                             START_FARMING_REQUEST_ENDPOINT        = "farming/start",
+                             CLAIM_FARMING_REQUEST_ENDPOINT        = "farming/claim",
+                             TASKS_INFO_REQUEST_ENDPOINT           = "tasks",
+                             START_TASK_REQUEST_ENDPOINT           = "tasks/{0}/start",
+                             CLAIM_TASK_REQUEST_ENDPOINT           = "tasks/{0}/claim",
+                             FRIENDS_CLAIM_REQUEST_ENDPOINT        = "friends/claim";
 
         private readonly Dictionary<string, string> _commonHeaders = new Dictionary<string, string>
         {
@@ -88,6 +89,49 @@ namespace BlumBotFarm.GameClient
             }
 
             return ApiResponse.Success;
+        }
+
+        public (ApiResponse response, string accessToken, string refreshToken) GetAuthByProvider(Account account)
+        {
+            var headers = GetUniqueHeaders(_commonHeaders, string.Empty);
+
+            string parametersString      = $"{{\"query\":\"{account.ProviderToken}\"}}";
+            string parametersContentType = "application/json";
+
+            var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
+                await HTTPController.SendRequestAsync(BASE_GATEWAY_API_URL + GET_AUTH_BY_PROVIDER_REQUEST_ENDPOINT,
+                                                      RequestType.POST, account.Proxy, headers,
+                                                      parameters: null, parametersString, parametersContentType, referer: null,
+                                                      account.UserAgent)
+            );
+            (string? jsonAnswer, HttpStatusCode responseStatusCode) = taskResult.Result;
+
+            if (responseStatusCode == HttpStatusCode.Unauthorized)
+            {
+                Log.Error($"GameApiClient GetAuthByProvider (Account with Id: {account.Id}, Username: {account.Username}) responseStatusCode - Unauthorized!");
+                return (ApiResponse.Unauthorized, string.Empty, string.Empty);
+            }
+
+            if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
+            {
+                Log.Error($"GameApiClient GetAuthByProvider (Account with Id: {account.Id}, Username: {account.Username}) JSON answer: {jsonAnswer}");
+                return (ApiResponse.Error, string.Empty, string.Empty);
+            }
+
+            try
+            {
+                dynamic json = JObject.Parse(jsonAnswer.Replace("'", "\\'").Replace("\"", "'"));
+
+                string accessToken  = json.token.access;
+                string refreshToken = json.token.refresh;
+
+                return (ApiResponse.Success, accessToken, refreshToken);
+            }
+            catch (RuntimeBinderException ex)
+            {
+                Log.Error($"GameApiClient GetAuthByProvider (Account with Id: {account.Id}, Username: {account.Username}) Exception: {ex}");
+                return (ApiResponse.Error, string.Empty, string.Empty);
+            }
         }
 
         public (ApiResponse response, string accessToken, string refreshToken) RefreshAuth(Account account)

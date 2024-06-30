@@ -21,6 +21,7 @@ namespace BlumBotFarm.Database
                         Tickets INTEGER,
                         AccessToken TEXT,
                         RefreshToken TEXT,
+                        ProviderToken TEXT,
                         UserAgent TEXT,
                         Proxy TEXT,
                         TimezoneOffset INTEGER

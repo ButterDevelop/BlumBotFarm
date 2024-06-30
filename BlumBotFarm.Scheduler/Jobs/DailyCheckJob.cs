@@ -136,15 +136,22 @@ namespace BlumBotFarm.Scheduler.Jobs
                 {
                     var total = account.Balance - balance1;
 
-                    earningRepository.Add(new Earning
+                    if (total > 0)
                     {
-                        AccountId = account.Id,
-                        Created   = DateTime.Now,
-                        Action    = "GetUserInfo",
-                        Total     = total,
-                    });
+                        earningRepository.Add(new Earning
+                        {
+                            AccountId = account.Id,
+                            Created   = DateTime.Now,
+                            Action    = "GetUserInfo",
+                            Total     = total,
+                        });
 
-                    Log.Information($"Daily Check Job, added earning with total {total} for an account Id: {account.Id}, Username: {account.Username}");
+                        Log.Information($"Daily Check Job, added earning with total {total} for an account Id: {account.Id}, Username: {account.Username}");
+                    }
+                    else
+                    {
+                        Log.Warning($"Daily Check Job, earning with total {total} is negative for an account Id: {account.Id}, Username: {account.Username}");
+                    }
                 }
             }
 

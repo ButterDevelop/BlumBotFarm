@@ -84,13 +84,22 @@ namespace BlumBotFarm.Scheduler.Jobs
                 {
                     Log.Information($"Farming Job, claimed farming successfully for an account Id: {account.Id}, Username: {account.Username}.");
 
-                    earningRepository.Add(new Earning
+                    if (balance - account.Balance > 0)
                     {
-                        AccountId = account.Id,
-                        Created   = DateTime.Now,
-                        Action    = "ClaimFarming",
-                        Total     = balance - account.Balance,
-                    });
+                        earningRepository.Add(new Earning
+                        {
+                            AccountId = account.Id,
+                            Created   = DateTime.Now,
+                            Action    = "ClaimFarming",
+                            Total     = balance - account.Balance,
+                        });
+
+                        Log.Information($"Farming Job, added earning with total {balance - account.Balance} for an account Id: {account.Id}, Username: {account.Username}");
+                    }
+                    else
+                    {
+                        Log.Warning($"Farming Job, earning with total {balance - account.Balance} is negative for an account Id: {account.Id}, Username: {account.Username}");
+                    }
 
                     // Updating user info
                     account.Balance = balance;

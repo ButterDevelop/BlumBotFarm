@@ -25,8 +25,12 @@ namespace BlumBotFarm.GameClient
 
                 if (refreshAuthResult != ApiResponse.Success)
                 {
-                    Log.Warning($"GameApiUtilsService AuthCheck not passed for account with Id: {account.Id}, Username: {account.Username}");
-                    return false;
+                    (ApiResponse getAuthByProviderResult, newAccessToken, newRefreshToken) = gameApiClient.GetAuthByProvider(account);
+                    if (getAuthByProviderResult != ApiResponse.Success)
+                    {
+                        Log.Warning($"GameApiUtilsService AuthCheck not passed for account with Id: {account.Id}, Username: {account.Username}");
+                        return false;
+                    }
                 }
 
                 account.AccessToken  = newAccessToken;
