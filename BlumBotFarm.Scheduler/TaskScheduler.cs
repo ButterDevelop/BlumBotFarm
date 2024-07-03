@@ -1,7 +1,9 @@
-﻿using BlumBotFarm.Scheduler.Jobs;
+﻿using BlumBotFarm.Core.Models;
+using BlumBotFarm.Scheduler.Jobs;
 using Quartz;
 using Quartz.Impl;
 using Quartz.Impl.Matchers;
+using System.Threading.Tasks;
 using Task = System.Threading.Tasks.Task;
 
 namespace BlumBotFarm.Scheduler
@@ -109,6 +111,39 @@ namespace BlumBotFarm.Scheduler
                     .Build();
 
             await taskScheduler.ScheduleTask($"EarningJob_{accountId}", $"EarningJob_{accountId}", job, trigger);
+        }
+
+        public static async Task UpdateUsersInfoNow()
+        {
+            // Создание экземпляра планировщика задач
+            var taskScheduler = new TaskScheduler();
+
+            // Создание задачи для UpdateUsersInfoJob
+            IJobDetail job = JobBuilder.Create<UpdateUsersInfoJob>().Build();
+
+            var triggerImmediately = TriggerBuilder.Create().StartNow().Build();
+
+            await taskScheduler.ScheduleTask("UpdateUsersInfoImmediately", "UpdateUsersInfoImmediately", job, triggerImmediately);
+        }
+
+        public static async Task ScheduleUpdateUsersInfo()
+        {
+            // Создание экземпляра планировщика задач
+            var taskScheduler = new TaskScheduler();
+
+            // Создание задачи для MainSchedulerJob
+            IJobDetail job = JobBuilder.Create<UpdateUsersInfoJob>().Build();
+
+            Random random    = new();
+            int minutesToAdd = random.Next(UpdateUsersInfoJob.MIN_MINUTES_TO_WAIT, UpdateUsersInfoJob.MAX_MINUTES_TO_WAIT);
+            DateTime startAt = DateTime.Now.AddMinutes(minutesToAdd);
+
+            var triggerScheduled = TriggerBuilder.Create()
+                                .WithSimpleSchedule(schedule => schedule.WithRepeatCount(0))
+                                .StartAt(startAt)
+                                .Build();
+
+            await taskScheduler.ScheduleTask("ScheduleUpdateUsersInfo", "ScheduleUpdateUsersInfo", job, triggerScheduled);
         }
     }
 }

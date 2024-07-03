@@ -96,7 +96,7 @@ namespace BlumBotFarm.Scheduler.Jobs
                 (ApiResponse claimResponse, double balance, int tickets) = gameApiClient.ClaimFarming(account);
                 if (claimResponse == ApiResponse.Success)
                 {
-                    Log.Information($"Farming Job, claimed farming successfully for an account Id: {account.Id}, Username: {account.Username}.");
+                    Log.Information($"Farming Job, claimed farming successfully for an account Id: {account.Id}, Username: {account.Username}, Tickets: {tickets}.");
 
                     Log.Information($"Farming Job, sheduling earning job for an account Id: {account.Id}, Username: {account.Username}");
                     var startDate = DateTime.Now.AddMinutes(random.Next(EarningCheckJob.MIN_MINUTES_TO_WAIT, EarningCheckJob.MAX_MINUTES_TO_WAIT + 1));

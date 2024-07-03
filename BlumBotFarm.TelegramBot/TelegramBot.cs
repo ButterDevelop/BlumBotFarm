@@ -278,6 +278,11 @@ namespace BlumBotFarm.TelegramBot
                     await botClient.SendTextMessageAsync(message.Chat, messageToSendAccounts.ToString(), null, ParseMode.Html);
 
                     break;
+                case "/updateusersinfo":
+                    await TaskScheduler.UpdateUsersInfoNow();
+                    Log.Information($"{message.From.Username} forced update users info.");
+                    await SendMessageToAdmins($"<b>{message.From.Username}</b> forced updating users info.");
+                    break;
                 case "/forcedailyjobtoguyswithtickets":
                     Log.Information($"{message.From.Username} forced Daily Check Job for accounts which has more than 0 tickets.");
                     await SendMessageToAdmins($"<b>{message.From.Username}</b> forced Daily Check Job for accounts which has more than 0 tickets.");

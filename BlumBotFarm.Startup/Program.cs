@@ -53,6 +53,8 @@ namespace BlumBotFarm.Startup
             Log.Information("Scheduled Main Scheduler Job.");
             await TaskScheduler.ExecuteMainJobNow();
             Log.Information("Started Main Scheduler Job.");
+            await TaskScheduler.ScheduleUpdateUsersInfo();
+            Log.Information("Scheduled Update Users Info Job.");
 
             Log.Information("Started an infinite loop.");
 
