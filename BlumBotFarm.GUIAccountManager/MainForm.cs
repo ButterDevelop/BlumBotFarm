@@ -10,7 +10,7 @@ namespace BlumBotFarm.GUIAccountManager
             InitializeComponent();
         }
 
-        private void buttonOpenTelegram_Click(object sender, EventArgs e)
+        private void buttonStart_Click(object sender, EventArgs e)
         {
             if (!int.TryParse(textBoxAccountNumber.Text, out int accountNumber))
             {
@@ -33,6 +33,16 @@ namespace BlumBotFarm.GUIAccountManager
                 MessageBox.Show("No account found associated with your number!", "BlumBotFarm TG account manager", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
+
+            string username      = string.IsNullOrEmpty(account.TelegramName)    ? "USERNAME"       : account.TelegramName;
+            string accessToken   = string.IsNullOrEmpty(account.AccessToken)    ? "ACCESS_TOKEN"   : account.AccessToken;
+            string refreshToken  = string.IsNullOrEmpty(account.RefreshToken)    ? "REFRESH_TOKEN"  : account.RefreshToken;
+            string providerToken = string.IsNullOrEmpty(account.AuthTGQueryLink) ? "PROVIDER_TOKEN" : account.AuthTGQueryLink;
+            string proxy         = string.IsNullOrEmpty(account.Proxy)           ? "PROXY"          : account.Proxy;
+            richTextBoxTelegramAddCommand.Text = $"/addaccount {username} {accessToken} {refreshToken} -120 socks5://{proxy}";
+            richTextBoxTelegramProviderToken.Text = $"/providertoken {username} {providerToken}";
+
+            if (!checkBoxOpenTelegram.Checked) return;
 
             var workingPath = $"{accountNumber}";
             if (!Directory.Exists(workingPath))
@@ -58,7 +68,7 @@ namespace BlumBotFarm.GUIAccountManager
                 {
                     if (regexTelegramExe.IsMatch(file))
                     {
-                        telegramExeName  = file;
+                        telegramExeName = file;
                         foundTelegramExe = true;
                         break;
                     }
@@ -91,11 +101,6 @@ namespace BlumBotFarm.GUIAccountManager
 
             string logFilePath = Path.Combine(workingPath, "log.txt");
             if (File.Exists(logFilePath)) File.Delete(logFilePath);
-
-            string username     = string.IsNullOrEmpty(account.TelegramName) ? "USERNAME"      : account.TelegramName;
-            string refreshToken = string.IsNullOrEmpty(account.RefreshToken) ? "REFRESH_TOKEN" : account.RefreshToken;
-            string proxy        = string.IsNullOrEmpty(account.Proxy)        ? "PROXY"         : account.Proxy;
-            richTextBoxTelegramAddCommand.Text = $"/addaccount {username} {refreshToken} socks5://{proxy}";
 
             // Rename TelegramN.exe as necessary
             string newTelegramExeName = Path.Combine(workingPath, $"Telegram{accountNumber}.exe");
@@ -132,6 +137,7 @@ namespace BlumBotFarm.GUIAccountManager
         private void textBoxAccountNumber_TextChanged(object sender, EventArgs e)
         {
             richTextBoxTelegramAddCommand.Clear();
+            richTextBoxTelegramProviderToken.Clear();
         }
 
         private void richTextBoxTelegramAddCommand_Click(object sender, EventArgs e)
@@ -140,6 +146,15 @@ namespace BlumBotFarm.GUIAccountManager
             {
                 Clipboard.SetText(richTextBoxTelegramAddCommand.Text);
                 MessageBox.Show("Telegram Add Command was copied to your clipboard.", "BlumBotFarm TG account manager", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void richTextBoxTelegramProviderToken_Click(object sender, EventArgs e)
+        {
+            if (richTextBoxTelegramProviderToken.TextLength > 0)
+            {
+                Clipboard.SetText(richTextBoxTelegramProviderToken.Text);
+                MessageBox.Show("Telegram Provider Token Update Command was copied to your clipboard.", "BlumBotFarm TG account manager", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
     }

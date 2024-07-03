@@ -31,12 +31,12 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             labelAccountNumber = new Label();
             textBoxAccountNumber = new TextBox();
-            groupBoxIPOptions = new GroupBox();
-            radioButtonThroughFiddler = new RadioButton();
-            buttonOpenTelegram = new Button();
+            buttonStart = new Button();
             richTextBoxTelegramAddCommand = new RichTextBox();
             labelTelegramAddCommand = new Label();
-            groupBoxIPOptions.SuspendLayout();
+            labelTelegramProviderToken = new Label();
+            richTextBoxTelegramProviderToken = new RichTextBox();
+            checkBoxOpenTelegram = new CheckBox();
             SuspendLayout();
             // 
             // labelAccountNumber
@@ -58,45 +58,20 @@
             textBoxAccountNumber.Location = new Point(68, 63);
             textBoxAccountNumber.Name = "textBoxAccountNumber";
             textBoxAccountNumber.Size = new Size(82, 31);
-            textBoxAccountNumber.TabIndex = 1;
+            textBoxAccountNumber.TabIndex = 0;
             textBoxAccountNumber.TextAlign = HorizontalAlignment.Center;
             textBoxAccountNumber.TextChanged += textBoxAccountNumber_TextChanged;
             // 
-            // groupBoxIPOptions
+            // buttonStart
             // 
-            groupBoxIPOptions.Controls.Add(radioButtonThroughFiddler);
-            groupBoxIPOptions.ForeColor = Color.FromArgb(221, 221, 221);
-            groupBoxIPOptions.Location = new Point(245, 12);
-            groupBoxIPOptions.Name = "groupBoxIPOptions";
-            groupBoxIPOptions.Size = new Size(193, 95);
-            groupBoxIPOptions.TabIndex = 2;
-            groupBoxIPOptions.TabStop = false;
-            groupBoxIPOptions.Text = "IP options";
-            groupBoxIPOptions.Visible = false;
-            // 
-            // radioButtonThroughFiddler
-            // 
-            radioButtonThroughFiddler.AutoSize = true;
-            radioButtonThroughFiddler.Checked = true;
-            radioButtonThroughFiddler.FlatStyle = FlatStyle.Flat;
-            radioButtonThroughFiddler.Location = new Point(17, 42);
-            radioButtonThroughFiddler.Name = "radioButtonThroughFiddler";
-            radioButtonThroughFiddler.Size = new Size(161, 29);
-            radioButtonThroughFiddler.TabIndex = 0;
-            radioButtonThroughFiddler.TabStop = true;
-            radioButtonThroughFiddler.Text = "Through Fiddler";
-            radioButtonThroughFiddler.UseVisualStyleBackColor = true;
-            // 
-            // buttonOpenTelegram
-            // 
-            buttonOpenTelegram.FlatStyle = FlatStyle.Flat;
-            buttonOpenTelegram.Location = new Point(487, 49);
-            buttonOpenTelegram.Name = "buttonOpenTelegram";
-            buttonOpenTelegram.Size = new Size(151, 34);
-            buttonOpenTelegram.TabIndex = 3;
-            buttonOpenTelegram.Text = "Open Telegram";
-            buttonOpenTelegram.UseVisualStyleBackColor = true;
-            buttonOpenTelegram.Click += buttonOpenTelegram_Click;
+            buttonStart.FlatStyle = FlatStyle.Flat;
+            buttonStart.Location = new Point(487, 49);
+            buttonStart.Name = "buttonStart";
+            buttonStart.Size = new Size(151, 34);
+            buttonStart.TabIndex = 2;
+            buttonStart.Text = "Start";
+            buttonStart.UseVisualStyleBackColor = true;
+            buttonStart.Click += buttonStart_Click;
             // 
             // richTextBoxTelegramAddCommand
             // 
@@ -109,7 +84,7 @@
             richTextBoxTelegramAddCommand.Name = "richTextBoxTelegramAddCommand";
             richTextBoxTelegramAddCommand.ReadOnly = true;
             richTextBoxTelegramAddCommand.Size = new Size(626, 111);
-            richTextBoxTelegramAddCommand.TabIndex = 4;
+            richTextBoxTelegramAddCommand.TabIndex = 3;
             richTextBoxTelegramAddCommand.Text = "";
             richTextBoxTelegramAddCommand.Click += richTextBoxTelegramAddCommand_Click;
             // 
@@ -124,16 +99,58 @@
             labelTelegramAddCommand.TabIndex = 5;
             labelTelegramAddCommand.Text = "Telegram add command (clears after number change, click to copy): ";
             // 
+            // labelTelegramProviderToken
+            // 
+            labelTelegramProviderToken.AutoSize = true;
+            labelTelegramProviderToken.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 204);
+            labelTelegramProviderToken.ForeColor = Color.FromArgb(238, 238, 238);
+            labelTelegramProviderToken.Location = new Point(148, 284);
+            labelTelegramProviderToken.Name = "labelTelegramProviderToken";
+            labelTelegramProviderToken.Size = new Size(381, 50);
+            labelTelegramProviderToken.TabIndex = 7;
+            labelTelegramProviderToken.Text = "Telegram provider token update command\r\n(clears after number change, click to copy):";
+            // 
+            // richTextBoxTelegramProviderToken
+            // 
+            richTextBoxTelegramProviderToken.BackColor = Color.FromArgb(39, 58, 67);
+            richTextBoxTelegramProviderToken.BorderStyle = BorderStyle.FixedSingle;
+            richTextBoxTelegramProviderToken.Cursor = Cursors.Hand;
+            richTextBoxTelegramProviderToken.DetectUrls = false;
+            richTextBoxTelegramProviderToken.ForeColor = Color.White;
+            richTextBoxTelegramProviderToken.Location = new Point(23, 337);
+            richTextBoxTelegramProviderToken.Name = "richTextBoxTelegramProviderToken";
+            richTextBoxTelegramProviderToken.ReadOnly = true;
+            richTextBoxTelegramProviderToken.Size = new Size(626, 111);
+            richTextBoxTelegramProviderToken.TabIndex = 4;
+            richTextBoxTelegramProviderToken.Text = "";
+            richTextBoxTelegramProviderToken.Click += richTextBoxTelegramProviderToken_Click;
+            // 
+            // checkBoxOpenTelegram
+            // 
+            checkBoxOpenTelegram.AutoSize = true;
+            checkBoxOpenTelegram.Checked = true;
+            checkBoxOpenTelegram.CheckState = CheckState.Checked;
+            checkBoxOpenTelegram.FlatStyle = FlatStyle.Flat;
+            checkBoxOpenTelegram.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 204);
+            checkBoxOpenTelegram.Location = new Point(244, 54);
+            checkBoxOpenTelegram.Name = "checkBoxOpenTelegram";
+            checkBoxOpenTelegram.Size = new Size(170, 29);
+            checkBoxOpenTelegram.TabIndex = 1;
+            checkBoxOpenTelegram.Text = "Open Telegram?";
+            checkBoxOpenTelegram.UseVisualStyleBackColor = true;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(63, 81, 90);
-            ClientSize = new Size(681, 271);
+            ClientSize = new Size(681, 466);
+            Controls.Add(checkBoxOpenTelegram);
+            Controls.Add(labelTelegramProviderToken);
+            Controls.Add(richTextBoxTelegramProviderToken);
             Controls.Add(labelTelegramAddCommand);
             Controls.Add(richTextBoxTelegramAddCommand);
-            Controls.Add(buttonOpenTelegram);
-            Controls.Add(groupBoxIPOptions);
+            Controls.Add(buttonStart);
             Controls.Add(textBoxAccountNumber);
             Controls.Add(labelAccountNumber);
             DoubleBuffered = true;
@@ -143,8 +160,6 @@
             MaximizeBox = false;
             Name = "MainForm";
             Text = "BlumBotFarm by ButterDevelop - GUI TG account manager";
-            groupBoxIPOptions.ResumeLayout(false);
-            groupBoxIPOptions.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -155,8 +170,11 @@
         private TextBox textBoxAccountNumber;
         private GroupBox groupBoxIPOptions;
         private RadioButton radioButtonThroughFiddler;
-        private Button buttonOpenTelegram;
+        private Button buttonStart;
         private RichTextBox richTextBoxTelegramAddCommand;
         private Label labelTelegramAddCommand;
+        private Label labelTelegramProviderToken;
+        private RichTextBox richTextBoxTelegramProviderToken;
+        private CheckBox checkBoxOpenTelegram;
     }
 }

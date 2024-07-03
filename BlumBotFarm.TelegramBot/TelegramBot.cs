@@ -1,10 +1,7 @@
 ﻿using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Repositories;
 using BlumBotFarm.GameClient;
-using BlumBotFarm.Scheduler.Jobs;
-using Quartz;
 using Serilog;
-using System.Diagnostics.Metrics;
 using System.Text;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
@@ -269,6 +266,13 @@ namespace BlumBotFarm.TelegramBot
                     {
                         messageToSendAccounts.AppendLine($"Id: <b>{account.Id}</b>, <code>{account.Username}</code>, " +
                                                          $"<b>{account.Balance}</b> ฿, tickets: <b>{account.Tickets}</b>");
+
+                        if (messageToSendAccounts.Length >= 2048) // TG message length limit is 4096
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, messageToSendAccounts.ToString(), null, ParseMode.Html);
+
+                            messageToSendAccounts.Clear();
+                        }
                     }
 
                     await botClient.SendTextMessageAsync(message.Chat, messageToSendAccounts.ToString(), null, ParseMode.Html);
@@ -284,8 +288,7 @@ namespace BlumBotFarm.TelegramBot
                     {
                         ++counterWithTickets;
 
-                        var now = DateTime.Now.AddSeconds(counterWithTickets * 10);
-                        await ScheduleDailyTaskForAnAccount(account, now);
+                        await ScheduleDailyTaskForAnAccount(account, DateTime.Now.AddSeconds(counterWithTickets * 10));
                     }
 
                     await SendMessageToAdmins($"Forced Daily Check Job for accounts which has more than 0 tickets will start soon.");
@@ -313,8 +316,7 @@ namespace BlumBotFarm.TelegramBot
                             return;
                         }
 
-                        var now = DateTime.Now;
-                        await ScheduleDailyTaskForAnAccount(account, now);
+                        await ScheduleDailyTaskForAnAccountRightNow(account);
 
                         await SendMessageToAdmins($"Forced unscheduled Daily Job for <b>{username}</b> will start soon.");
                         Log.Information($"Forced unscheduled Daily Job for {username} will start soon.");
@@ -333,13 +335,29 @@ namespace BlumBotFarm.TelegramBot
                     foreach (var account in accounts)
                     {
                         ++counter;
-                        var now = DateTime.Now.AddSeconds(counter * 10);
-
-                        await ScheduleDailyTaskForAnAccount(account, now);
+                        
+                        await ScheduleDailyTaskForAnAccount(account, DateTime.Now.AddSeconds(counter * 10));
                     }
 
                     await SendMessageToAdmins($"Forced unscheduled Daily Job will start soon.");
                     Log.Information($"Forced unscheduled Daily Job will start soon.");
+                    break;
+                case "/redistributetasks":
+                    Log.Information($"{message.From.Username} forced redistributing tasks.");
+
+                    bool deleteAllTasksResult = await taskScheduler.DeleteAllTasks();
+                    if (deleteAllTasksResult)
+                    {
+                        await TaskScheduler.ExecuteMainJobNow();
+
+                        await SendMessageToAdmins($"<b>{message.From.Username}</b> forced redistributing tasks.");
+                        Log.Information("Delete all tasks returned success! Executed.");
+                    }
+                    else
+                    {
+                        await botClient.SendTextMessageAsync(message.Chat, "Delete all tasks returned failure. Cancelling.", null, ParseMode.Html);
+                        Log.Information("Delete all tasks returned failure. Cancelling.");
+                    }
                     break;
                 case "/refreshtoken":
                     if (parts.Length == 3)
@@ -420,29 +438,31 @@ namespace BlumBotFarm.TelegramBot
 
         private async Task ScheduleDailyTaskForAnAccount(Account account, DateTime startAt)
         {
-            var job = JobBuilder.Create<DailyCheckJob>().Build();
-
             var task = new Core.Models.Task
             {
-                AccountId       = account.Id,
-                ScheduleSeconds = -1,
-                NextRunTime     = new DateTime(1990, 1, 1),
-                TaskType        = "DailyCheckJob"
+                AccountId          = account.Id,
+                MinScheduleSeconds = -1,
+                MaxScheduleSeconds = -1,
+                NextRunTime        = new DateTime(1990, 1, 1),
+                TaskType           = "DailyCheckJob"
             };
 
-            // Создание задачи для DailyCheckJob
-            job.JobDataMap.Put("accountId", account.Id);
-            job.JobDataMap.Put("taskId" + task.TaskType, task.Id);
-            job.JobDataMap.Put("isPlanned", false);
+            await TaskScheduler.ScheduleNewTask(taskScheduler, account.Id, task, startAt, rightNow: false, isPlanned: false);
+        }
+
+        private async Task ScheduleDailyTaskForAnAccountRightNow(Account account)
+        {
+            var task = new Core.Models.Task
+            {
+                AccountId          = account.Id,
+                MinScheduleSeconds = -1,
+                MaxScheduleSeconds = -1,
+                NextRunTime        = new DateTime(1990, 1, 1),
+                TaskType           = "DailyCheckJob"
+            };
 
             var now = DateTime.Now;
-
-            var trigger = TriggerBuilder.Create()
-                            .WithSimpleSchedule(schedule => schedule.WithRepeatCount(0))
-                            .StartAt(startAt.AddSeconds(task.TaskType.Length))
-                            .Build();
-
-            await taskScheduler.ScheduleTask(account.Id.ToString(), account.Id.ToString(), job, trigger);
+            await TaskScheduler.ScheduleNewTask(taskScheduler, account.Id, task, now, rightNow: true, isPlanned: false);
         }
 
         private async Task AddAccount(string username, string refreshToken, string proxy)
@@ -470,17 +490,19 @@ namespace BlumBotFarm.TelegramBot
 
             var taskDailyCheckJob = new Core.Models.Task
             {
-                AccountId       = account.Id,
-                TaskType        = "DailyCheckJob",
-                ScheduleSeconds = 24 * 3600, // 24 hours
-                NextRunTime     = now.AddDays(1)
+                AccountId          = account.Id,
+                TaskType           = "DailyCheckJob",
+                MinScheduleSeconds = 24 * 3600, // 24 hours
+                MaxScheduleSeconds = 28 * 3600, // 28 hours
+                NextRunTime        = now.AddDays(1)
             };
             var taskFarming = new Core.Models.Task
             {
-                AccountId       = account.Id,
-                TaskType        = "Farming",
-                ScheduleSeconds = 8 * 3600, // 8 hours
-                NextRunTime     = now.AddHours(8)
+                AccountId          = account.Id,
+                TaskType           = "Farming",
+                MinScheduleSeconds = 8 * 3600,  // 8 hours
+                MaxScheduleSeconds = 10 * 3600, // 10 hours
+                NextRunTime        = now.AddHours(8)
             };
 
             // Получаем только что добавленную задачу с присвоенным ID
@@ -500,29 +522,13 @@ namespace BlumBotFarm.TelegramBot
                 return;
             }
 
-            var job1 = JobBuilder.Create<DailyCheckJob>().Build();
-            await ScheduleATaskAsync(account, taskDailyCheckJob, job1, now);
-            var job2 = JobBuilder.Create<FarmingJob>().Build();
-            await ScheduleATaskAsync(account, taskFarming,       job2, now.AddMilliseconds(TaskScheduler.MAX_MS_AMOUNT_TO_WAIT_BEFORE_JOB));
+            await TaskScheduler.ScheduleNewTask(taskScheduler, account.Id, taskDailyCheckJob, now.AddSeconds(taskDailyCheckJob.TaskType.Length), 
+                                                rightNow: true);
+            await TaskScheduler.ScheduleNewTask(taskScheduler, account.Id, taskFarming,       now.AddSeconds(taskFarming.TaskType.Length)
+                                                                                                 .AddMilliseconds(TaskScheduler.MAX_MS_AMOUNT_TO_WAIT_BEFORE_JOB), 
+                                                rightNow: true);
 
             Log.Information($"AddAccount: Scheduled tasks and added it to the DB: {username}");
-        }
-
-        private async Task ScheduleATaskAsync(Account account, Core.Models.Task task, IJobDetail job, DateTime now)
-        {
-            // Создание задачи для DailyCheckJob
-            job.JobDataMap.Put("accountId", account.Id);
-            job.JobDataMap.Put("taskId" + task.TaskType, task.Id);
-            job.JobDataMap.Put("isPlanned", true);
-
-            var trigger = TriggerBuilder.Create()
-                                .WithSimpleSchedule(schedule => schedule
-                                    .WithIntervalInSeconds(task.ScheduleSeconds)
-                                    .RepeatForever())
-                                .StartAt(now.AddSeconds(task.TaskType.Length))
-                                .Build();
-
-            await taskScheduler.ScheduleTask(account.Id.ToString(), account.Id.ToString(), job, trigger);
         }
 
         private string GetStatistics()
@@ -558,7 +564,7 @@ namespace BlumBotFarm.TelegramBot
                                 executedFarming++;
                         }
 
-                        previousRunTime = previousRunTime.AddSeconds(-task.ScheduleSeconds);
+                        previousRunTime = previousRunTime.AddSeconds(-task.MinScheduleSeconds);
                     }
 
                     // Подсчет оставшихся задач от текущего времени до конца дня
@@ -573,7 +579,7 @@ namespace BlumBotFarm.TelegramBot
                                 notExecutedFarming++;
                         }
 
-                        nextRunTime = nextRunTime.AddSeconds(task.ScheduleSeconds);
+                        nextRunTime = nextRunTime.AddSeconds(task.MinScheduleSeconds);
                     }
                 }
             }

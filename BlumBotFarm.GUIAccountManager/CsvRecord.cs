@@ -30,5 +30,8 @@ namespace BlumBotFarm.GUIAccountManager
 
         [Name("Telegram Add Command")]
         public string TelegramAddCommand { get; set; } = string.Empty;
+
+        [Name("Telegram Provider Token")]
+        public string TelegramProviderToken { get; set; } = string.Empty;
     }
 }

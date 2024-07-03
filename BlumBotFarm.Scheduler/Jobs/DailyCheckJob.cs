@@ -48,7 +48,10 @@ namespace BlumBotFarm.Scheduler.Jobs
             Log.Information($"Started Daily Check Job for an account with Id: {account.Id}, Username: {account.Username}");
 
             Random random = new();
-            Thread.Sleep(random.Next(TaskScheduler.MIN_MS_AMOUNT_TO_WAIT_BEFORE_JOB, TaskScheduler.MAX_MS_AMOUNT_TO_WAIT_BEFORE_JOB + 1));
+            if (isPlanned)
+            {
+                Thread.Sleep(random.Next(TaskScheduler.MIN_MS_AMOUNT_TO_WAIT_BEFORE_JOB, TaskScheduler.MAX_MS_AMOUNT_TO_WAIT_BEFORE_JOB + 1));
+            }
 
             // Getting the frontend part
             if (!gameApiClient.GetMainPageHTML(account))
@@ -134,24 +137,10 @@ namespace BlumBotFarm.Scheduler.Jobs
 
                 if (getUserInfoResult == ApiResponse.Success)
                 {
-                    var total = account.Balance - balance1;
+                    Log.Information($"Daily Check Job, sheduling earning job for an account Id: {account.Id}, Username: {account.Username}");
 
-                    if (total > 0)
-                    {
-                        earningRepository.Add(new Earning
-                        {
-                            AccountId = account.Id,
-                            Created   = DateTime.Now,
-                            Action    = "GetUserInfo",
-                            Total     = total,
-                        });
-
-                        Log.Information($"Daily Check Job, added earning with total {total} for an account Id: {account.Id}, Username: {account.Username}");
-                    }
-                    else
-                    {
-                        Log.Warning($"Daily Check Job, earning with total {total} is negative for an account Id: {account.Id}, Username: {account.Username}");
-                    }
+                    var startDate = DateTime.Now.AddMinutes(random.Next(EarningCheckJob.MIN_MINUTES_TO_WAIT, EarningCheckJob.MAX_MINUTES_TO_WAIT + 1));
+                    await TaskScheduler.ScheduleEarningJob(taskScheduler, accountId, balance1, "GetUserInfo", startDate);
                 }
             }
 
@@ -159,35 +148,27 @@ namespace BlumBotFarm.Scheduler.Jobs
             {
                 Log.Information($"Daily Check Job, planning future Jobs for an account Id: {account.Id}, Username: {account.Username}.");
 
-                // Determine the next run time based on the result
                 DateTime nextRunTime;
+
+                // Determine the next run time based on the result
                 if (getUserInfoResult == ApiResponse.Success && dailyClaimResponse == ApiResponse.Success && 
                     account.Tickets == 0 && startAndClaimAllTasksIsGood && isAuthGood)
                 {
-                    nextRunTime = DateTime.Now.AddHours(24); // Запланировать задание снова через 24 часа
-                    Log.Information("Daily Check Job is planned to be executed in 24 hours as usual for an account with Id: " +
+                    Log.Information("Daily Check Job executed SUCCESSFULLY for an account with Id: " +
                                     $"{account.Id}, Username: {account.Username}.");
+
+                    // Обновление записи задачи в базе данных
+                    nextRunTime = task.NextRunTime.AddDays(1);
                 }
                 else
                 {
-                    nextRunTime = DateTime.Now.AddHours(1); // Запланировать задание снова через 1 час
+                    int randomSecondsNext = random.Next(task.MinScheduleSeconds, task.MaxScheduleSeconds);
+                    nextRunTime  = DateTime.Now.AddSeconds(randomSecondsNext / 10); // Запланировать задание снова через уменьшенное кол-во времени
+
+                    await TaskScheduler.ScheduleNewTask(taskScheduler, accountId, task, nextRunTime);
+
                     Log.Warning($"Daily Check Job is planned to be executed in 1 hour because of not successful server's answer or tickets amount " +
                                 $"not equals zero for an account with Id: {account.Id}, Username: {account.Username}, Tickets Amount: {account.Tickets}.");
-                }
-
-                // Update the existing trigger with the new schedule
-                var trigger = context.Trigger as ICronTrigger;
-                if (trigger != null)
-                {
-                    trigger = (ICronTrigger)TriggerBuilder.Create()
-                        .WithIdentity(context.Trigger.Key)
-                        .WithSimpleSchedule(schedule => schedule
-                                        .WithIntervalInSeconds(task.ScheduleSeconds)
-                                        .RepeatForever())
-                        .StartAt(nextRunTime)
-                        .Build();
-
-                    await context.Scheduler.RescheduleJob(trigger.Key, trigger);
                 }
 
                 // Обновление записи задачи в базе данных

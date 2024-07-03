@@ -35,7 +35,7 @@ namespace BlumBotFarm.Database.Repositories
         {
             lock (dbLock)
             {
-                var sql = "INSERT INTO Tasks (AccountId, TaskType, ScheduleSeconds, NextRunTime) VALUES (@AccountId, @TaskType, @ScheduleSeconds, @NextRunTime)";
+                var sql = "INSERT INTO Tasks (AccountId, TaskType, MinScheduleSeconds, MaxScheduleSeconds, NextRunTime) VALUES (@AccountId, @TaskType, @MinScheduleSeconds, @MaxScheduleSeconds, @NextRunTime)";
                 _db.Execute(sql, task);
             }
         }
@@ -44,7 +44,7 @@ namespace BlumBotFarm.Database.Repositories
         {
             lock (dbLock)
             {
-                var sql = "UPDATE Tasks SET AccountId = @AccountId, TaskType = @TaskType, ScheduleSeconds = @ScheduleSeconds, NextRunTime = @NextRunTime WHERE Id = @Id";
+                var sql = "UPDATE Tasks SET AccountId = @AccountId, TaskType = @TaskType, MinScheduleSeconds = @MinScheduleSeconds, MaxScheduleSeconds = @MaxScheduleSeconds, NextRunTime = @NextRunTime WHERE Id = @Id";
                 _db.Execute(sql, task);
             }
         }

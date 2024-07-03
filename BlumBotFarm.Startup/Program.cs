@@ -49,55 +49,11 @@ namespace BlumBotFarm.Startup
                 Log.Information("Started Telegram bot and Message processor.");
             }
 
-            // Создание экземпляра планировщика задач
-            var taskScheduler = new TaskScheduler();
+            await TaskScheduler.ScheduleMainJob();
+            Log.Information("Scheduled Main Scheduler Job.");
+            await TaskScheduler.ExecuteMainJobNow();
+            Log.Information("Started Main Scheduler Job.");
 
-            using (var db = Database.Database.GetConnection())
-            {
-                var accountRepo  = new AccountRepository(db);
-                var taskRepo     = new TaskRepository(db);
-
-                // Получение всех аккаунтов из базы данных
-                var accounts = accountRepo.GetAll();
-
-                foreach (var account in accounts)
-                {
-                    // Восстановление задач из базы данных
-                    var tasks = taskRepo.GetAll().Where(t => t.AccountId == account.Id);
-
-                    foreach (var task in tasks)
-                    {
-                        // Если задача еще актуальна
-                        if (task.NextRunTime > DateTime.Now)
-                        {
-                            IJobDetail job = task.TaskType == "DailyCheckJob" 
-                                             ? JobBuilder.Create<DailyCheckJob>().Build() : JobBuilder.Create<FarmingJob>().Build();
-                            job.JobDataMap.Put("accountId",              account.Id);
-                            job.JobDataMap.Put("taskId" + task.TaskType, task.Id);
-                            job.JobDataMap.Put("isPlanned", true);
-
-                            var trigger = TriggerBuilder.Create()
-                                .WithSimpleSchedule(schedule => schedule
-                                    .WithIntervalInSeconds(task.ScheduleSeconds)
-                                    .RepeatForever())
-                                .StartAt(task.NextRunTime)
-                                .Build();
-
-                            Log.Information($"Schedule task - accountId: {account.Id}, accountUsername: {account.Username}, taskId: {task.Id}, taskType: {task.TaskType}");
-
-                            await taskScheduler.ScheduleTask(task.Id.ToString(), task.Id.ToString(), job, trigger);
-                        }
-                        else
-                        {
-                            Log.Information($"Reschedule missed task - accountId: {account.Id}, accountUsername: {account.Username}, taskId: {task.Id}, taskType: {task.TaskType}");
-
-                            // Перепланировать задачи, которые были пропущены
-                            await RescheduleMissedTask(taskScheduler, account, task, taskRepo);
-                        }
-                    }
-                }
-            }
-            
             Log.Information("Started an infinite loop.");
 
             DateTime start = DateTime.Now;
@@ -107,54 +63,6 @@ namespace BlumBotFarm.Startup
 
                 Thread.Sleep(60 * 1000); // Wait 1 minute
             }
-        }
-
-        private static async Task RescheduleMissedTask(TaskScheduler taskScheduler, Core.Models.Account account, Core.Models.Task task, TaskRepository taskRepo)
-        {
-            // Если задача пропущена, выполняем её сейчас
-            await ExecuteTaskNow(taskScheduler, account, task);
-
-            // Вычисляем следующее время запуска относительно старого времени
-            DateTimeOffset nextValidTime = task.NextRunTime;
-            while (nextValidTime <= DateTimeOffset.Now)
-            {
-                nextValidTime = nextValidTime.AddSeconds(task.ScheduleSeconds);
-            }
-
-            task.NextRunTime = nextValidTime.DateTime;
-            taskRepo.Update(task);
-
-            IJobDetail job = task.TaskType == "DailyCheckJob" ? JobBuilder.Create<DailyCheckJob>().Build() : JobBuilder.Create<FarmingJob>().Build();
-            job.JobDataMap.Put("accountId", account.Id);
-            job.JobDataMap.Put("taskId" + task.TaskType, task.Id);
-            job.JobDataMap.Put("isPlanned", true);
-
-            var trigger = TriggerBuilder.Create()
-                .WithSimpleSchedule(schedule => schedule
-                    .WithIntervalInSeconds(task.ScheduleSeconds)
-                    .RepeatForever())
-                .StartAt(nextValidTime.DateTime)
-                .Build();
-
-            await taskScheduler.ScheduleTask(task.Id.ToString(), task.Id.ToString(), job, trigger);
-        }
-
-        private static async Task ExecuteTaskNow(TaskScheduler taskScheduler, Core.Models.Account account, Core.Models.Task task)
-        {
-            // Создание задачи для DailyCheckJob
-            IJobDetail job = task.TaskType == "DailyCheckJob" ? JobBuilder.Create<DailyCheckJob>().Build() : JobBuilder.Create<FarmingJob>().Build();
-            job.JobDataMap.Put("accountId", account.Id);
-            job.JobDataMap.Put("taskId" + task.TaskType, task.Id);
-            job.JobDataMap.Put("isPlanned", false);
-
-            var trigger = TriggerBuilder.Create()
-                                .WithSimpleSchedule(schedule => schedule
-                                    .WithIntervalInSeconds(task.ScheduleSeconds)
-                                    .WithRepeatCount(0))
-                                .StartAt(DateTime.Now.AddSeconds(task.TaskType.Length))
-            .Build();
-
-            await taskScheduler.ScheduleTask(account.Id.ToString(), account.Id.ToString(), job, trigger);
         }
     }
 }

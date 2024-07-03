@@ -31,7 +31,8 @@ namespace BlumBotFarm.Database
                         Id INTEGER PRIMARY KEY AUTOINCREMENT,
                         AccountId INTEGER,
                         TaskType TEXT,
-                        ScheduleSeconds INTEGER,
+                        MinScheduleSeconds INTEGER,
+                        MaxScheduleSeconds INTEGER,
                         NextRunTime DATETIME,
                         FOREIGN KEY(AccountId) REFERENCES Accounts(Id)
                     );
