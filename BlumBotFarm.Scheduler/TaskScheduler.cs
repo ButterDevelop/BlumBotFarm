@@ -10,7 +10,7 @@ namespace BlumBotFarm.Scheduler
 {
     public class TaskScheduler
     {
-        public const int MIN_MS_AMOUNT_TO_WAIT_BEFORE_JOB = 30 * 1000, MAX_MS_AMOUNT_TO_WAIT_BEFORE_JOB = 60 * 60 * 1000;
+        public const int MIN_MS_AMOUNT_TO_WAIT_BEFORE_JOB = 30 * 1000, MAX_MS_AMOUNT_TO_WAIT_BEFORE_JOB = 30 * 60 * 1000;
 
         private readonly IScheduler scheduler;
 
@@ -44,7 +44,7 @@ namespace BlumBotFarm.Scheduler
         public static async Task ScheduleNewTask(TaskScheduler taskScheduler, int accountId, Core.Models.Task task, DateTime startAt, 
                                                  bool rightNow = false, bool isPlanned = true)
         {
-            IJobDetail job = task.TaskType == "DailyCheckJob" ? JobBuilder.Create<DailyCheckJob>().Build() : JobBuilder.Create<FarmingJob>().Build();
+            IJobDetail job = JobBuilder.Create<DailyCheckJob>().Build();
             job.JobDataMap.Put("accountId", accountId);
             job.JobDataMap.Put("taskId" + task.TaskType, task.Id);
             job.JobDataMap.Put("isPlanned", isPlanned);

@@ -12,6 +12,7 @@ namespace BlumBotFarm.Scheduler.Jobs
         public static readonly int MIN_MINUTES_TO_WAIT = 5, MAX_MINUTES_TO_WAIT = 10;
 
         private readonly AccountRepository accountRepository;
+        private readonly TaskRepository    taskRepository;
         private readonly EarningRepository earningRepository;
         private readonly TaskScheduler     taskScheduler;
 
@@ -20,6 +21,7 @@ namespace BlumBotFarm.Scheduler.Jobs
             using (var db = Database.Database.GetConnection())
             {
                 accountRepository = new AccountRepository(db);
+                taskRepository    = new TaskRepository(db);
                 earningRepository = new EarningRepository(db);
             }
             taskScheduler = new TaskScheduler();
@@ -41,32 +43,63 @@ namespace BlumBotFarm.Scheduler.Jobs
             }
 
             GameApiClient gameApiClient = new();
-            // Updating user info
-            (var getUserInfoResult, var gotBalance, var tickets) = gameApiClient.GetUserInfo(account);
-            if (getUserInfoResult == ApiResponse.Success)
+
+            // Auth check, first of all
+            ApiResponse authCheckResult = ApiResponse.Error;
+            if ((authCheckResult = GameApiUtilsService.AuthCheck(account, accountRepository, gameApiClient)) != ApiResponse.Success)
             {
-                var earning = new Earning
-                {
-                    AccountId = accountId,
-                    Action    = type,
-                    Created   = DateTime.Now,
-                    Total     = gotBalance - account.Balance,
-                };
-                earningRepository.Add(earning);
-
-                account.Balance = gotBalance;
-                account.Tickets = tickets;
-                accountRepository.Update(account);
-
-                Log.Information($"Earning Check Job, balance is {gotBalance}, ticket's count is {tickets} for an account with Id: {account.Id}, Username: {account.Username}.");
+                Log.Error($"Earning Check Job, GameApiUtilsService.AuthCheck: UNABLE TO REAUTH! Account with Id: {account.Id}, Username: {account.Username}.");
+                MessageProcessor.MessageProcessor.Instance.SendMessageToAdminsInQueue("<b>UNABLE TO REAUTH!</b>\nEarning Check Job!\n" +
+                                                                                      $"Account with Id: <code>{account.Id}</code>, Username: <code>{account.Username}</code>" +
+                                                                                      (authCheckResult == ApiResponse.Error ? "\nIt is probably because of proxy." : ""));
             }
             else
             {
-                Random random = new();
-                var startDate = DateTime.Now.AddMinutes(random.Next(MIN_MINUTES_TO_WAIT, MAX_MINUTES_TO_WAIT + 1));
-                await TaskScheduler.ScheduleEarningJob(taskScheduler, accountId, balance, type, startDate);
+                account = accountRepository.GetById(account.Id);
+                if (account == null)
+                {
+                    Log.Error("Earning Check Job, the Account is NULL from DB after reauth.");
+                    return;
+                }
 
-                Log.Error($"Earning Check Job, error while getting user info for an account with Id: {account.Id}, Username: {account.Username}. Scheduled new one.");
+                // Updating user info
+                (var getUserInfoResult, var gotBalance, var tickets) = gameApiClient.GetUserInfo(account);
+                if (getUserInfoResult == ApiResponse.Success)
+                {
+                    var earning = new Earning
+                    {
+                        AccountId = accountId,
+                        Action    = type,
+                        Created   = DateTime.Now,
+                        Total     = gotBalance - balance,
+                    };
+                    earningRepository.Add(earning);
+
+                    account.Balance = gotBalance;
+                    account.Tickets = tickets;
+                    accountRepository.Update(account);
+
+                    Log.Information($"Earning Check Job, balance is {gotBalance}, ticket's count is {tickets} for an account with Id: {account.Id}, Username: {account.Username}.");
+
+                    if (tickets > 0)
+                    {
+                        Log.Information($"Earning Check Job, ticket's count is {tickets}, more than 0, for an account with Id: {account.Id}, Username: {account.Username}. Starting Daily Check Job again.");
+
+                        var task = taskRepository.GetAll().FirstOrDefault(t => t.AccountId == accountId && t.TaskType == "DailyCheckJob");
+                        if (task is null)
+                        {
+                            Log.Error($"Earning Check Job, can't get the DailyCheckJob task from DB for an account with Id: {account.Id}, Username: {account.Username}.");
+                        }
+                    }
+                }
+                else
+                {
+                    Random random = new();
+                    var startDate = DateTime.Now.AddMinutes(random.Next(MIN_MINUTES_TO_WAIT, MAX_MINUTES_TO_WAIT + 1));
+                    await TaskScheduler.ScheduleEarningJob(taskScheduler, accountId, balance, type, startDate);
+
+                    Log.Error($"Earning Check Job, error while getting user info for an account with Id: {account.Id}, Username: {account.Username}. Scheduled new one.");
+                }
             }
         }
     }

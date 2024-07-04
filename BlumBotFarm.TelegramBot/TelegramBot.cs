@@ -245,13 +245,14 @@ namespace BlumBotFarm.TelegramBot
                         foreach (var account in accountsWithTicketsNotZero)
                         {
                             var dailyCheckJob = tasks.FirstOrDefault(task => task.AccountId == account.Id && task.TaskType == "DailyCheckJob");
-                            var farmingJob    = tasks.FirstOrDefault(task => task.AccountId == account.Id && task.TaskType == "Farming");
-                            if (dailyCheckJob == null || farmingJob == null) continue;
+                            if (dailyCheckJob == null) continue;
+
+                            var    dailyIn    = dailyCheckJob.NextRunTime - DateTime.Now;
+                            string dailyMinus = dailyIn   < TimeSpan.Zero ? "-" : "";
 
                             messageToSendTickets.AppendLine($"<code>{account.Username}</code>, " +
                                                             $"tickets: <b>{account.Tickets}</b>, " +
-                                                            $"Daily in: <b>in {dailyCheckJob.NextRunTime - DateTime.Now:hh\\:mm\\:ss}</b>, " +
-                                                            $"Farming in: <b>in {farmingJob.NextRunTime - DateTime.Now:hh\\:mm\\:ss}</b>");
+                                                            $"Job in: <b>{dailyMinus}{dailyIn:hh\\:mm\\:ss}</b>");
                         }
                     }
 
@@ -282,6 +283,50 @@ namespace BlumBotFarm.TelegramBot
                     await TaskScheduler.UpdateUsersInfoNow();
                     Log.Information($"{message.From.Username} forced update users info.");
                     await SendMessageToAdmins($"<b>{message.From.Username}</b> forced updating users info.");
+                    break;
+                case "/authcheck":
+                    if (parts.Length == 2)
+                    {
+                        var username = parts[1];
+
+                        if (string.IsNullOrEmpty(username))
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, "The username <b>is empty</b>.", null, ParseMode.Html);
+                            return;
+                        }
+
+                        var account = accountRepository.GetAll().FirstOrDefault(user => user.Username == username);
+                        if (account == null)
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, "The account with this username <b>does not exist</b>.", null, ParseMode.Html);
+                            return;
+                        }
+
+                        Log.Information($"{message.From.Username} forced an auth check for {username}.");
+
+                        var result = GameApiUtilsService.AuthCheck(account, accountRepository, new GameApiClient());
+                        if (result == ApiResponse.Success)
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, $"Auth check for <b>{username}</b> succeeded.", null, ParseMode.Html);
+                            Log.Error($"TelegramBot: Auth check for {username} succeeded.");
+                        }
+                        else
+                        if (result == ApiResponse.Error)
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, $"Auth check for <b>{username}</b> RETURNED FAILURE.\n" +
+                                                                               "Probably because of proxy.", null, ParseMode.Html);
+                            Log.Error($"TelegramBot: Auth check for {username} RETURNED FAILURE. Probably because of proxy.");
+                        }
+                        else
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, $"Auth check for <b>{username}</b> RETURNED FAILURE.", null, ParseMode.Html);
+                            Log.Error($"TelegramBot: Auth check for {username} RETURNED FAILURE.");
+                        }
+                    }
+                    else
+                    {
+                        await botClient.SendTextMessageAsync(message.Chat, "Usage: /authcheck <username>");
+                    }
                     break;
                 case "/forcedailyjobtoguyswithtickets":
                     Log.Information($"{message.From.Username} forced Daily Check Job for accounts which has more than 0 tickets.");
@@ -497,17 +542,9 @@ namespace BlumBotFarm.TelegramBot
             {
                 AccountId          = account.Id,
                 TaskType           = "DailyCheckJob",
-                MinScheduleSeconds = 24 * 3600, // 24 hours
-                MaxScheduleSeconds = 28 * 3600, // 28 hours
-                NextRunTime        = now.AddDays(1)
-            };
-            var taskFarming = new Core.Models.Task
-            {
-                AccountId          = account.Id,
-                TaskType           = "Farming",
-                MinScheduleSeconds = 8 * 3600,  // 8 hours
+                MinScheduleSeconds = 6 * 3600,  // 6 hours
                 MaxScheduleSeconds = 10 * 3600, // 10 hours
-                NextRunTime        = now.AddHours(8)
+                NextRunTime        = now.AddDays(1)
             };
 
             // Получаем только что добавленную задачу с присвоенным ID
@@ -519,18 +556,7 @@ namespace BlumBotFarm.TelegramBot
                 return;
             }
 
-            taskRepository.Add(taskFarming);
-            taskFarming = taskRepository.GetAll().FirstOrDefault(t => t.AccountId == account.Id && t.TaskType == "Farming");
-            if (taskFarming == null)
-            {
-                Log.Error("TelegramBot AddAccount: task Farming is NULL after getting it from the DB!");
-                return;
-            }
-
             await TaskScheduler.ScheduleNewTask(taskScheduler, account.Id, taskDailyCheckJob, now.AddSeconds(taskDailyCheckJob.TaskType.Length), 
-                                                rightNow: true);
-            await TaskScheduler.ScheduleNewTask(taskScheduler, account.Id, taskFarming,       now.AddSeconds(taskFarming.TaskType.Length)
-                                                                                                 .AddMilliseconds(TaskScheduler.MAX_MS_AMOUNT_TO_WAIT_BEFORE_JOB), 
                                                 rightNow: true);
 
             Log.Information($"AddAccount: Scheduled tasks and added it to the DB: {username}");
@@ -550,12 +576,10 @@ namespace BlumBotFarm.TelegramBot
 
             int executedDailyJobs    = 0;
             int notExecutedDailyJobs = 0;
-            int executedFarming      = 0;
-            int notExecutedFarming   = 0;
 
             foreach (var task in tasks)
             {
-                if (task.TaskType == "DailyCheckJob" || task.TaskType == "Farming")
+                if (task.TaskType == "DailyCheckJob")
                 {
                     // Посчет выполненных задач от текущего времени до начала дня
                     var previousRunTime = task.NextRunTime;
@@ -565,8 +589,6 @@ namespace BlumBotFarm.TelegramBot
                         {
                             if (task.TaskType == "DailyCheckJob")
                                 executedDailyJobs++;
-                            else if (task.TaskType == "Farming")
-                                executedFarming++;
                         }
 
                         previousRunTime = previousRunTime.AddSeconds(-task.MinScheduleSeconds);
@@ -580,8 +602,6 @@ namespace BlumBotFarm.TelegramBot
                         {
                             if (task.TaskType == "DailyCheckJob")
                                 notExecutedDailyJobs++;
-                            else if (task.TaskType == "Farming")
-                                notExecutedFarming++;
                         }
 
                         nextRunTime = nextRunTime.AddSeconds(task.MinScheduleSeconds);
@@ -598,8 +618,8 @@ namespace BlumBotFarm.TelegramBot
                    $"Total accounts: <b>{accounts.Count()}</b>\n" +
                    $"Total balance: <b>{totalBalance:N2}</b> ฿\n" +
                    $"Total tickets: <b>{totalTickets}</b>\n" +
-                   $"Executed jobs today: <b>{executedDailyJobs + executedFarming}</b>\n" +
-                   $"Remaining jobs today: <b>{notExecutedDailyJobs + notExecutedFarming}</b>\n" + 
+                   $"Executed jobs today: <b>{executedDailyJobs}</b>\n" +
+                   $"Remaining jobs today: <b>{notExecutedDailyJobs}</b>\n" + 
                    $"Today earnings: ≈<b>{todayEarningsSum:N2}</b> ฿";
         }
 

@@ -27,7 +27,7 @@ namespace BlumBotFarm.Scheduler.Jobs
         {
             // Получение всех аккаунтов из базы данных и случайное их перемешивание
             Random random = new();
-            var accounts  = accountRepository.GetAll().OrderBy(_ => random.Next()).ToList();
+            var accounts  = accountRepository.GetAll().OrderBy(acc => acc.Id).ToList();
 
             var tasks = taskRepository.GetAll();
 
@@ -36,6 +36,9 @@ namespace BlumBotFarm.Scheduler.Jobs
                 Log.Error("Main Scheduler Job, No tasks available!");
                 return;
             }
+
+            // Delete all tasks before adding new
+            await taskScheduler.DeleteAllTasks();
 
             TimeSpan interval = TimeSpan.FromTicks((END_DATE_TIME - START_DATE_TIME).Ticks / tasks.Count());
             DateTime startAt  = DateTime.Today.Date.Add(START_DATE_TIME.TimeOfDay);
@@ -57,19 +60,9 @@ namespace BlumBotFarm.Scheduler.Jobs
                     task.NextRunTime = startAt;
                     taskRepository.Update(task);
 
-                    bool rightNow = DateTime.Now >= startAt;
-
-                    if (rightNow)
-                    {
-                        // Right now
-                        var timeToStart = DateTime.Now.AddSeconds(task.Id * 2);
-                        await TaskScheduler.ScheduleNewTask(taskScheduler, account.Id, task, timeToStart);
-                    }
-                    else
-                    {
-                        // Schedule task
-                        await TaskScheduler.ScheduleNewTask(taskScheduler, account.Id, task, startAt);
-                    }
+                    // Schedule task
+                    int msToAdd = random.Next(TaskScheduler.MIN_MS_AMOUNT_TO_WAIT_BEFORE_JOB, TaskScheduler.MAX_MS_AMOUNT_TO_WAIT_BEFORE_JOB + 1);
+                    await TaskScheduler.ScheduleNewTask(taskScheduler, account.Id, task, startAt.AddMilliseconds(msToAdd));
 
                     logLines.Add($"Schedule task - accountId: {account.Id}, accountUsername: {account.Username}, taskId: {task.Id}, " +
                                  $"taskType: {task.TaskType}, time: {startAt:dd.MM.yyyy HH:mm:ss}");

@@ -48,10 +48,10 @@ namespace BlumBotFarm.Scheduler.Jobs
             Log.Information($"Started Daily Check Job for an account with Id: {account.Id}, Username: {account.Username}");
 
             Random random = new();
-            if (isPlanned)
-            {
-                Thread.Sleep(random.Next(TaskScheduler.MIN_MS_AMOUNT_TO_WAIT_BEFORE_JOB, TaskScheduler.MAX_MS_AMOUNT_TO_WAIT_BEFORE_JOB + 1));
-            }
+            //if (isPlanned)
+            //{
+            //    Thread.Sleep(random.Next(TaskScheduler.MIN_MS_AMOUNT_TO_WAIT_BEFORE_JOB, TaskScheduler.MAX_MS_AMOUNT_TO_WAIT_BEFORE_JOB + 1));
+            //}
 
             // Getting the frontend part
             if (!gameApiClient.GetMainPageHTML(account))
@@ -63,11 +63,13 @@ namespace BlumBotFarm.Scheduler.Jobs
             bool startAndClaimAllTasksIsGood = false, isAuthGood = false;
 
             // Auth check, first of all
-            if (!GameApiUtilsService.AuthCheck(account, accountRepository, gameApiClient))
+            ApiResponse authCheckResult = ApiResponse.Error;
+            if ((authCheckResult = GameApiUtilsService.AuthCheck(account, accountRepository, gameApiClient)) != ApiResponse.Success)
             {
                 Log.Error($"Daily Check Job, GameApiUtilsService.AuthCheck: UNABLE TO REAUTH! Account with Id: {account.Id}, Username: {account.Username}.");
                 MessageProcessor.MessageProcessor.Instance.SendMessageToAdminsInQueue("<b>UNABLE TO REAUTH!</b>\nDaily Check Job!\n" +
-                                                                                      $"Account with Id: <code>{account.Id}</code>, Username: <code>{account.Username}</code>");
+                                                                                      $"Account with Id: <code>{account.Id}</code>, Username: <code>{account.Username}</code>" +
+                                                                                      (authCheckResult == ApiResponse.Error ? "\nIt is probably because of proxy." : ""));
                 isAuthGood = false;
             }
             else
@@ -83,25 +85,43 @@ namespace BlumBotFarm.Scheduler.Jobs
                     return;
                 }
 
-                // Updating user info
-                (getUserInfoResult, var balance1, var tickets) = gameApiClient.GetUserInfo(account);
-                if (getUserInfoResult == ApiResponse.Success)
+                // Doing claiming a farming stuff
+                (ApiResponse claimResponse, double balance1, int tickets) = gameApiClient.ClaimFarming(account);
+                if (claimResponse == ApiResponse.Success)
                 {
+                    Log.Information($"Daily Check Job, claimed farming successfully for an account Id: {account.Id}, Username: {account.Username}, Tickets: {tickets}.");
+
+                    Log.Information($"Daily Check Job, sheduling earning job for an account Id: {account.Id}, Username: {account.Username}");
+                    var startDate = DateTime.Now.AddMinutes(random.Next(EarningCheckJob.MIN_MINUTES_TO_WAIT, EarningCheckJob.MAX_MINUTES_TO_WAIT + 1));
+                    await TaskScheduler.ScheduleEarningJob(taskScheduler, accountId, account.Balance, "ClaimFarming", startDate);
+
+                    // Updating user info
                     account.Balance = balance1;
                     account.Tickets = tickets;
                     accountRepository.Update(account);
-                    Log.Information($"Daily Check Job, balance is {balance1}, ticket's count is {tickets} for an account with Id: {account.Id}, Username: {account.Username}.");
                 }
                 else
                 {
-                    Log.Error($"Daily Check Job, error while getting user info for an account with Id: {account.Id}, Username: {account.Username}.");
+                    Log.Error($"Daily Check Job, error while claiming farming for an account Id: {account.Id}, Username: {account.Username}.");
+                }
+
+                // Doing starting farming stuff
+                ApiResponse startFarmingResponse = gameApiClient.StartFarming(account);
+                if (startFarmingResponse == ApiResponse.Success)
+                {
+                    Log.Information($"Daily Check Job, started farming successfully for an account Id: {account.Id}, Username: {account.Username}.");
+                }
+                else
+                {
+                    Log.Error($"Daily Check Job, error while starting farming for an account Id: {account.Id}, Username: {account.Username}.");
                 }
 
                 // Doing Daily Reward Job
-                dailyClaimResponse = gameApiClient.GetDailyReward(account);
+                (dailyClaimResponse, bool sameDay) = gameApiClient.GetDailyReward(account);
                 if (dailyClaimResponse != ApiResponse.Success)
                 {
-                    Log.Information($"Daily Check Job, can't take daily reward for some reason for an account with Id: {account.Id}, Username: {account.Username}.");
+                    Log.Error($"Daily Check Job, can't take daily reward for some reason for an account with Id: {account.Id}, " +
+                              $"Username: {account.Username}. Is same day: {sameDay}.");
                 }
                 else
                 {
@@ -149,6 +169,7 @@ namespace BlumBotFarm.Scheduler.Jobs
                 Log.Information($"Daily Check Job, planning future Jobs for an account Id: {account.Id}, Username: {account.Username}.");
 
                 DateTime nextRunTime;
+                int randomSecondsNext = random.Next(task.MinScheduleSeconds, task.MaxScheduleSeconds);
 
                 // Determine the next run time based on the result
                 if (getUserInfoResult == ApiResponse.Success && dailyClaimResponse == ApiResponse.Success && 
@@ -157,17 +178,20 @@ namespace BlumBotFarm.Scheduler.Jobs
                     Log.Information("Daily Check Job executed SUCCESSFULLY for an account with Id: " +
                                     $"{account.Id}, Username: {account.Username}.");
 
-                    // Обновление записи задачи в базе данных
-                    nextRunTime = task.NextRunTime.AddDays(1);
-                }
-                else
-                {
-                    int randomSecondsNext = random.Next(task.MinScheduleSeconds, task.MaxScheduleSeconds);
-                    nextRunTime  = DateTime.Now.AddSeconds(randomSecondsNext / 10); // Запланировать задание снова через уменьшенное кол-во времени
+                    nextRunTime = DateTime.Now.AddSeconds(randomSecondsNext); // Запланировать задание снова через обычное кол-во времени
 
                     await TaskScheduler.ScheduleNewTask(taskScheduler, accountId, task, nextRunTime);
 
-                    Log.Warning($"Daily Check Job is planned to be executed in 1 hour because of not successful server's answer or tickets amount " +
+                    Log.Warning($"Daily Check Job is planned to be executed in ~{randomSecondsNext / 60} minutes - SUCCESSFUL - " +
+                                $"for an account with Id: {account.Id}, Username: {account.Username}, Tickets Amount: {account.Tickets}.");
+                }
+                else
+                {
+                    nextRunTime = DateTime.Now.AddSeconds(randomSecondsNext / 10); // Запланировать задание снова через уменьшенное кол-во времени
+
+                    await TaskScheduler.ScheduleNewTask(taskScheduler, accountId, task, nextRunTime);
+
+                    Log.Warning($"Daily Check Job is planned to be executed in ~{randomSecondsNext / (10 * 60)} minutes because of not successful server's answer or tickets amount " +
                                 $"not equals zero for an account with Id: {account.Id}, Username: {account.Username}, Tickets Amount: {account.Tickets}.");
                 }
 

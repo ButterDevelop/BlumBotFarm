@@ -177,7 +177,7 @@ namespace BlumBotFarm.GameClient
             }
         }
 
-        public ApiResponse GetDailyReward(Account account)
+        public (ApiResponse response, bool sameDay) GetDailyReward(Account account)
         {
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
@@ -192,22 +192,22 @@ namespace BlumBotFarm.GameClient
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
                 Log.Error($"GameApiClient GetDailyReward (Account with Id: {account.Id}, Username: {account.Username}) responseStatusCode - Unauthorized!");
-                return ApiResponse.Unauthorized;
+                return (ApiResponse.Unauthorized, false);
             }
 
             if (jsonAnswer != null && jsonAnswer.Contains("same day", StringComparison.CurrentCultureIgnoreCase))
             {
                 Log.Information($"GameApiClient GetDailyReward (Account with Id: {account.Id}, Username: {account.Username}). Same day! JSON answer: {jsonAnswer}");
-                return ApiResponse.Success;
+                return (ApiResponse.Error, true);
             }
 
             if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
             {
                 Log.Error($"GameApiClient GetDailyReward (Account with Id: {account.Id}, Username: {account.Username}) JSON answer: {jsonAnswer}");
-                return ApiResponse.Error;
+                return (ApiResponse.Error, false);
             }
-            
-            return ApiResponse.Success;
+
+            return (ApiResponse.Success, false);
         }
 
         public (ApiResponse response, string gameId) StartGame(Account account)

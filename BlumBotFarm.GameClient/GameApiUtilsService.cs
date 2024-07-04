@@ -15,7 +15,7 @@ namespace BlumBotFarm.GameClient
                           MIN_AMOUNT_OF_SECONDS_TO_WAIT = 35,
                           MAX_AMOUNT_OF_SECONDS_TO_WAIT = 50;
 
-        public static bool AuthCheck(Account account, AccountRepository accountRepository, GameApiClient gameApiClient)
+        public static ApiResponse AuthCheck(Account account, AccountRepository accountRepository, GameApiClient gameApiClient)
         {
             var result  = ApiResponse.Error;
 
@@ -29,7 +29,7 @@ namespace BlumBotFarm.GameClient
                     if (getAuthByProviderResult != ApiResponse.Success)
                     {
                         Log.Warning($"GameApiUtilsService AuthCheck not passed for account with Id: {account.Id}, Username: {account.Username}");
-                        return false;
+                        return getAuthByProviderResult;
                     }
                 }
 
@@ -37,13 +37,23 @@ namespace BlumBotFarm.GameClient
                 account.RefreshToken = newRefreshToken;
                 accountRepository.Update(account);
 
+                result = ApiResponse.Success;
+
                 Log.Information("GameApiUtilsService AuthCheck: successfully reauthenticated " +
                                 $"for account with Id: {account.Id}, Username: {account.Username}");
             }
+            else
+            if (result == ApiResponse.Success)
+            {
+                Log.Information($"GameApiUtilsService AuthCheck: auth is actual for account with Id: {account.Id}, Username: {account.Username}");
+            }
+            else
+            {
+                Log.Information("GameApiUtilsService AuthCheck: can't get auth (probably smth is wrong with proxy) " +
+                                $"for account with Id: {account.Id}, Username: {account.Username}");
+            }
 
-            Log.Information($"GameApiUtilsService AuthCheck: auth is actual for account with Id: {account.Id}, Username: {account.Username}");
-
-            return true;
+            return result;
         }
 
         public static void PlayGamesForAllTickets(Account account, AccountRepository accountRepository, EarningRepository earningRepository, GameApiClient gameApiClient)
