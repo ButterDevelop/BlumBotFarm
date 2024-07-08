@@ -1,6 +1,7 @@
 ﻿using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Repositories;
 using Serilog;
+using System.Threading.Tasks;
 
 namespace BlumBotFarm.GameClient
 {
@@ -25,6 +26,13 @@ namespace BlumBotFarm.GameClient
 
                 if (refreshAuthResult != ApiResponse.Success)
                 {
+                    if (string.IsNullOrEmpty(account.ProviderToken))
+                    {
+                        Log.Warning("GameApiUtilsService AuthCheck: provider token IS EMPTY " +
+                                    $"for account with Id: {account.Id}, Username: {account.Username}. Return Unauthorized.");
+                        return ApiResponse.Unauthorized;
+                    }
+
                     (ApiResponse getAuthByProviderResult, newAccessToken, newRefreshToken) = gameApiClient.GetAuthByProvider(account);
                     if (getAuthByProviderResult != ApiResponse.Success)
                     {
@@ -153,57 +161,65 @@ namespace BlumBotFarm.GameClient
                                 $"for an account Id: {account.Id}, Username: {account.Username}.");
             }
 
-            foreach (var task in tasks)
+            foreach (var (id, kind, status) in tasks)
             {
-                if (task.kind == "INITIAL" && task.status == "NOT_STARTED")
+                if (kind == "INITIAL" && status == "NOT_STARTED")
                 {
-                    response = gameApiClient.StartTask(account, task.id);
                     ++wholeCount;
+                    response = gameApiClient.StartTask(account, id);
                     if (response != ApiResponse.Success)
                     {
-                        Log.Error($"GameApiUtilsService StartAndClaimAllTasks, error while starting task ({task.id}, {task.kind}, {task.status}) " +
+                        Log.Error($"GameApiUtilsService StartAndClaimAllTasks, error while starting task ({id}, {kind}, {status}) " +
                                   $"for an account Id: {account.Id}, Username: {account.Username}.");
                         ++errorsCount;
                     }
                     else
                     {
-                        Log.Information($"GameApiUtilsService StartAndClaimAllTasks, started task ({task.id}, {task.kind}, {task.status}) " +
+                        Log.Information($"GameApiUtilsService StartAndClaimAllTasks, started task ({id}, {kind}, {status}) " +
                                         $"for an account Id: {account.Id}, Username: {account.Username}.");
                         Thread.Sleep(1000 + random.Next(-100, 100));
                     }
                 }
             }
 
-            Thread.Sleep(3000 + random.Next(300, 600));
-
-            (response, tasks) = gameApiClient.GetTasks(account);
-            ++wholeCount;
-            if (response != ApiResponse.Success)
+            if (wholeCount == 1)
             {
-                Log.Error($"GameApiUtilsService StartAndClaimAllTasks, error while trying to get tasks list once again " +
-                          $"for an account Id: {account.Id}, Username: {account.Username}.");
-                ++errorsCount;
+                Log.Information("GameApiUtilsService StartAndClaimAllTasks, no tasks to start, no need to get tasks list again " +
+                                $"for an account Id: {account.Id}, Username: {account.Username}.");
             }
             else
             {
-                Log.Information($"GameApiUtilsService StartAndClaimAllTasks, got tasks list once again " +
-                                $"for an account Id: {account.Id}, Username: {account.Username}.");
+                Thread.Sleep(3000 + random.Next(300, 600));
+
+                (response, tasks) = gameApiClient.GetTasks(account);
+                ++wholeCount;
+                if (response != ApiResponse.Success)
+                {
+                    Log.Error($"GameApiUtilsService StartAndClaimAllTasks, error while trying to get tasks list once again " +
+                              $"for an account Id: {account.Id}, Username: {account.Username}.");
+                    ++errorsCount;
+                }
+                else
+                {
+                    Log.Information($"GameApiUtilsService StartAndClaimAllTasks, got tasks list once again " +
+                                    $"for an account Id: {account.Id}, Username: {account.Username}.");
+                }
             }
 
-            foreach (var task in tasks)
+            foreach (var (id, kind, status) in tasks)
             {
-                if (task.status == "READY_FOR_CLAIM")
+                if (status == "READY_FOR_CLAIM")
                 {
-                    (response, double reward) = gameApiClient.ClaimTask(account, task.id);
+                    (response, double reward) = gameApiClient.ClaimTask(account, id);
                     ++wholeCount;
                     if (response != ApiResponse.Success)
                     {
-                        Log.Error($"GameApiUtilsService StartAndClaimAllTasks, error while claiming task ({task.id}, {task.kind}, {task.status}) for an account Id: {account.Id}, Username: {account.Username}.");
+                        Log.Error($"GameApiUtilsService StartAndClaimAllTasks, error while claiming task ({id}, {kind}, {status}) for an account Id: {account.Id}, Username: {account.Username}.");
                         ++errorsCount;
                     }
                     else
                     {
-                        Log.Information($"GameApiUtilsService StartAndClaimAllTasks, claimed task ({task.id}, {task.kind}, {task.status}) for an account Id: {account.Id}, Username: {account.Username}.");
+                        Log.Information($"GameApiUtilsService StartAndClaimAllTasks, claimed task ({id}, {kind}, {status}) for an account Id: {account.Id}, Username: {account.Username}.");
                         Thread.Sleep(1000 + random.Next(-100, 100));
                     }
                 }

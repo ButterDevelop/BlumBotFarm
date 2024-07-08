@@ -1,0 +1,6 @@
+@AutoBlumFarmServer_HostAddress = http://localhost:5101
+
+GET {{AutoBlumFarmServer_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

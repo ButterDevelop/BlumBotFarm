@@ -61,6 +61,30 @@ namespace BlumBotFarm.Startup.Properties {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Mozilla/5.0 (Linux; Android 12; RMX2001 Build/SQ1D.220205.003; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/91.0.4472.114 Mobile Safari/537.36
+        ///Mozilla/5.0 (Linux; Android 12; M2102K1C Build/SKQ1.211209.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/99.0.4844.58 Mobile Safari/537.36
+        ///Mozilla/5.0 (Linux; Android 12; Mi A2 Lite Build/SQ1D.220205.003; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/91.0.4472.114 Mobile Safari/537.36
+        ///Mozilla/5.0 (Linux; Androi [остаток строки не уместился]&quot;;.
+        /// </summary>
+        internal static string AndroidBoughtUserAgents {
+            get {
+                return ResourceManager.GetString("AndroidBoughtUserAgents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Mozilla/5.0 (Linux; Android 12; RMX2001 Build/SQ1D.220205.003; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/91.0.4472.114 Mobile Safari/537.36
+        ///Mozilla/5.0 (Linux; Android 12; M2102K1C Build/SKQ1.211209.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/99.0.4844.58 Mobile Safari/537.36
+        ///Mozilla/5.0 (Linux; Android 12; Mi A2 Lite Build/SQ1D.220205.003; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/91.0.4472.114 Mobile Safari/537.36
+        ///Mozilla/5.0 (Linux; Androi [остаток строки не уместился]&quot;;.
+        /// </summary>
+        internal static string MobileUserAgents {
+            get {
+                return ResourceManager.GetString("MobileUserAgents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Mozilla/5.0 (Android 14; Mobile; LG-M255; rv:126.0) Gecko/126.0 Firefox/126.0
         ///Mozilla/5.0 (Android 14; Mobile; rv:126.0) Gecko/126.0 Firefox/126.0
         ///Mozilla/5.0 (Linux; Android 10; HD1913) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.6422.113 Mobile Safari/537.36 EdgA/124.0.2478.104

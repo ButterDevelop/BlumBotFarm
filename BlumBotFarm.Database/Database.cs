@@ -14,8 +14,16 @@ namespace BlumBotFarm.Database
             using (IDbConnection db = new SqliteConnection(ConnectionString))
             {
                 db.Execute(@"
+                    CREATE TABLE IF NOT EXISTS Users (
+                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        TelegramUserId INTEGER NOT NULL,
+                        BalanceUSD REAL NOT NULL,
+                        IsBanned INTEGER NOT NULL
+                    );
+
                     CREATE TABLE IF NOT EXISTS Accounts (
                         Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        UserId INTEGER,
                         Username TEXT,
                         Balance REAL,
                         Tickets INTEGER,
@@ -24,7 +32,8 @@ namespace BlumBotFarm.Database
                         ProviderToken TEXT,
                         UserAgent TEXT,
                         Proxy TEXT,
-                        TimezoneOffset INTEGER
+                        TimezoneOffset INTEGER,
+                        FOREIGN KEY(UserId) REFERENCES Users(Id)
                     );
 
                     CREATE TABLE IF NOT EXISTS Tasks (

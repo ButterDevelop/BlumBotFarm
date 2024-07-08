@@ -1,4 +1,5 @@
 ﻿using Serilog;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
@@ -20,6 +21,10 @@ namespace BlumBotFarm.GameClient
         private static string[] _userAgents = [];
         private static Random   _rnd        = new();
 
+        private static ConcurrentDictionary<string, (HttpClient client, DateTime lastUsed)> _savedHttpClients = new();
+        // время жизни клиента, то есть стандартного соединения keep-alive, по умолчанию это 20 минут
+        private static readonly TimeSpan ClientLifetime = TimeSpan.FromMinutes(20);
+
         private static bool ServerCertificateValidationCallback(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
         {
             return true;
@@ -36,7 +41,7 @@ namespace BlumBotFarm.GameClient
             return _userAgents[_rnd.Next(_userAgents.Length)];
         }
 
-        private static HttpClient GenerateClient(string proxy)
+        private static HttpClient GenerateClient(string proxy, int connectTimeoutMs)
         {
             HttpClientHandler handler = new()
             {
@@ -50,7 +55,8 @@ namespace BlumBotFarm.GameClient
                 string? password = null;
 
                 ProxyType proxyType = proxy.Contains("socks5") ? ProxyType.Socks5 : (proxy.Contains("socks4") ? ProxyType.Socks4 : ProxyType.Http);
-                ProxyClient? proxyYove = null;
+                //ProxyClient? proxyYove = null;
+                WebProxy proxyWeb;
 
                 // Проверяем наличие логина и пароля в строке прокси
                 if (proxy.Contains('@'))
@@ -76,25 +82,34 @@ namespace BlumBotFarm.GameClient
 
                     if (username != null && password != null)
                     {
-                        proxyYove = new ProxyClient(proxyAddress, username, password, proxyType);
+                        //proxyYove = new ProxyClient(proxyAddress, username, password, proxyType);
+
+                        ICredentials credentials = new NetworkCredential(username, password);
+                        proxyWeb = new WebProxy(proxyAddress, true, null, credentials);
                     }
                     else
                     {
-                        proxyYove = new ProxyClient(proxyAddress, proxyType);
+                        //proxyYove = new ProxyClient(proxyAddress, proxyType);
+                        proxyWeb = new WebProxy(proxyAddress);
                     }
                 }
                 else
                 {
                     proxyAddress = proxy.Replace("socks5://", "").Replace("socks4://", "").Replace("http://", "");
 
-                    proxyYove = new ProxyClient(proxyAddress, proxyType);
+                    proxyWeb = new WebProxy(proxyAddress);
+                    //proxyYove = new ProxyClient(proxyAddress, proxyType);
                 }
 
-                handler.Proxy = proxyYove;
+                //handler.Proxy    = proxyYove;
+                handler.Proxy = proxyWeb;
                 handler.UseProxy = true;
             }
 
-            HttpClient client = new(handler);
+            HttpClient client = new(handler)
+            {
+                Timeout = TimeSpan.FromMilliseconds(connectTimeoutMs)
+            };
             return client;
         }
 
@@ -105,15 +120,37 @@ namespace BlumBotFarm.GameClient
         {
             try
             {
-                var client = GenerateClient(proxy);
+                string keyDict = $"{proxy}";
+                HttpClient client;
+                DateTime lastUsed;
 
-                client.Timeout = TimeSpan.FromMilliseconds(connectTimeoutMs);
+                lock (_savedHttpClients)
+                {
+                    if (_savedHttpClients.TryGetValue(keyDict, out var clientEntry))
+                    {
+                        (client, lastUsed) = clientEntry;
+                        if (DateTime.Now - lastUsed > ClientLifetime)
+                        {
+                            client.Dispose();
+                            client = GenerateClient(proxy, connectTimeoutMs);
+                            _savedHttpClients[keyDict] = (client, DateTime.Now);
+                        }
+                    }
+                    else
+                    {
+                        client = GenerateClient(proxy, connectTimeoutMs);
+                        _savedHttpClients[keyDict] = (client, DateTime.Now);
+                    }
+                }
+
+                client.DefaultRequestHeaders.Clear();
 
                 if (!string.IsNullOrEmpty(referer))
                 {
                     client.DefaultRequestHeaders.Referrer = new Uri(referer);
                 }
 
+                client.DefaultRequestHeaders.Connection.Add("keep-alive");
                 client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent ?? GetRandomUserAgent());
 
                 if (headers != null)
@@ -163,7 +200,7 @@ namespace BlumBotFarm.GameClient
         {
             try
             {
-                var client = GenerateClient(proxy);
+                var client = GenerateClient(proxy, connectTimeoutMs);
 
                 client.Timeout = TimeSpan.FromMilliseconds(connectTimeoutMs);
                 client.DefaultRequestHeaders.UserAgent.ParseAdd(GetRandomUserAgent());

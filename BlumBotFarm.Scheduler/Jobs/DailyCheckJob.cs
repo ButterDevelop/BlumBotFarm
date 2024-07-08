@@ -54,10 +54,10 @@ namespace BlumBotFarm.Scheduler.Jobs
             //}
 
             // Getting the frontend part
-            if (!gameApiClient.GetMainPageHTML(account))
-            {
-                Log.Warning($"Daily Check Job, GetMainPageHTML: returned FALSE for an account with Id: {account.Id}, Username: {account.Username}.");
-            }
+            //if (!gameApiClient.GetMainPageHTML(account))
+            //{
+            //    Log.Warning($"Daily Check Job, GetMainPageHTML: returned FALSE for an account with Id: {account.Id}, Username: {account.Username}.");
+            //}
             
             ApiResponse dailyClaimResponse = ApiResponse.Error, friendsClaimResponse = ApiResponse.Error, getUserInfoResult = ApiResponse.Error;
             bool startAndClaimAllTasksIsGood = false, isAuthGood = false;
@@ -85,20 +85,27 @@ namespace BlumBotFarm.Scheduler.Jobs
                     return;
                 }
 
+                // Updating user info
+                (getUserInfoResult, var gotBalance, var tickets) = gameApiClient.GetUserInfo(account);
+                if (getUserInfoResult == ApiResponse.Success)
+                {
+                    account.Balance = gotBalance;
+                    account.Tickets = tickets;
+                    accountRepository.Update(account);
+
+                    Log.Information($"Daily Check Job, balance is {gotBalance}, ticket's count is {tickets} " +
+                                    $"for an account with Id: {account.Id}, Username: {account.Username}.");
+                }
+                else
+                {
+                    Log.Error($"Daily Check Job, error while getting user info for an account with Id: {account.Id}, Username: {account.Username}.");
+                }
+
                 // Doing claiming a farming stuff
-                (ApiResponse claimResponse, double balance1, int tickets) = gameApiClient.ClaimFarming(account);
+                (ApiResponse claimResponse, double balanceFarming, tickets) = gameApiClient.ClaimFarming(account);
                 if (claimResponse == ApiResponse.Success)
                 {
                     Log.Information($"Daily Check Job, claimed farming successfully for an account Id: {account.Id}, Username: {account.Username}, Tickets: {tickets}.");
-
-                    Log.Information($"Daily Check Job, sheduling earning job for an account Id: {account.Id}, Username: {account.Username}");
-                    var startDate = DateTime.Now.AddMinutes(random.Next(EarningCheckJob.MIN_MINUTES_TO_WAIT, EarningCheckJob.MAX_MINUTES_TO_WAIT + 1));
-                    await TaskScheduler.ScheduleEarningJob(taskScheduler, accountId, account.Balance, "ClaimFarming", startDate);
-
-                    // Updating user info
-                    account.Balance = balance1;
-                    account.Tickets = tickets;
-                    accountRepository.Update(account);
                 }
                 else
                 {
@@ -158,9 +165,8 @@ namespace BlumBotFarm.Scheduler.Jobs
                 if (getUserInfoResult == ApiResponse.Success)
                 {
                     Log.Information($"Daily Check Job, sheduling earning job for an account Id: {account.Id}, Username: {account.Username}");
-
                     var startDate = DateTime.Now.AddMinutes(random.Next(EarningCheckJob.MIN_MINUTES_TO_WAIT, EarningCheckJob.MAX_MINUTES_TO_WAIT + 1));
-                    await TaskScheduler.ScheduleEarningJob(taskScheduler, accountId, balance1, "GetUserInfo", startDate);
+                    await TaskScheduler.ScheduleEarningJob(taskScheduler, accountId, gotBalance, "ClaimFarming", startDate);
                 }
             }
 
@@ -172,7 +178,7 @@ namespace BlumBotFarm.Scheduler.Jobs
                 int randomSecondsNext = random.Next(task.MinScheduleSeconds, task.MaxScheduleSeconds);
 
                 // Determine the next run time based on the result
-                if (getUserInfoResult == ApiResponse.Success && dailyClaimResponse == ApiResponse.Success && 
+                if (getUserInfoResult == ApiResponse.Success && 
                     account.Tickets == 0 && startAndClaimAllTasksIsGood && isAuthGood)
                 {
                     Log.Information("Daily Check Job executed SUCCESSFULLY for an account with Id: " +

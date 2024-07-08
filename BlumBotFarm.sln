@@ -17,7 +17,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlumBotFarm.GameClient", "B
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlumBotFarm.GUIAccountManager", "BlumBotFarm.GUIAccountManager\BlumBotFarm.GUIAccountManager.csproj", "{2395CE4A-CFE8-44D6-8371-EC8EEDE9423E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlumBotFarm.MessageProcessor", "BlumBotFarm.MessageProcessor\BlumBotFarm.MessageProcessor.csproj", "{6078E1E1-3419-41B2-8AFA-0EF56582108E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlumBotFarm.MessageProcessor", "BlumBotFarm.MessageProcessor\BlumBotFarm.MessageProcessor.csproj", "{6078E1E1-3419-41B2-8AFA-0EF56582108E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoBlumFarmServer", "AutoBlumFarmServer\AutoBlumFarmServer.csproj", "{F3BD4139-88C4-4D51-BEF6-D7D716F553B2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,6 +59,10 @@ Global
 		{6078E1E1-3419-41B2-8AFA-0EF56582108E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6078E1E1-3419-41B2-8AFA-0EF56582108E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6078E1E1-3419-41B2-8AFA-0EF56582108E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3BD4139-88C4-4D51-BEF6-D7D716F553B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3BD4139-88C4-4D51-BEF6-D7D716F553B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3BD4139-88C4-4D51-BEF6-D7D716F553B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3BD4139-88C4-4D51-BEF6-D7D716F553B2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

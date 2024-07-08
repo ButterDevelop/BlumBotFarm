@@ -12,7 +12,7 @@ using TaskScheduler = BlumBotFarm.Scheduler.TaskScheduler;
 
 namespace BlumBotFarm.TelegramBot
 {
-    public class TelegramBot
+    public class AdminTelegramBot
     {
         private readonly ITelegramBotClient botClient;
         private readonly string[] adminUsernames;
@@ -22,7 +22,7 @@ namespace BlumBotFarm.TelegramBot
         private readonly EarningRepository earningRepository;
         private readonly TaskScheduler     taskScheduler;
 
-        public TelegramBot(string token, string[] adminUsernames, long[] adminChatIds)
+        public AdminTelegramBot(string token, string[] adminUsernames, long[] adminChatIds)
         {
             botClient = new TelegramBotClient(token);
             this.adminUsernames = adminUsernames;
@@ -257,6 +257,41 @@ namespace BlumBotFarm.TelegramBot
                     }
 
                     await botClient.SendTextMessageAsync(message.Chat, messageToSendTickets.ToString(), null, ParseMode.Html);
+
+                    break;
+                case "/jobsinfo":
+                    var accountsJobsInfo = accountRepository.GetAll().OrderBy(acc => acc.Id);
+                    var tasksJobsInfo    = taskRepository.GetAll();
+
+                    List<(long dailyInTicks, string line)> jobsInfoLines = [];
+                    foreach (var account in accountsJobsInfo)
+                    {
+                        var dailyCheckJob = tasksJobsInfo.FirstOrDefault(task => task.AccountId == account.Id && task.TaskType == "DailyCheckJob");
+                        if (dailyCheckJob == null) continue;
+
+                        var    dailyIn    = dailyCheckJob.NextRunTime - DateTime.Now;
+                        string dailyMinus = dailyIn < TimeSpan.Zero ? "-" : "";
+
+                        jobsInfoLines.Add((dailyIn.Ticks,
+                                          $"<code>{account.Username}</code>, " +
+                                          $"tickets: <b>{account.Tickets}</b>, " +
+                                          $"Job in: <b>{dailyMinus}{dailyIn:hh\\:mm\\:ss}</b>"));
+                    }
+
+                    StringBuilder messageToSendJobsInfo = new("<b>Jobs info:</b>\n");
+                    foreach (var (dailyInTicks, line) in jobsInfoLines.OrderBy(info => info.dailyInTicks))
+                    {
+                        messageToSendJobsInfo.AppendLine(line);
+
+                        if (messageToSendJobsInfo.Length >= 2048) // TG message length limit is 4096
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, messageToSendJobsInfo.ToString(), null, ParseMode.Html);
+
+                            messageToSendJobsInfo.Clear();
+                        }
+                    }
+
+                    await botClient.SendTextMessageAsync(message.Chat, messageToSendJobsInfo.ToString(), null, ParseMode.Html);
 
                     break;
                 case "/accountsinfo":

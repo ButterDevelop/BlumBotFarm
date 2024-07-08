@@ -32,7 +32,7 @@ namespace BlumBotFarm.Startup
             Database.Database.Initialize();
 
             // Инициализация UserAgents
-            HTTPController.Initialize(Properties.Resources.UserAgents);
+            HTTPController.Initialize(Properties.Resources.AndroidBoughtUserAgents);
 
             // Настройка Telegram-бота через конфигурацию
             var botToken       = AppConfig.BotSettings.Token;
@@ -40,7 +40,7 @@ namespace BlumBotFarm.Startup
             var adminChatIds   = AppConfig.BotSettings.AdminChatIds;
             if (botToken != null && adminUsernames != null && adminChatIds != null)
             {
-                var telegramBot = new TelegramBot.TelegramBot(botToken, adminUsernames, adminChatIds);
+                var telegramBot = new TelegramBot.AdminTelegramBot(botToken, adminUsernames, adminChatIds);
                 telegramBot.Start();
 
                 var messageProcessor = new MessageProcessor.MessageProcessor(botToken, adminUsernames, adminChatIds, new CancellationToken());

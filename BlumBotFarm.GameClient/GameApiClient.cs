@@ -422,7 +422,17 @@ namespace BlumBotFarm.GameClient
 
                 foreach (var task in jsonArray)
                 {
-                    tasks.Add((task["id"].ToString(), task["kind"].ToString(), task["status"].ToString()));
+                    if (task["subTasks"] is null)
+                    {
+                        tasks.Add((task["id"].ToString(), task["kind"].ToString(), task["status"].ToString()));
+                    }
+                    else
+                    {
+                        foreach (var subTask in task["subTasks"])
+                        {
+                            tasks.Add((subTask["id"].ToString(), subTask["kind"].ToString(), subTask["status"].ToString()));
+                        }
+                    }
                 }
 
                 return (ApiResponse.Success, tasks);
