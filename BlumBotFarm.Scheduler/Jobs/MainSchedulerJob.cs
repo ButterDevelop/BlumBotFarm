@@ -56,16 +56,18 @@ namespace BlumBotFarm.Scheduler.Jobs
 
                 foreach (var task in tasksForAccount)
                 {
+                    int msToAdd = random.Next(TaskScheduler.MIN_MS_AMOUNT_TO_WAIT_BEFORE_JOB, TaskScheduler.MAX_MS_AMOUNT_TO_WAIT_BEFORE_JOB + 1);
+                    var nextRun = startAt.AddMilliseconds(msToAdd);
+
                     // Update task in DB
-                    task.NextRunTime = startAt;
+                    task.NextRunTime = nextRun;
                     taskRepository.Update(task);
 
                     // Schedule task
-                    int msToAdd = random.Next(TaskScheduler.MIN_MS_AMOUNT_TO_WAIT_BEFORE_JOB, TaskScheduler.MAX_MS_AMOUNT_TO_WAIT_BEFORE_JOB + 1);
-                    await TaskScheduler.ScheduleNewTask(taskScheduler, account.Id, task, startAt.AddMilliseconds(msToAdd));
+                    await TaskScheduler.ScheduleNewTask(taskScheduler, account.Id, task, nextRun);
 
                     logLines.Add($"Schedule task - accountId: {account.Id}, accountUsername: {account.Username}, taskId: {task.Id}, " +
-                                 $"taskType: {task.TaskType}, time: {startAt:dd.MM.yyyy HH:mm:ss}");
+                                 $"taskType: {task.TaskType}, time: {nextRun:dd.MM.yyyy HH:mm:ss}");
 
                     startAt = startAt.Add(interval);
                 }

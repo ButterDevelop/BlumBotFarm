@@ -27,7 +27,7 @@ namespace AutoBlumFarmServer.ApiResponses.AccountController
             yield return SwaggerExample.Create("No such account", new ApiMessageResponse()
             {
                 ok      = true,
-                message = "No such account."
+                message = "No such account that belongs to our user."
             });
         }
     }

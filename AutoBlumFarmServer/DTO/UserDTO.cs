@@ -1,11 +1,10 @@
-﻿namespace BlumBotFarm.Core.Models
+﻿namespace AutoBlumFarmServer.DTO
 {
-    public class User
+    public class UserDTO
     {
         public int     Id              { get; set; }
         public long    TelegramUserId  { get; set; }
         public decimal BalanceUSD      { get; set; }
-        public bool    IsBanned        { get; set; }
         public string  LanguageCode    { get; set; } = "en";
         public string  OwnReferralCode { get; set; } = string.Empty;
     }

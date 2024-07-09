@@ -1,11 +1,13 @@
 ﻿using AutoBlumFarmServer.ApiResponses;
 using AutoBlumFarmServer.ApiResponses.AccountController;
-using BlumBotFarm.Core.Models;
+using AutoBlumFarmServer.DTO;
+using AutoBlumFarmServer.Model;
 using BlumBotFarm.Database.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
+using System.Text.RegularExpressions;
 
 namespace AutoBlumFarmServer.Controllers
 {
@@ -23,13 +25,19 @@ namespace AutoBlumFarmServer.Controllers
             _userRepository    = userRepository;
         }
 
+        private bool ValidateUsername(string username)
+        {
+            Regex regex = new(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,10}$");
+            return regex.IsMatch(username);
+        }
+
         // GET: api/Account
         [HttpGet]
         [SwaggerResponse(200, "Success. If `blumAuthData` is empty - means that is a slot.")]
         [SwaggerResponse(401, "The only failure status code - no auth from user.")]
         [SwaggerResponseExample(200, typeof(GetAllAccountsOkExample))]
         [SwaggerResponseExample(401, typeof(BadAuthExample))]
-        [ProducesResponseType(typeof(ApiObjectResponse<List<Account>>), StatusCodes.Status200OK,           "application/json")]
+        [ProducesResponseType(typeof(ApiObjectResponse<List<AccountDTO>>), StatusCodes.Status200OK,           "application/json")]
         [ProducesResponseType(typeof(ApiMessageResponse),               StatusCodes.Status401Unauthorized, "application/json")]
         public IActionResult GetAllAccounts()
         {
@@ -54,7 +62,7 @@ namespace AutoBlumFarmServer.Controllers
         [SwaggerResponseExample(200, typeof(GetAccountByIdOkExample))]
         [SwaggerResponseExample(400, typeof(GetAccountById400BadExample))]
         [SwaggerResponseExample(401, typeof(BadAuthExample))]
-        [ProducesResponseType(typeof(ApiObjectResponse<Account>), StatusCodes.Status200OK,   "application/json")]
+        [ProducesResponseType(typeof(ApiObjectResponse<AccountDTO>), StatusCodes.Status200OK,   "application/json")]
         [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status400BadRequest,   "application/json")]
         [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status401Unauthorized, "application/json")]
         public IActionResult GetAccountById(int id)
@@ -71,7 +79,7 @@ namespace AutoBlumFarmServer.Controllers
             if (account == null || account.UserId != userId) return BadRequest(new ApiMessageResponse
             {
                 ok      = false,
-                message = "No such account."
+                message = "No such account that belongs to our user."
             });
 
             return Json(account);
@@ -79,10 +87,19 @@ namespace AutoBlumFarmServer.Controllers
 
         // POST: api/Account/CheckAccountUsername
         [HttpPost("CheckAccountUsername")]
-        [ProducesResponseType(typeof(GetAllAccountsOkExample), StatusCodes.Status200OK,         "application/json")]
-        [ProducesResponseType(typeof(BadAuthExample),          StatusCodes.Status400BadRequest, "application/json")]
-        public IActionResult CheckAccountUsername([FromBody] string username)
+        [SwaggerResponse(200, "Success. The username is available.")]
+        [SwaggerResponse(400, "No such account that belongs to our user.")]
+        [SwaggerResponse(401, "No auth from user.")]
+        [SwaggerResponseExample(200, typeof(CheckAccountUsernameOkExample))]
+        [SwaggerResponseExample(400, typeof(CheckAccountUsernameBadExample))]
+        [SwaggerResponseExample(401, typeof(BadAuthExample))]
+        [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status200OK,           "application/json")]
+        [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status400BadRequest,   "application/json")]
+        [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status401Unauthorized, "application/json")]
+        public IActionResult CheckAccountUsername([FromBody] CheckAccountUsernameModel model)
         {
+            string username = model.username;
+
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
             var invoker = _userRepository.GetById(userId);
             if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
@@ -91,27 +108,41 @@ namespace AutoBlumFarmServer.Controllers
                 message = "No auth."
             });
 
+            if (!ValidateUsername(username))
+            {
+                return BadRequest(new ApiMessageResponse
+                {
+                    ok      = false,
+                    message = "Validation failed. Use 6-10 alphanumeric symbols.",
+                });
+            }
+
             var account = _accountRepository.GetAll().FirstOrDefault(acc => acc.UserId == userId && acc.Username == username);
-            if (account != null) return BadRequest();
+            if (account != null) return BadRequest(new ApiMessageResponse
+            {
+                ok      = false,
+                message = "This username is already occupied by one of your accounts."
+            });
 
-            return Ok();
-        }
-
-        // POST: api/Account
-        [HttpPost]
-        [ProducesResponseType(typeof(GetAllAccountsOkExample), StatusCodes.Status200OK,         "application/json")]
-        [ProducesResponseType(typeof(BadAuthExample),          StatusCodes.Status400BadRequest, "application/json")]
-        public IActionResult CreateAccount([FromBody] Account account)
-        {
-            // Заглушка для создания нового аккаунта
-            return Ok(new { Message = "Аккаунт создан", Account = account });
+            return Ok(new ApiMessageResponse
+            {
+                ok      = true,
+                message = "This username for your account is available."
+            });
         }
 
         // PUT: api/Account/5
         [HttpPut("{id}")]
-        [ProducesResponseType(typeof(GetAllAccountsOkExample), StatusCodes.Status200OK,         "application/json")]
-        [ProducesResponseType(typeof(BadAuthExample),          StatusCodes.Status400BadRequest, "application/json")]
-        public IActionResult UpdateAccount(int id, [FromBody] string providerToken)
+        [SwaggerResponse(200, "Success. The account/slot was updated (only `Username` or `ProviderToken`).")]
+        [SwaggerResponse(400, "No such account that belongs to our user.")]
+        [SwaggerResponse(401, "No auth from user.")]
+        [SwaggerResponseExample(200, typeof(UpdateAccountOkExample))]
+        [SwaggerResponseExample(400, typeof(UpdateAccountBadExample))]
+        [SwaggerResponseExample(401, typeof(BadAuthExample))]
+        [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status200OK,           "application/json")]
+        [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status400BadRequest,   "application/json")]
+        [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status401Unauthorized, "application/json")]
+        public IActionResult UpdateAccount(int id, [FromBody] AccountDTO updateAccount)
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
             var invoker = _userRepository.GetById(userId);
@@ -122,35 +153,37 @@ namespace AutoBlumFarmServer.Controllers
             });
 
             var account = _accountRepository.GetById(id);
-            if (account == null || account.UserId != userId) return BadRequest();
+            if (account == null || account.UserId != userId) return BadRequest(new ApiMessageResponse
+            {
+                ok      = false,
+                message = "No such account that belongs to our user."
+            });
 
-            account.ProviderToken = providerToken;
+            if (!ValidateUsername(updateAccount.Username))
+            {
+                return BadRequest(new ApiMessageResponse
+                {
+                    ok      = false,
+                    message = "Validation failed. Use 6-10 alphanumeric symbols.",
+                });
+            }
+
+            var accountCheckUsername = _accountRepository.GetAll().FirstOrDefault(acc => acc.UserId == userId && acc.Username == updateAccount.Username);
+            if (accountCheckUsername != null) return BadRequest(new ApiMessageResponse
+            {
+                ok      = false,
+                message = "This username is already occupied by one of your accounts."
+            });
+
+            account.Username      = updateAccount.Username;
+            account.ProviderToken = updateAccount.BlumAuthData;
             _accountRepository.Update(account);
 
-            // Заглушка для обновления аккаунта
-            return Ok();
-        }
-
-        // DELETE: api/Account/5
-        [HttpDelete("{id}")]
-        [ProducesResponseType(typeof(GetAllAccountsOkExample), StatusCodes.Status200OK,         "application/json")]
-        [ProducesResponseType(typeof(BadAuthExample),          StatusCodes.Status400BadRequest, "application/json")]
-        public IActionResult DeactivateAccount(int id)
-        {
-            int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
-            var invoker = _userRepository.GetById(userId);
-            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            return Ok(new ApiMessageResponse
             {
-                ok      = false,
-                message = "No auth."
+                ok      = true,
+                message = "The account was updated successfully."
             });
-
-            var account = _accountRepository.GetById(id);
-            if (account == null || account.UserId != userId) return BadRequest();
-
-           // ????
-
-            return Ok();
         }
     }
 }

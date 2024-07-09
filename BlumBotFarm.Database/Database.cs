@@ -18,7 +18,9 @@ namespace BlumBotFarm.Database
                         Id INTEGER PRIMARY KEY AUTOINCREMENT,
                         TelegramUserId INTEGER NOT NULL,
                         BalanceUSD REAL NOT NULL,
-                        IsBanned INTEGER NOT NULL
+                        IsBanned INTEGER NOT NULL,
+                        LanguageCode TEXT,
+                        OwnReferralCode TEXT
                     );
 
                     CREATE TABLE IF NOT EXISTS Accounts (

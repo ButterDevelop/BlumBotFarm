@@ -4,6 +4,9 @@ namespace AutoBlumFarmServer
 {
     public class Utils
     {
+        private readonly static Random random = new();
+        private const string ALPHABET_NUMERIC_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
         public static Claim? GetUserClaim(IEnumerable<Claim> claims, string claim, out bool userAuthorized)
         {
             userAuthorized = true;
@@ -28,6 +31,11 @@ namespace AutoBlumFarmServer
             }
 
             return userId;
+        }
+
+        public static string RandomString(int length)
+        {
+            return new string(Enumerable.Repeat(ALPHABET_NUMERIC_CHARS, length).Select(s => s[random.Next(s.Length)]).ToArray());
         }
     }
 }

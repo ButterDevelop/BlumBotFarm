@@ -233,15 +233,14 @@ namespace BlumBotFarm.TelegramBot
                     }
                     break;
                 case "/unspenttickets":
-                    var accountsWithTicketsNotZero = accountRepository.GetAll().Where(acc => acc.Tickets > 0).OrderBy(acc => acc.Id);
+                    var accountsWithTicketsNotZero = accountRepository.GetAll().Where(acc => acc.Tickets > 0);
                     var totalTickets = accountsWithTicketsNotZero.Sum(acc => acc.Tickets);
 
                     var tasks = taskRepository.GetAll();
 
-                    StringBuilder messageToSendTickets = new($"Unspent tickets in total: <b>{totalTickets}</b>\n");
+                    List<(long dailyInTicks, string line)> unspentTicketsLines = [];
                     if (totalTickets > 0)
                     {
-                        messageToSendTickets.AppendLine($"Unspent tickets full info:");
                         foreach (var account in accountsWithTicketsNotZero)
                         {
                             var dailyCheckJob = tasks.FirstOrDefault(task => task.AccountId == account.Id && task.TaskType == "DailyCheckJob");
@@ -250,9 +249,22 @@ namespace BlumBotFarm.TelegramBot
                             var    dailyIn    = dailyCheckJob.NextRunTime - DateTime.Now;
                             string dailyMinus = dailyIn   < TimeSpan.Zero ? "-" : "";
 
-                            messageToSendTickets.AppendLine($"<code>{account.Username}</code>, " +
-                                                            $"tickets: <b>{account.Tickets}</b>, " +
-                                                            $"Job in: <b>{dailyMinus}{dailyIn:hh\\:mm\\:ss}</b>");
+                            unspentTicketsLines.Add((dailyIn.Ticks, $"<code>{account.Username}</code>, " +
+                                                                    $"tickets: <b>{account.Tickets}</b>, " +
+                                                                    $"Job in: <b>{dailyMinus}{dailyIn:hh\\:mm\\:ss}</b>"));
+                        }
+                    }
+
+                    StringBuilder messageToSendTickets = new($"Unspent tickets in total: <b>{totalTickets}</b>\n");
+                    foreach (var (dailyInTicks, line) in unspentTicketsLines.OrderBy(info => info.dailyInTicks))
+                    {
+                        messageToSendTickets.AppendLine(line);
+
+                        if (messageToSendTickets.Length >= 2048) // TG message length limit is 4096
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, messageToSendTickets.ToString(), null, ParseMode.Html);
+
+                            messageToSendTickets.Clear();
                         }
                     }
 
@@ -260,7 +272,7 @@ namespace BlumBotFarm.TelegramBot
 
                     break;
                 case "/jobsinfo":
-                    var accountsJobsInfo = accountRepository.GetAll().OrderBy(acc => acc.Id);
+                    var accountsJobsInfo = accountRepository.GetAll();
                     var tasksJobsInfo    = taskRepository.GetAll();
 
                     List<(long dailyInTicks, string line)> jobsInfoLines = [];

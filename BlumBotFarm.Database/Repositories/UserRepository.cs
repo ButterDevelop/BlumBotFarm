@@ -35,7 +35,7 @@ namespace BlumBotFarm.Database.Repositories
         {
             lock (dbLock)
             {
-                var sql = "INSERT INTO Users (TelegramUserId, BalanceUSD, IsBanned) VALUES (@TelegramUserId, @BalanceUSD, @IsBanned)";
+                var sql = "INSERT INTO Users (TelegramUserId, BalanceUSD, IsBanned, LanguageCode, OwnReferralCode) VALUES (@TelegramUserId, @BalanceUSD, @IsBanned, @LanguageCode, @OwnReferralCode)";
                 _db.Execute(sql, User);
             }
         }
@@ -44,7 +44,7 @@ namespace BlumBotFarm.Database.Repositories
         {
             lock (dbLock)
             {
-                var sql = "UPDATE Users SET TelegramUserId = @TelegramUserId, BalanceUSD = @BalanceUSD, IsBanned = @IsBanned WHERE Id = @Id";
+                var sql = "UPDATE Users SET TelegramUserId = @TelegramUserId, BalanceUSD = @BalanceUSD, IsBanned = @IsBanned, LanguageCode = @LanguageCode, OwnReferralCode = @OwnReferralCode WHERE Id = @Id";
                 _db.Execute(sql, User);
             }
         }
