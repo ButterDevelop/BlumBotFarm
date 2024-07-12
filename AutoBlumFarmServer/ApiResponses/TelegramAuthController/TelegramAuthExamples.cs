@@ -8,7 +8,7 @@ namespace AutoBlumFarmServer.ApiResponses.TelegramAuthController
         {
             yield return SwaggerExample.Create("Good, got the token", new ApiObjectResponse<string>()
             {
-                ok = false,
+                ok    = true,
                 data = "ey0345asdfxcvsdfqertTOKENwtfdgdfgsf"
             });
         }
@@ -20,7 +20,7 @@ namespace AutoBlumFarmServer.ApiResponses.TelegramAuthController
         {
             yield return SwaggerExample.Create("Cannot verify", new ApiMessageResponse()
             {
-                ok = false,
+                ok      = false,
                 message = "Verification failed."
             });
         }

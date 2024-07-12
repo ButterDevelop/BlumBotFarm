@@ -17,10 +17,11 @@ namespace BlumBotFarm.TelegramBot
         private readonly ITelegramBotClient botClient;
         private readonly string[] adminUsernames;
         private readonly long[]   adminChatIds;
-        private readonly AccountRepository accountRepository;
-        private readonly TaskRepository    taskRepository;
-        private readonly EarningRepository earningRepository;
-        private readonly TaskScheduler     taskScheduler;
+        private readonly AccountRepository     accountRepository;
+        private readonly TaskRepository        taskRepository;
+        private readonly EarningRepository     earningRepository;
+        private readonly DailyRewardRepository dailyRewardRepository;
+        private readonly TaskScheduler         taskScheduler;
 
         public AdminTelegramBot(string token, string[] adminUsernames, long[] adminChatIds)
         {
@@ -29,9 +30,10 @@ namespace BlumBotFarm.TelegramBot
             this.adminChatIds   = adminChatIds;
             using (var db = Database.Database.GetConnection())
             {
-                accountRepository = new AccountRepository(db);
-                taskRepository    = new TaskRepository(db);
-                earningRepository = new EarningRepository(db);
+                accountRepository     = new AccountRepository(db);
+                taskRepository        = new TaskRepository(db);
+                earningRepository     = new EarningRepository(db);
+                dailyRewardRepository = new DailyRewardRepository(db);
             }
             taskScheduler = new TaskScheduler();
         }
@@ -196,6 +198,50 @@ namespace BlumBotFarm.TelegramBot
                     {
                         await botClient.SendTextMessageAsync(message.Chat, "Usage: /proxy <username> [<proxy>]");
                     }
+                    break;
+                case "/todayresults":
+                    var accountsTodayResults = accountRepository.GetAll();
+                    var tasksTodayResults    = taskRepository.GetAll();
+
+                    var today = DateTime.Today;
+                    var dailyRewardsToday = dailyRewardRepository.GetAll().Where(dr => dr.CreatedAt >= today).DistinctBy(dr => dr.AccountId);
+
+                    List<(long dailyInTicks, string line)> todayResultsLines = [];
+                    foreach (var account in accountsTodayResults)
+                    {
+                        if (!dailyRewardsToday.Any(dr => dr.AccountId == account.Id))
+                        {
+                            var dailyCheckJob = tasksTodayResults.FirstOrDefault(task => task.AccountId == account.Id && task.TaskType == "DailyCheckJob");
+                            if (dailyCheckJob == null) continue;
+
+                            var    dailyIn    = dailyCheckJob.NextRunTime - DateTime.Now;
+                            string dailyMinus = dailyIn   < TimeSpan.Zero ? "-" : "";
+
+                            todayResultsLines.Add((dailyIn.Ticks, $"<code>{account.Username}</code>, " +
+                                                                  $"Job in: <b>{dailyMinus}{dailyIn:hh\\:mm\\:ss}</b>"));
+                        }
+                    }
+
+                    int doneCount = dailyRewardsToday.Count(), wholeCount = accountsTodayResults.Count();
+                    StringBuilder messageToSendTodayResults = new("Taken daily rewards today: " +
+                                                                  $"<b>{doneCount}/{wholeCount}</b>\n" +
+                                                                  (doneCount >= wholeCount ? "<b>Work for today is done.</b>" : "") + 
+                                                                  "Those who didn't take daily reward:" + 
+                                                                  (todayResultsLines.Count == 0 ? " <b>no</b>" : "\n"));
+                    foreach (var line in todayResultsLines.OrderBy(info => info.dailyInTicks).Select(info => info.line))
+                    {
+                        messageToSendTodayResults.AppendLine(line);
+
+                        if (messageToSendTodayResults.Length >= 2048) // TG message length limit is 4096
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, messageToSendTodayResults.ToString(), null, ParseMode.Html);
+
+                            messageToSendTodayResults.Clear();
+                        }
+                    }
+
+                    await botClient.SendTextMessageAsync(message.Chat, messageToSendTodayResults.ToString(), null, ParseMode.Html);
+
                     break;
                 case "/info":
                     if (parts.Length == 2)

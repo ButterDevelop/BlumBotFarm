@@ -22,11 +22,13 @@ namespace AutoBlumFarmServer.Controllers
     {
         private const int REFERRAL_CODE_STRING_LENGTH = 10;
 
-        private readonly UserRepository _userRepository;
+        private readonly UserRepository     _userRepository;
+        private readonly ReferralRepository _referralRepository;
 
-        public TelegramAuthController(UserRepository userRepository)
+        public TelegramAuthController(UserRepository userRepository, ReferralRepository referralRepository)
         {
-            _userRepository = userRepository;
+            _userRepository     = userRepository;
+            _referralRepository = referralRepository;
         }
 
         // POST: api/TelegramAuth
@@ -48,18 +50,21 @@ namespace AutoBlumFarmServer.Controllers
                 if (!parameters.ContainsKey("user"))
                 {
                     long userTelegramId = -1;
-                    string languageCode = "en";
+                    string languageCode = "en", firstName = "", lastName = "", photoUrl = "";
                     try
                     {
                         dynamic json   = JObject.Parse(parameters["user"].Replace("'", "\\'").Replace("\"", "'"));
                         userTelegramId = json.id;
                         languageCode   = json.language_code;
+                        firstName      = json.first_name;
+                        lastName       = json.last_name;
+                        photoUrl       = json.photo_url;
                     }
                     catch { }
 
                     if (userTelegramId > 0)
                     {
-                        var token = GenerateJwtToken(userTelegramId, languageCode);
+                        var token = GenerateJwtToken(userTelegramId, languageCode, firstName, lastName, photoUrl, model.referralCode);
 
                         if (token != null)
                         {
@@ -118,34 +123,56 @@ namespace AutoBlumFarmServer.Controllers
             return actualHash.SequenceEqual(generatedHash);
         }
 
-        private string? GenerateJwtToken(long telegramUserId, string languageCode)
+        private string? GenerateJwtToken(long telegramUserId, string languageCode, string firstName, string lastName, 
+                                         string photoUrl, string? hostReferralCode)
         {
             var users = _userRepository.GetAll();
 
             var user = users.FirstOrDefault(acc => acc.TelegramUserId == telegramUserId);
             if (user == null)
             {
-                string referralCode;
+                string usersReferralCode;
                 do
                 {
-                    referralCode = Utils.RandomString(REFERRAL_CODE_STRING_LENGTH);
-                } while (users.FirstOrDefault(u => u.OwnReferralCode == referralCode) != null);
+                    usersReferralCode = Utils.RandomString(REFERRAL_CODE_STRING_LENGTH);
+                } while (users.FirstOrDefault(u => u.OwnReferralCode == usersReferralCode) != null);
 
                 user = new User()
                 {
-                    BalanceUSD      = 0,
+                    BalanceUSD      = 0M,
                     TelegramUserId  = telegramUserId,
+                    FirstName       = firstName,
+                    LastName        = lastName,
                     IsBanned        = false,
                     LanguageCode    = languageCode,
-                    OwnReferralCode = referralCode
+                    OwnReferralCode = usersReferralCode,
+                    CreatedAt       = DateTime.Now,
+                    PhotoUrl        = photoUrl
                 };
                 _userRepository.Add(user);
+
+                user = _userRepository.GetAll().FirstOrDefault(acc => acc.TelegramUserId == telegramUserId);
+                if (user == null) return null;
+
+                if (hostReferralCode != null)
+                {
+                    var hostUser = users.FirstOrDefault(u => u.OwnReferralCode == hostReferralCode);
+                    if (hostUser != null)
+                    {
+                        var referral = new Referral
+                        {
+                            HostUserId      = hostUser.Id,
+                            DependentUserId = user.Id
+                        };
+                        _referralRepository.Add(referral);
+                    }
+                }
             }
 
-            user = _userRepository.GetAll().FirstOrDefault(acc => acc.TelegramUserId == telegramUserId);
-            if (user == null) return null;
-
+            user.FirstName    = firstName;
+            user.LastName     = lastName;
             user.LanguageCode = languageCode;
+            user.PhotoUrl     = photoUrl;
             _userRepository.Update(user);
 
             var claims = new List<Claim>

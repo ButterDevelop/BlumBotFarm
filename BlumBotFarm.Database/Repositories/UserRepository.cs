@@ -1,10 +1,11 @@
 ﻿using BlumBotFarm.Core.Models;
+using BlumBotFarm.Database.Interfaces;
 using Dapper;
 using System.Data;
 
 namespace BlumBotFarm.Database.Repositories
 {
-    public class UserRepository
+    public class UserRepository : IRepository<User>
     {
         private static readonly object dbLock = new();
 
@@ -35,7 +36,7 @@ namespace BlumBotFarm.Database.Repositories
         {
             lock (dbLock)
             {
-                var sql = "INSERT INTO Users (TelegramUserId, BalanceUSD, IsBanned, LanguageCode, OwnReferralCode) VALUES (@TelegramUserId, @BalanceUSD, @IsBanned, @LanguageCode, @OwnReferralCode)";
+                var sql = "INSERT INTO Users (TelegramUserId, FirstName, LastName, BalanceUSD, IsBanned, LanguageCode, OwnReferralCode, CreatedAt, PhotoUrl) VALUES (@TelegramUserId, @FirstName, @LastName, @BalanceUSD, @IsBanned, @LanguageCode, @OwnReferralCode, @CreatedAt, @PhotoUrl)";
                 _db.Execute(sql, User);
             }
         }
@@ -44,7 +45,7 @@ namespace BlumBotFarm.Database.Repositories
         {
             lock (dbLock)
             {
-                var sql = "UPDATE Users SET TelegramUserId = @TelegramUserId, BalanceUSD = @BalanceUSD, IsBanned = @IsBanned, LanguageCode = @LanguageCode, OwnReferralCode = @OwnReferralCode WHERE Id = @Id";
+                var sql = "UPDATE Users SET TelegramUserId = @TelegramUserId, FirstName = @FirstName, LastName = @LastName, BalanceUSD = @BalanceUSD, IsBanned = @IsBanned, LanguageCode = @LanguageCode, OwnReferralCode = @OwnReferralCode, CreatedAt = @CreatedAt, PhotoUrl = @PhotoUrl WHERE Id = @Id";
                 _db.Execute(sql, User);
             }
         }

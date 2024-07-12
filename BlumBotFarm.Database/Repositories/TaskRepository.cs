@@ -1,10 +1,11 @@
-﻿using Dapper;
+﻿using BlumBotFarm.Database.Interfaces;
+using Dapper;
 using System.Data;
 using Task = BlumBotFarm.Core.Models.Task;
 
 namespace BlumBotFarm.Database.Repositories
 {
-    public class TaskRepository
+    public class TaskRepository : IRepository<Task>
     {
         private static readonly object dbLock = new();
 

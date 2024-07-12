@@ -1,8 +1,5 @@
 ﻿using BlumBotFarm.Core;
-using BlumBotFarm.Database.Repositories;
 using BlumBotFarm.GameClient;
-using BlumBotFarm.Scheduler.Jobs;
-using Quartz;
 using Serilog;
 using TaskScheduler = BlumBotFarm.Scheduler.TaskScheduler;
 
@@ -40,13 +37,13 @@ namespace BlumBotFarm.Startup
             var adminChatIds   = AppConfig.BotSettings.AdminChatIds;
             if (botToken != null && adminUsernames != null && adminChatIds != null)
             {
-                var telegramBot = new TelegramBot.AdminTelegramBot(botToken, adminUsernames, adminChatIds);
-                telegramBot.Start();
+                var adminTelegramBot = new TelegramBot.AdminTelegramBot(botToken, adminUsernames, adminChatIds);
+                adminTelegramBot.Start();
 
                 var messageProcessor = new MessageProcessor.MessageProcessor(botToken, adminUsernames, adminChatIds, new CancellationToken());
                 await Task.Factory.StartNew(messageProcessor.StartAsync);
 
-                Log.Information("Started Telegram bot and Message processor.");
+                Log.Information("Started Admin Telegram bot and Message processor.");
             }
 
             //await TaskScheduler.ScheduleMainJob();

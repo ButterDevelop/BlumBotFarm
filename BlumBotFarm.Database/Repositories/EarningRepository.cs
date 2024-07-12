@@ -1,10 +1,11 @@
 ﻿using BlumBotFarm.Core.Models;
+using BlumBotFarm.Database.Interfaces;
 using Dapper;
 using System.Data;
 
 namespace BlumBotFarm.Database.Repositories
 {
-    public class EarningRepository
+    public class EarningRepository : IRepository<Earning>
     {
         private static readonly object dbLock = new();
 

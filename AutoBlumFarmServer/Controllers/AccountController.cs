@@ -13,7 +13,7 @@ namespace AutoBlumFarmServer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class AccountController : Controller
     {
         private readonly AccountRepository _accountRepository;

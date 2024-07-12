@@ -1,11 +1,11 @@
 ﻿using BlumBotFarm.Core.Models;
+using BlumBotFarm.Database.Interfaces;
 using Dapper;
 using System.Data;
-using Task = BlumBotFarm.Core.Models.Task;
 
 namespace BlumBotFarm.Database.Repositories
 {
-    public class MessageRepository
+    public class MessageRepository : IRepository<Message>
     {
         private static readonly object dbLock = new();
 
@@ -24,11 +24,11 @@ namespace BlumBotFarm.Database.Repositories
             }
         }
 
-        public Task? GetById(int id)
+        public Message? GetById(int id)
         {
             lock (dbLock)
             {
-                return _db.QuerySingleOrDefault<Task>("SELECT * FROM Messages WHERE Id = @Id", new { Id = id });
+                return _db.QuerySingleOrDefault<Message>("SELECT * FROM Messages WHERE Id = @Id", new { Id = id });
             }
         }
 

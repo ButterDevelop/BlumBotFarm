@@ -8,22 +8,24 @@ namespace BlumBotFarm.Scheduler.Jobs
 {
     public class DailyCheckJob : IJob
     {
-        private readonly GameApiClient     gameApiClient;
-        private readonly AccountRepository accountRepository;
-        private readonly TaskRepository    taskRepository;
-        private readonly MessageRepository messageRepository;
-        private readonly EarningRepository earningRepository;
-        private readonly TaskScheduler     taskScheduler;
+        private readonly GameApiClient         gameApiClient;
+        private readonly AccountRepository     accountRepository;
+        private readonly TaskRepository        taskRepository;
+        private readonly MessageRepository     messageRepository;
+        private readonly EarningRepository     earningRepository;
+        private readonly DailyRewardRepository dailyRewardRepository;
+        private readonly TaskScheduler         taskScheduler;
 
         public DailyCheckJob()
         {
             gameApiClient = new GameApiClient();
             using (var db = Database.Database.GetConnection())
             {
-                accountRepository = new AccountRepository(db);
-                taskRepository    = new TaskRepository(db);
-                messageRepository = new MessageRepository(db);
-                earningRepository = new EarningRepository(db);
+                accountRepository     = new AccountRepository(db);
+                taskRepository        = new TaskRepository(db);
+                messageRepository     = new MessageRepository(db);
+                earningRepository     = new EarningRepository(db);
+                dailyRewardRepository = new DailyRewardRepository(db);
             }
             taskScheduler = new TaskScheduler();
         }
@@ -132,7 +134,13 @@ namespace BlumBotFarm.Scheduler.Jobs
                 }
                 else
                 {
-                    Log.Information($"Daily Check Job, ended working with daily reward for an account Id: {account.Id}, Username: {account.Username}.");
+                    Log.Information($"Daily Check Job, took daily reward for an account Id: {account.Id}, Username: {account.Username}.");
+
+                    dailyRewardRepository.Add(new DailyReward
+                    {
+                        AccountId = account.Id,
+                        CreatedAt = DateTime.Now,
+                    });
                 }
 
                 // Starting and claiming all the tasks
