@@ -3,6 +3,7 @@ using AutoBlumFarmServer.ApiResponses.UserController;
 using AutoBlumFarmServer.DTO;
 using AutoBlumFarmServer.Model;
 using BlumBotFarm.Database.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
@@ -12,14 +13,17 @@ namespace AutoBlumFarmServer.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class UserController : Controller
     {
         private readonly UserRepository     _userRepository;
+        private readonly AccountRepository  _accountRepository;
         private readonly ReferralRepository _referralRepository;
 
-        public UserController(UserRepository userRepository, ReferralRepository referralRepository)
+        public UserController(UserRepository userRepository, AccountRepository accountRepository, ReferralRepository referralRepository)
         {
             _userRepository     = userRepository;
+            _accountRepository  = accountRepository;
             _referralRepository = referralRepository;
         }
 
@@ -41,15 +45,18 @@ namespace AutoBlumFarmServer.Controllers
                 message = "No auth."
             });
 
+            var accountsBalancesSum = _accountRepository.GetAll().Where(acc => acc.UserId == invoker.Id).Sum(acc => acc.Balance);
+
             var userDTO = new UserDTO()
             {
-                TelegramUserId  = invoker.TelegramUserId,
-                FirstName       = invoker.FirstName,
-                LastName        = invoker.LastName,
-                BalanceUSD      = invoker.BalanceUSD,
-                LanguageCode    = invoker.LanguageCode,
-                OwnReferralCode = invoker.OwnReferralCode,
-                PhotoUrl        = invoker.PhotoUrl
+                TelegramUserId      = invoker.TelegramUserId,
+                FirstName           = invoker.FirstName,
+                LastName            = invoker.LastName,
+                BalanceUSD          = invoker.BalanceUSD,
+                LanguageCode        = invoker.LanguageCode,
+                OwnReferralCode     = invoker.OwnReferralCode,
+                PhotoUrl            = invoker.PhotoUrl,
+                AccountsBalancesSum = accountsBalancesSum
             };
 
             return Ok(new ApiObjectResponse<UserDTO>()
@@ -65,7 +72,7 @@ namespace AutoBlumFarmServer.Controllers
         [SwaggerResponse(401, "No auth from user.")]
         [SwaggerResponseExample(200, typeof(MyReferralsOkExample))]
         [SwaggerResponseExample(401, typeof(BadAuthExample))]
-        [ProducesResponseType(typeof(ApiObjectResponse<List<ReferralsModel>>), StatusCodes.Status200OK,   "application/json")]
+        [ProducesResponseType(typeof(ApiObjectResponse<List<ReferralsOutputModel>>), StatusCodes.Status200OK,   "application/json")]
         [ProducesResponseType(typeof(ApiMessageResponse),                      StatusCodes.Status401Unauthorized, "application/json")]
         public IActionResult MyReferrals()
         {
@@ -78,13 +85,13 @@ namespace AutoBlumFarmServer.Controllers
             });
 
             var ourReferralsIds = _referralRepository.GetAll().Where(r => r.HostUserId == invoker.Id).Select(r => r.DependentUserId);
-            List<ReferralsModel> referrals = new();
+            List<ReferralsOutputModel> referrals = new();
             foreach (var id in ourReferralsIds)
             {
                 // TODO: get host earnings from the Transactions table
 
                 var referral = _userRepository.GetById(id);
-                if (referral != null) referrals.Add(new ReferralsModel
+                if (referral != null) referrals.Add(new ReferralsOutputModel
                 {
                     FirstName    = referral.FirstName,
                     LastName     = referral.LastName,
@@ -93,7 +100,7 @@ namespace AutoBlumFarmServer.Controllers
                 });
             }
 
-            return Ok(new ApiObjectResponse<List<ReferralsModel>>()
+            return Ok(new ApiObjectResponse<List<ReferralsOutputModel>>()
             {
                 ok   = true,
                 data = referrals
@@ -111,7 +118,7 @@ namespace AutoBlumFarmServer.Controllers
         [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status200OK,           "application/json")]
         [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status400BadRequest,   "application/json")]
         [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status401Unauthorized, "application/json")]
-        public IActionResult ChangeUsersReferralCode([FromBody] ChangeReferralCodeModel model)
+        public IActionResult ChangeUsersReferralCode([FromBody] ChangeReferralCodeInputModel model)
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
             var invoker = _userRepository.GetById(userId);

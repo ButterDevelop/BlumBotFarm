@@ -47,6 +47,12 @@ namespace BlumBotFarm.Scheduler.Jobs
                 return;
             }
 
+            if (string.IsNullOrEmpty(account.ProviderToken) && string.IsNullOrEmpty(account.RefreshToken))
+            {
+                Log.Warning($"Exiting Daily Check Job because of an account (Id: {account.Id}, Username: {account.Username}) has no auth at all.");
+                return;
+            }
+
             Log.Information($"Started Daily Check Job for an account with Id: {account.Id}, Username: {account.Username}");
 
             Random random = new();
@@ -147,15 +153,30 @@ namespace BlumBotFarm.Scheduler.Jobs
                 startAndClaimAllTasksIsGood = GameApiUtilsService.StartAndClaimAllTasks(account, earningRepository, gameApiClient);
                 Log.Information($"Daily Check Job, ended working with tasks for an account Id: {account.Id}, Username: {account.Username}.");
 
-                // Claiming our possible reward for friends
-                friendsClaimResponse = gameApiClient.ClaimFriends(account);
-                if (friendsClaimResponse != ApiResponse.Success)
+                (ApiResponse responseFriendsBalance, bool canClaim, long canClaimAt, string referralToken, int referralsCount) 
+                    = gameApiClient.FriendsBalance(account);
+                if (responseFriendsBalance == ApiResponse.Success)
                 {
-                    Log.Information($"Daily Check Job, can't take friends reward for some reason for an account with Id: {account.Id}, Username: {account.Username}.");
+                    Log.Information($"Daily Check Job, got friends balance (canClaim: {canClaim}, canClaimAt: {canClaimAt}, " +
+                                    $"referralToken: {referralToken}, referralsCount: {referralsCount}) for an account Id: {account.Id}, " +
+                                    $"Username: {account.Username}.");
                 }
                 else
                 {
-                    Log.Information($"Daily Check Job, ended working with friends reward for an account Id: {account.Id}, Username: {account.Username}.");
+                    Log.Warning($"Daily Check Job, can't get friends balance for an account Id: {account.Id}, Username: {account.Username}.");
+                }
+                if (responseFriendsBalance != ApiResponse.Success || (responseFriendsBalance == ApiResponse.Success && canClaim))
+                {
+                    // Claiming our possible reward for friends
+                    friendsClaimResponse = gameApiClient.ClaimFriends(account);
+                    if (friendsClaimResponse != ApiResponse.Success)
+                    {
+                        Log.Warning($"Daily Check Job, can't take friends reward for some reason for an account with Id: {account.Id}, Username: {account.Username}.");
+                    }
+                    else
+                    {
+                        Log.Information($"Daily Check Job, ended working with friends reward for an account Id: {account.Id}, Username: {account.Username}.");
+                    }
                 }
 
                 // Playing games with all the tickets

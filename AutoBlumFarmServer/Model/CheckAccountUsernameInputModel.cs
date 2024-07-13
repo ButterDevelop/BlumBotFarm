@@ -1,6 +1,6 @@
 ﻿namespace AutoBlumFarmServer.Model
 {
-    public class CheckAccountUsernameModel
+    public class CheckAccountUsernameInputModel
     {
         public string username { get; set; } = string.Empty;
     }

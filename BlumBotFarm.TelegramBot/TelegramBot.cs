@@ -1,26 +1,39 @@
-﻿using BlumBotFarm.Database.Repositories;
+﻿using BlumBotFarm.Core;
+using BlumBotFarm.Core.Models;
+using BlumBotFarm.Database.Repositories;
 using Serilog;
+using System;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.Payments;
+using Telegram.Bot.Types.ReplyMarkups;
 using Task = System.Threading.Tasks.Task;
 
 namespace BlumBotFarm.TelegramBot
 {
     public class TelegramBot
     {
-        private readonly ITelegramBotClient     botClient;
-        private readonly string[]               adminUsernames;
-        private readonly long[]                 adminChatIds;
-        private readonly double                 starPriceUsd;
-        private readonly int                    referralBalanceBonusPercent;
-        private readonly UserRepository         userRepository;
-        private readonly StarsPaymentRepository starsPaymentRepository;
-        private readonly ReferralRepository     referralRepository;
+        private const int REFERRAL_CODE_STRING_LENGTH = 10;
+        private readonly static Random random = new();
+        private const string ALPHABET_NUMERIC_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-        public TelegramBot(string token, string[] adminUsernames, long[] adminChatIds, double starPriceUsd, int referralBalanceBonusPercent)
+        private readonly ITelegramBotClient        botClient;
+        private readonly string[]                  adminUsernames;
+        private readonly long[]                    adminChatIds;
+        private readonly double                    starPriceUsd;
+        private readonly int                       referralBalanceBonusPercent;
+        private readonly UserRepository            userRepository;
+        private readonly StarsPaymentRepository    starsPaymentRepository;
+        private readonly ReferralRepository        referralRepository;
+        private readonly FeedbackMessageRepository feedbackMessageRepository;
+        private readonly string                    serverDomain;
+        private readonly string                    publicBotName;
+        private readonly long                      techSupportGroupChatId;
+
+        public TelegramBot(string token, string[] adminUsernames, long[] adminChatIds, double starPriceUsd, 
+                           int referralBalanceBonusPercent, string serverDomain, string publicBotName, long techSupportGroupChatId)
         {
             botClient           = new TelegramBotClient(token);
             this.adminUsernames = adminUsernames;
@@ -28,18 +41,22 @@ namespace BlumBotFarm.TelegramBot
             this.starPriceUsd   = starPriceUsd;
             using (var db = Database.Database.GetConnection())
             {
-                userRepository         = new UserRepository(db);
-                starsPaymentRepository = new StarsPaymentRepository(db);
-                referralRepository     = new ReferralRepository(db);
+                userRepository            = new UserRepository(db);
+                starsPaymentRepository    = new StarsPaymentRepository(db);
+                referralRepository        = new ReferralRepository(db);
+                feedbackMessageRepository = new FeedbackMessageRepository(db);
             }
             this.referralBalanceBonusPercent = referralBalanceBonusPercent;
+            this.serverDomain                = serverDomain;
+            this.publicBotName               = publicBotName;
+            this.techSupportGroupChatId      = techSupportGroupChatId;
         }
 
         public void Start()
         {
             var receiverOptions = new ReceiverOptions
             {
-                AllowedUpdates = [UpdateType.Message, UpdateType.PreCheckoutQuery, UpdateType.SuccessfulPayment]
+                AllowedUpdates = [UpdateType.Message, UpdateType.PreCheckoutQuery]
             };
             botClient.StartReceiving(HandleUpdateAsync, HandleErrorAsync, receiverOptions, cancellationToken: CancellationToken.None);
         }
@@ -54,7 +71,7 @@ namespace BlumBotFarm.TelegramBot
 
         private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
-            if (update.PreCheckoutQuery != null)
+            if (update.Type == UpdateType.PreCheckoutQuery && update.PreCheckoutQuery != null)
             {
                 await HandlePreCheckoutQuery(update.PreCheckoutQuery);
                 return;
@@ -62,7 +79,7 @@ namespace BlumBotFarm.TelegramBot
 
             if (update.Message != null)
             {
-                if (update.Message.SuccessfulPayment != null)
+                if (update.Message.Type == MessageType.SuccessfulPayment && update.Message.SuccessfulPayment != null)
                 {
                     await HandleSuccessfulPayment(update.Message);
                     return;
@@ -111,7 +128,7 @@ namespace BlumBotFarm.TelegramBot
             }
         }
 
-        private async Task HandleSuccessfulPayment(Message message)
+        private async Task HandleSuccessfulPayment(Telegram.Bot.Types.Message message)
         {
             var payment = message.SuccessfulPayment;
             if (payment == null)
@@ -204,7 +221,7 @@ namespace BlumBotFarm.TelegramBot
             Log.Information($"Successful payment received: {payment.TotalAmount} {payment.Currency}. Chat Id: {message.Chat.Id}");
         }
 
-        private async Task HandleUserMessage(Message message)
+        private async Task HandleUserMessage(Telegram.Bot.Types.Message message)
         {
             if (message.Text is null || message.From is null) return;
 
@@ -213,12 +230,167 @@ namespace BlumBotFarm.TelegramBot
 
             Log.Information($"Command called by {message.From.Username}: {message.Text}");
 
-            switch (command)
+            if (command.Contains('@'))
             {
-                case "/start":
-                    await botClient.SendTextMessageAsync(message.Chat, "Hi!",
-                                                                       null, ParseMode.Html);
-                    break;
+                var splitted = command.Split('@');
+
+                if (splitted.Length >= 2)
+                {
+                    command = splitted[0];
+
+                    var botCalledName = splitted[1];
+                    if (!botCalledName.Equals(publicBotName, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        Log.Warning("It is not our call. Returning.");
+                        return;
+                    }
+                }
+            }
+
+            if (message.Chat.Id == techSupportGroupChatId)
+            {
+                if (message.ReplyToMessage != null)
+                {
+                    // Replying to user's message
+                    var usersFeedback = feedbackMessageRepository
+                                                .GetAll()
+                                                .FirstOrDefault(f => f.SupportFeedbackMessageId == message.ReplyToMessage.MessageId);
+                    if (usersFeedback is null)
+                    {
+                        await botClient.SendTextMessageAsync(message.Chat, "Cannot find the message you replied in the database.",
+                                                             null, ParseMode.Html);
+                        return;
+                    }
+
+                    usersFeedback.IsReplied = true;
+                    usersFeedback.SupportReplyMessageId = message.MessageId;
+                    feedbackMessageRepository.Update(usersFeedback);
+
+                    string userMessageReplyFeedback = "<b>You got feedback on your message!</b>\n" +
+                                                      "Thanks for your patience. Here is the message.\n" +
+                                                      $"<blockquote expandable>{message.Text}</blockquote>";
+                    try
+                    {
+                        await botClient.SendTextMessageAsync(usersFeedback.TelegramUserId, userMessageReplyFeedback, null, ParseMode.Html,
+                                                             replyToMessageId: usersFeedback.UserFeedbackOriginalMessageId);
+                    }
+                    catch
+                    {
+                        await botClient.SendTextMessageAsync(usersFeedback.TelegramUserId, userMessageReplyFeedback, null, ParseMode.Html);
+                    }
+
+                    await botClient.SendTextMessageAsync(techSupportGroupChatId, "Your reply to user's feedback was sent successfully.",
+                                                         null, ParseMode.Html);
+                }
+            }
+            else
+            {
+                switch (command)
+                {
+                    case "/start":
+                        var users = userRepository.GetAll();
+                        var user  = users.FirstOrDefault(u => u.TelegramUserId == message.Chat.Id);
+                        if (user == null)
+                        {
+                            string usersReferralCode;
+                            do
+                            {
+                                usersReferralCode = RandomString(REFERRAL_CODE_STRING_LENGTH);
+                            } while (users.FirstOrDefault(u => u.OwnReferralCode == usersReferralCode) != null);
+
+                            user = new Core.Models.User()
+                            {
+                                BalanceUSD = 0M,
+                                TelegramUserId = message.Chat.Id,
+                                FirstName = message.From.FirstName,
+                                LastName = message.From.LastName ?? "",
+                                IsBanned = false,
+                                LanguageCode = message.From.LanguageCode ?? "en",
+                                OwnReferralCode = usersReferralCode,
+                                CreatedAt = DateTime.Now,
+                                PhotoUrl = string.Empty
+                            };
+                            userRepository.Add(user);
+
+                            user = userRepository.GetAll().FirstOrDefault(acc => acc.TelegramUserId == message.Chat.Id);
+                            if (user == null)
+                            {
+                                Log.Error($"Command /start, chat id {message.Chat.Id}: can't get user from the DB while creating.");
+                                return;
+                            }
+                        }
+
+                        if (parts.Length == 2)
+                        {
+                            var hostReferralCode = parts[1];
+
+                            var hostUser     = users.FirstOrDefault(u => u.OwnReferralCode == hostReferralCode && u.Id != user.Id);
+                            if (hostUser != null)
+                            {
+                                var referralUser = referralRepository.GetAll().FirstOrDefault(u => u.DependentUserId == user.Id);
+                                if (referralUser == null)
+                                {
+                                    var referral = new Referral
+                                    {
+                                        HostUserId      = hostUser.Id,
+                                        DependentUserId = user.Id
+                                    };
+                                    referralRepository.Add(referral);
+                                }
+                            }
+                        }
+
+                        var inlineKeyboard = new InlineKeyboardMarkup(new[]
+                    {
+                        new[]
+                        {
+                            InlineKeyboardButton.WithWebApp("Open Mini App",
+                            new WebAppInfo { Url = serverDomain })
+                        }
+                    });
+
+                        await botClient.SendTextMessageAsync(
+                            message.Chat,
+                            "Hi! Click the button below to open out Mini App 💵",
+                            replyMarkup: inlineKeyboard,
+                            parseMode: ParseMode.Html
+                        );
+                        break;
+                    case "/feedback":
+                    case "/paysupport":
+                        var feedbackMessage = message.Text.Replace("/feedback ", "").Replace("/paysupport ", "");
+                        string messageType  = command == "/paysupport" ? "PAY SUPPORT" : "feedback";
+
+                        string languageCode = string.IsNullOrEmpty(message.From.LanguageCode) ? "-" : message.From.LanguageCode;
+                        string username     = string.IsNullOrEmpty(message.From.Username) ? "Unknown username" : $"@{message.From.Username}";
+                        string fullName     = $"First name: {message.From.FirstName}" +
+                                          (message.From.LastName is null ? "" : $", last name: {message.From.LastName}");
+                        string textMessageToSendToSupport = $"We got {messageType} from <b>{username} ({fullName})</b> " +
+                                                            $"(lang: <b>{languageCode}</b>):\n" +
+                                                            $"<blockquote expandable>{feedbackMessage}</blockquote>";
+
+                        var sentMessageToSupport = await botClient.SendTextMessageAsync(techSupportGroupChatId, textMessageToSendToSupport,
+                                                                                    null, ParseMode.Html);
+
+                        feedbackMessageRepository.Add(new FeedbackMessage
+                        {
+                            TelegramUserId                = message.Chat.Id,
+                            UserFeedbackOriginalMessageId = message.MessageId,
+                            SupportFeedbackMessageId      = sentMessageToSupport.MessageId,
+                            IsReplied                     = false,
+                            SupportReplyMessageId         = null
+                        });
+
+                        await botClient.SendTextMessageAsync(message.Chat,
+                                                                (command == "/paysupport" 
+                                                                  ? "<b>Thanks! We'll help you!</b>" 
+                                                                  : "<b>Thanks for your feedback!</b>") +
+                                                                "\nYour message was successfully sent to us!\n" +
+                                                                "We'll answer you as soon as possible. You will get the message to this chat.",
+                                                             null, ParseMode.Html);
+
+                        break;
+                }
             }
         }
 
@@ -226,6 +398,11 @@ namespace BlumBotFarm.TelegramBot
         {
             Log.Error($"Telegram Bot HandleErrorAsync: {exception}");
             return Task.CompletedTask;
+        }
+
+        public static string RandomString(int length)
+        {
+            return new string(Enumerable.Repeat(ALPHABET_NUMERIC_CHARS, length).Select(s => s[random.Next(s.Length)]).ToArray());
         }
     }
 }

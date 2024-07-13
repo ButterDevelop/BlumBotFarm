@@ -31,7 +31,7 @@ namespace AutoBlumFarmServer.ApiResponses.AccountController
             yield return SwaggerExample.Create("Username is occupied", new ApiMessageResponse()
             {
                 ok      = false,
-                message = "This username is already occupied by one of your accounts."
+                message = "This username is already occupied by your account or someone else's."
             });
         }
     }

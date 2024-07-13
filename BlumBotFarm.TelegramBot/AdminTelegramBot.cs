@@ -21,6 +21,7 @@ namespace BlumBotFarm.TelegramBot
         private readonly TaskRepository        taskRepository;
         private readonly EarningRepository     earningRepository;
         private readonly DailyRewardRepository dailyRewardRepository;
+        private readonly UserRepository        userRepository;
         private readonly TaskScheduler         taskScheduler;
 
         public AdminTelegramBot(string token, string[] adminUsernames, long[] adminChatIds)
@@ -34,6 +35,7 @@ namespace BlumBotFarm.TelegramBot
                 taskRepository        = new TaskRepository(db);
                 earningRepository     = new EarningRepository(db);
                 dailyRewardRepository = new DailyRewardRepository(db);
+                userRepository        = new UserRepository(db);
             }
             taskScheduler = new TaskScheduler();
         }
@@ -102,11 +104,22 @@ namespace BlumBotFarm.TelegramBot
                                                                        null, ParseMode.Html);
                     break;
                 case "/addaccount":
-                    if (parts.Length == 3 || parts.Length == 4)
+                    if (parts.Length == 4 || parts.Length == 5)
                     {
                         var username     = parts[1];
                         var refreshToken = parts[2];
-                        var proxy        = parts.Length == 4 ? parts[3] : "";
+                        var proxy        = parts.Length == 5 ? parts[4] : "";
+
+                        if (!int.TryParse(parts[3], out int userId))
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, "Something wrong with <b>UserId</b>.", null, ParseMode.Html);
+                            return;
+                        }
+                        if (userRepository.GetById(userId) == null)
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, "No such <b>UserId</b> in the database!", null, ParseMode.Html);
+                            return;
+                        }
 
                         if (username is null || refreshToken is null || proxy is null)
                         {
@@ -121,21 +134,33 @@ namespace BlumBotFarm.TelegramBot
                             return;
                         }
 
-                        await AddAccount(username, refreshToken, proxy);
+                        await AddAccount(username, refreshToken, proxy, userId);
                         await botClient.SendTextMessageAsync(message.Chat, $"Account <b>{username}</b> added successfully.", null, ParseMode.Html);
 
                         Log.Information($"Account {username} added successfully.");
                     }
                     else
-                    if (parts.Length == 5 || parts.Length == 6)
+                    if (parts.Length == 6 || parts.Length == 7)
                     {
                         var username     = parts[1];
                         var accessToken  = parts[2];
                         var refreshToken = parts[3];
-                        var proxy        = parts.Length == 6 ? parts[5] : "";
-                        if (!int.TryParse(parts[4], out int timezoneOffset))
+                        var proxy        = parts.Length == 7 ? parts[6] : "";
+
+                        if (!int.TryParse(parts[5], out int timezoneOffset))
                         {
                             await botClient.SendTextMessageAsync(message.Chat, "Something wrong with <b>Timezone Offset</b>.", null, ParseMode.Html);
+                            return;
+                        }
+
+                        if (!int.TryParse(parts[4], out int userId))
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, "Something wrong with <b>UserId</b>.", null, ParseMode.Html);
+                            return;
+                        }
+                        if (userRepository.GetById(userId) == null)
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, "No such <b>UserId</b> in the database!", null, ParseMode.Html);
                             return;
                         }
 
@@ -152,15 +177,15 @@ namespace BlumBotFarm.TelegramBot
                             return;
                         }
 
-                        await AddAccount(username, accessToken, refreshToken, proxy, timezoneOffset);
+                        await AddAccount(username, accessToken, refreshToken, proxy, timezoneOffset, userId);
                         await botClient.SendTextMessageAsync(message.Chat, $"Account <b>{username}</b> added successfully.", null, ParseMode.Html);
 
                         Log.Information($"Account {username} added successfully.");
                     }
                     else
                     {
-                        await botClient.SendTextMessageAsync(message.Chat, "Usage: /addaccount <username> <accessToken> <refreshToken> <timezoneOffset> [<proxy>]\n" +
-                                                                           "Or: /addaccount <username> <refreshToken> [<proxy>]");
+                        await botClient.SendTextMessageAsync(message.Chat, "Usage: /addaccount <username> <accessToken> <refreshToken> <timezoneOffset> <userId> [<proxy>]\n" +
+                                                                           "Or: /addaccount <username> <refreshToken> <userId> [<proxy>]");
                     }
                     break;
                 case "/stats":
@@ -370,6 +395,14 @@ namespace BlumBotFarm.TelegramBot
                     }
 
                     await botClient.SendTextMessageAsync(message.Chat, messageToSendAccounts.ToString(), null, ParseMode.Html);
+
+                    break;
+                case "/usersinfo":
+                    var usersInfo         = userRepository.GetAll().OrderBy(acc => acc.Id);
+                    var accountsUsersInfo = accountRepository.GetAll();
+
+                    await botClient.SendTextMessageAsync(message.Chat, $"Whole users: <b>{usersInfo.Count()}</b>\n" +
+                                                                       $"Whole accounts: <b>{accountsUsersInfo.Count()}</b>", null, ParseMode.Html);
 
                     break;
                 case "/updateusersinfo":
@@ -608,17 +641,23 @@ namespace BlumBotFarm.TelegramBot
             await TaskScheduler.ScheduleNewTask(taskScheduler, account.Id, task, now, rightNow: true, isPlanned: false);
         }
 
-        private async Task AddAccount(string username, string refreshToken, string proxy)
+        private async Task AddAccount(string username, string refreshToken, string proxy, int userId)
         {
-            await AddAccount(username, accessToken: "", refreshToken, proxy, timezoneOffset: -120);
+            await AddAccount(username, accessToken: "", refreshToken, proxy, timezoneOffset: -120, userId);
         }
-        private async Task AddAccount(string username, string accessToken, string refreshToken, string proxy, int timezoneOffset)
+        private async Task AddAccount(string username, string accessToken, string refreshToken, string proxy, int timezoneOffset, int userId)
         {
             var account = new Account
             {
+                UserId         = userId,
                 Username       = username,
+                Balance        = 0,
+                Tickets        = 0,
+                ReferralsCount = 0,
+                ReferralLink   = string.Empty,
                 AccessToken    = accessToken,
                 RefreshToken   = refreshToken,
+                ProviderToken  = "",
                 UserAgent      = HTTPController.GetRandomUserAgent(),
                 Proxy          = proxy,
                 TimezoneOffset = timezoneOffset
@@ -629,13 +668,13 @@ namespace BlumBotFarm.TelegramBot
             if (account == null) return;
 
             // Добавление задачи в базу данных
-            var now  = DateTime.Now;
+            var now = DateTime.Now;
 
             var taskDailyCheckJob = new Core.Models.Task
             {
                 AccountId          = account.Id,
                 TaskType           = "DailyCheckJob",
-                MinScheduleSeconds = 6 * 3600,  // 6 hours
+                MinScheduleSeconds = 6  * 3600, // 6 hours
                 MaxScheduleSeconds = 10 * 3600, // 10 hours
                 NextRunTime        = now.AddDays(1)
             };
@@ -661,48 +700,12 @@ namespace BlumBotFarm.TelegramBot
             var totalBalance = accounts.Sum(a => a.Balance);
             var totalTickets = accounts.Sum(a => a.Tickets);
 
-            var now        = DateTime.Now;
-            var startOfDay = now.Date;
-            var endOfDay   = startOfDay.AddDays(1);
+            var todayDateTime = DateTime.Today;
 
-            var tasks = taskRepository.GetAll();
+            var dailyRewardsToday = dailyRewardRepository.GetAll().Where(dr => dr.CreatedAt >= todayDateTime).DistinctBy(dr => dr.AccountId);
+            int doneCount         = dailyRewardsToday.Count(), 
+                wholeCount        = accounts.Count();
 
-            int executedDailyJobs    = 0;
-            int notExecutedDailyJobs = 0;
-
-            foreach (var task in tasks)
-            {
-                if (task.TaskType == "DailyCheckJob")
-                {
-                    // Посчет выполненных задач от текущего времени до начала дня
-                    var previousRunTime = task.NextRunTime;
-                    while (previousRunTime > startOfDay)
-                    {
-                        if (previousRunTime <= now)
-                        {
-                            if (task.TaskType == "DailyCheckJob")
-                                executedDailyJobs++;
-                        }
-
-                        previousRunTime = previousRunTime.AddSeconds(-task.MinScheduleSeconds);
-                    }
-
-                    // Подсчет оставшихся задач от текущего времени до конца дня
-                    var nextRunTime = task.NextRunTime;
-                    while (nextRunTime < endOfDay)
-                    {
-                        if (nextRunTime >= now)
-                        {
-                            if (task.TaskType == "DailyCheckJob")
-                                notExecutedDailyJobs++;
-                        }
-
-                        nextRunTime = nextRunTime.AddSeconds(task.MinScheduleSeconds);
-                    }
-                }
-            }
-
-            var todayDateTime    = DateTime.Today;
             var todayEarnings    = earningRepository.GetAll().Where(earning => earning.Created > todayDateTime);
             var todayEarningsSum = todayEarnings.Sum(earning => earning.Total);
 
@@ -711,8 +714,7 @@ namespace BlumBotFarm.TelegramBot
                    $"Total accounts: <b>{accounts.Count()}</b>\n" +
                    $"Total balance: <b>{totalBalance:N2}</b> ฿\n" +
                    $"Total tickets: <b>{totalTickets}</b>\n" +
-                   $"Executed jobs today: <b>{executedDailyJobs}</b>\n" +
-                   $"Remaining jobs today: <b>{notExecutedDailyJobs}</b>\n" + 
+                   $"Daily rewards today: <b>{doneCount}</b>/<b>{wholeCount}</b>\n" +
                    $"Today earnings: ≈<b>{todayEarningsSum:N2}</b> ฿";
         }
 

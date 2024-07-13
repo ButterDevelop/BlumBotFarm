@@ -46,8 +46,6 @@ namespace BlumBotFarm.Startup
                 Log.Information("Started Admin Telegram bot and Message processor.");
             }
 
-            //await TaskScheduler.ScheduleMainJob();
-            //Log.Information("Scheduled Main Scheduler Job.");
             await TaskScheduler.ExecuteMainJobNow();
             Log.Information("Started Main Scheduler Job.");
 

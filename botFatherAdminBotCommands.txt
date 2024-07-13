@@ -1,0 +1,19 @@
+start - Start the bot.
+addaccount - Add the account to the farm
+stats - Get the whole stats
+proxy - Change the proxy for an account by its username
+todayresults - Get the today's results based on taken daily rewards
+info - Get the account's info
+unspenttickets - Get the information about available tickets, their belonging and tasks
+jobsinfo - Get the information about all jobs
+accountsinfo - Get the brief information about all accounts
+usersinfo - Get the count of users and accounts
+updateusersinfo - Force all accounts to get their info from the server
+authcheck - Check the auth for specified user
+forcedailyjobtoguyswithtickets - Force Daily Job only to accounts with tickets remained
+forcedailyjob - Force specified account to execute a Daily Job
+forcedailyjobforeveryone - Force each account to execute a Daily Job
+redistributetasks - Distribute tasks evenly over the available time interval
+refreshtoken - Change account's refresh token
+providertoken - Change account's provider token
+restartapp - Restart the app completely on the server

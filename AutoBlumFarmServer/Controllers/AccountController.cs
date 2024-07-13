@@ -2,27 +2,36 @@
 using AutoBlumFarmServer.ApiResponses.AccountController;
 using AutoBlumFarmServer.DTO;
 using AutoBlumFarmServer.Model;
+using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 
 namespace AutoBlumFarmServer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class AccountController : Controller
     {
-        private readonly AccountRepository _accountRepository;
-        private readonly UserRepository    _userRepository;
+        private readonly AccountRepository     _accountRepository;
+        private readonly UserRepository        _userRepository;
+        private readonly DailyRewardRepository _dailyRewardRepository;
+        private readonly EarningRepository     _earningRepository;
 
-        public AccountController(AccountRepository accountRepository, UserRepository userRepository)
+        public AccountController(AccountRepository     accountRepository,     UserRepository    userRepository, 
+                                 DailyRewardRepository dailyRewardRepository, EarningRepository earningRepository)
         {
-            _accountRepository = accountRepository;
-            _userRepository    = userRepository;
+            _accountRepository     = accountRepository;
+            _userRepository        = userRepository;
+            _dailyRewardRepository = dailyRewardRepository;
+            _earningRepository     = earningRepository;
         }
 
         private bool ValidateUsername(string username)
@@ -49,9 +58,36 @@ namespace AutoBlumFarmServer.Controllers
                 message = "No auth."
             });
 
-            var invokersAccounts = _accountRepository.GetAll().Where(acc => acc.UserId == userId).ToArray();
+            var invokersAccounts = _accountRepository.GetAll().Where(acc => acc.UserId == userId);
 
-            return Json(invokersAccounts);
+            var  today = DateTime.Now.Date; // Not UTC, here we are not using it because of Quartz in the main project
+            var  dailyRewardsToday = _dailyRewardRepository.GetAll().Where(r => r.CreatedAt > today);
+            var  earningsToday     = _earningRepository.GetAll().Where(earning => earning.Created > today);
+
+            List<AccountDTO> results = [];
+            foreach (var account in invokersAccounts)
+            {
+                bool tookDailyRewardToday = dailyRewardsToday.Any(r => r.AccountId == account.Id);
+                var  todayEarningsSum     = earningsToday.Where(earning => earning.AccountId == account.Id).Sum(earning   => earning.Total);
+
+                results.Add(new AccountDTO
+                {
+                    Username        = account.Username,
+                    Balance         = account.Balance,
+                    Tickets         = account.Tickets,
+                    ReferralCount   = account.ReferralsCount,
+                    ReferralLink    = account.ReferralLink,
+                    BlumAuthData    = account.ProviderToken,
+                    EarnedToday     = todayEarningsSum,
+                    TookDailyReward = tookDailyRewardToday,
+                });
+            }
+
+            return Ok(new ApiObjectResponse<List<AccountDTO>>
+            {
+                ok   = true,
+                data = results
+            });
         }
         
         // GET: api/Account/5
@@ -62,9 +98,9 @@ namespace AutoBlumFarmServer.Controllers
         [SwaggerResponseExample(200, typeof(GetAccountByIdOkExample))]
         [SwaggerResponseExample(400, typeof(GetAccountById400BadExample))]
         [SwaggerResponseExample(401, typeof(BadAuthExample))]
-        [ProducesResponseType(typeof(ApiObjectResponse<AccountDTO>), StatusCodes.Status200OK,   "application/json")]
-        [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status400BadRequest,   "application/json")]
-        [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status401Unauthorized, "application/json")]
+        [ProducesResponseType(typeof(ApiObjectResponse<AccountDTO>), StatusCodes.Status200OK,           "application/json")]
+        [ProducesResponseType(typeof(ApiMessageResponse),            StatusCodes.Status400BadRequest,   "application/json")]
+        [ProducesResponseType(typeof(ApiMessageResponse),            StatusCodes.Status401Unauthorized, "application/json")]
         public IActionResult GetAccountById(int id)
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
@@ -82,7 +118,29 @@ namespace AutoBlumFarmServer.Controllers
                 message = "No such account that belongs to our user."
             });
 
-            return Json(account);
+            var  today = DateTime.Now.Date; // Not UTC, here we are not using it because of Quartz in the main project
+
+            bool tookDailyRewardToday = _dailyRewardRepository.GetAll().Any(r => r.CreatedAt > today && r.AccountId == account.Id);
+            var  todayEarningsSum     = _earningRepository
+                                            .GetAll()
+                                            .Where(earning => earning.Created > today && earning.AccountId == account.Id)
+                                            .Sum(earning => earning.Total);
+
+            return Json(new ApiObjectResponse<AccountDTO>
+            { 
+                ok   = true,
+                data = new()
+                {
+                    Username        = account.Username,
+                    Balance         = account.Balance,
+                    Tickets         = account.Tickets,
+                    ReferralCount   = account.ReferralsCount,
+                    ReferralLink    = account.ReferralLink,
+                    BlumAuthData    = account.ProviderToken,
+                    EarnedToday     = todayEarningsSum,
+                    TookDailyReward = tookDailyRewardToday,
+                }
+            });
         }
 
         // POST: api/Account/CheckAccountUsername
@@ -96,7 +154,7 @@ namespace AutoBlumFarmServer.Controllers
         [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status200OK,           "application/json")]
         [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status400BadRequest,   "application/json")]
         [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status401Unauthorized, "application/json")]
-        public IActionResult CheckAccountUsername([FromBody] CheckAccountUsernameModel model)
+        public IActionResult CheckAccountUsername([FromBody] CheckAccountUsernameInputModel model)
         {
             string username = model.username;
 
@@ -168,11 +226,11 @@ namespace AutoBlumFarmServer.Controllers
                 });
             }
 
-            var accountCheckUsername = _accountRepository.GetAll().FirstOrDefault(acc => acc.UserId == userId && acc.Username == updateAccount.Username);
+            var accountCheckUsername = _accountRepository.GetAll().FirstOrDefault(acc => acc.Username == updateAccount.Username);
             if (accountCheckUsername != null) return BadRequest(new ApiMessageResponse
             {
                 ok      = false,
-                message = "This username is already occupied by one of your accounts."
+                message = "This username is already occupied by your account or someone else's."
             });
 
             account.Username      = updateAccount.Username;

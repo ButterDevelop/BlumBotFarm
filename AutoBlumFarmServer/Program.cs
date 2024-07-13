@@ -34,7 +34,10 @@ if (botToken != null && adminUsernames != null && adminChatIds != null)
 {
     var adminTelegramBot = new TelegramBot(botToken, adminUsernames, adminChatIds,
                                            Config.Instance.TG_STARS_PAYMENT_STAR_USD_PRICE,
-                                           Config.Instance.REFERRAL_BALANCE_BONUS_PERCENT);
+                                           Config.Instance.REFERRAL_BALANCE_BONUS_PERCENT,
+                                           Config.Instance.SERVER_DOMAIN,
+                                           Config.Instance.TELEGRAM_PUBLIC_BOT_NAME,
+                                           Config.Instance.TELEGRAM_TECH_SUPPORT_GROUP_CHAT_ID);
     adminTelegramBot.Start();
 
     Log.Information("Started Telegram bot.");
@@ -43,6 +46,17 @@ if (botToken != null && adminUsernames != null && adminChatIds != null)
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins",
+        builder =>
+        {
+            builder.AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader();
+        });
+});
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -69,6 +83,16 @@ builder.Services.AddSwaggerExamplesFromAssemblyOf<TelegramAuthBadExample>();
 builder.Services.AddSwaggerExamplesFromAssemblyOf<MyReferralsOkExample>();
 builder.Services.AddSwaggerExamplesFromAssemblyOf<StarsPaymentTransactionOkExample>();
 builder.Services.AddSwaggerExamplesFromAssemblyOf<StarsPaymentTransactionBadExample>();
+builder.Services.AddSwaggerExamplesFromAssemblyOf<ChangeUsersReferralCodeOkExample>();
+builder.Services.AddSwaggerExamplesFromAssemblyOf<ChangeUsersReferralCodeBadExample>();
+builder.Services.AddSwaggerExamplesFromAssemblyOf<AboutMeUserInfoOkExample>();
+builder.Services.AddSwaggerExamplesFromAssemblyOf<MyReferralsOkExample>();
+builder.Services.AddSwaggerExamplesFromAssemblyOf<StarsPaymentTransactionOkExample>();
+builder.Services.AddSwaggerExamplesFromAssemblyOf<StarsPaymentTransactionBadExample>();
+builder.Services.AddSwaggerExamplesFromAssemblyOf<ConvertStarsToUsdOkExample>();
+builder.Services.AddSwaggerExamplesFromAssemblyOf<ConvertUsdToStarsOkExample>();
+builder.Services.AddSwaggerExamplesFromAssemblyOf<ConvertCurrenciesBadExample>();
+builder.Services.AddSwaggerExamplesFromAssemblyOf<MyPaymentTransactionsOkExample>();
 
 // I don't will joy for this, but I have no time actually to do some patterns like Strategy
 Database.Initialize();
@@ -77,6 +101,8 @@ builder.Services.AddScoped(provider => new AccountRepository(databaseConnection)
 builder.Services.AddScoped(provider => new UserRepository(databaseConnection));
 builder.Services.AddScoped(provider => new ReferralRepository(databaseConnection));
 builder.Services.AddScoped(provider => new WalletPaymentRepository(databaseConnection));
+builder.Services.AddScoped(provider => new DailyRewardRepository(databaseConnection));
+builder.Services.AddScoped(provider => new EarningRepository(databaseConnection));
 builder.Services.AddScoped(provider => new TelegramBotClient(Config.Instance.TELEGRAM_BOT_TOKEN));
 
 // Настройка аутентификации JWT
@@ -111,6 +137,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowAllOrigins"); // Применение политики CORS
 
 app.UseAuthentication();
 app.UseAuthorization();

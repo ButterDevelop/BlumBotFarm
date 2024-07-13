@@ -1,6 +1,6 @@
 ﻿namespace AutoBlumFarmServer.Model
 {
-    public class ReferralsModel
+    public class ReferralsOutputModel
     {
         public string  FirstName    { get; set; } = string.Empty;
         public string  LastName     { get; set; } = string.Empty;

@@ -1,5 +1,6 @@
 ﻿using AutoBlumFarmServer.ApiResponses;
 using AutoBlumFarmServer.ApiResponses.TelegramAuthController;
+using AutoBlumFarmServer.Model;
 using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Repositories;
 using Microsoft.AspNetCore.Authorization;
@@ -31,7 +32,7 @@ namespace AutoBlumFarmServer.Controllers
             _telegramBotClient      = telegramBotClient;
         }
 
-        // POST: api/Wallet/CreateOrder
+        // POST: api/PaymentTransaction/CreateOrder
         [HttpPost("CreateOrder")]
         [SwaggerResponse(200, "Success. Order was created. Returned the info.")]
         [SwaggerResponse(401, "No auth from user.")]
@@ -51,9 +52,9 @@ namespace AutoBlumFarmServer.Controllers
                 message = "No auth."
             });
 
-            int tgStarsAmount = (int)Math.Round(priceUsd / 2.24M);
+            int tgStarsAmount = (int)Math.Round(priceUsd / (decimal)Config.Instance.TG_STARS_PAYMENT_STAR_USD_PRICE);
 
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             _starsPaymentRepository.Add(new StarsPayment
             {
                 UserId            = userId,
@@ -61,13 +62,13 @@ namespace AutoBlumFarmServer.Controllers
                 AmountStars       = tgStarsAmount,
                 CreatedDateTime   = now,
                 IsCompleted       = false,
-                CompletedDateTime = DateTime.Today
+                CompletedDateTime = DateTime.UtcNow.Date
             });
             var payment = _starsPaymentRepository.GetAll().FirstOrDefault(p => p.UserId      == userId && 
-                                                                                          p.AmountStars == tgStarsAmount &&
-                                                                                          !p.IsCompleted &&
-                                                                                          p.CreatedDateTime.Ticks == now.Ticks &&
-                                                                                          Math.Abs(p.AmountUsd - priceUsd) < 1e-5M);
+                                                                               p.AmountStars == tgStarsAmount &&
+                                                                               !p.IsCompleted &&
+                                                                               p.CreatedDateTime.Ticks == now.Ticks &&
+                                                                               Math.Abs(p.AmountUsd - priceUsd) < 1e-5M);
 
             if (payment == null)
             {
@@ -106,5 +107,122 @@ namespace AutoBlumFarmServer.Controllers
             });
         }
 
+        // GET: api/PaymentTransaction/MyTransactions
+        [HttpPost("MyTransactions")]
+        [SwaggerResponse(200, "Success. The list of transactions is returned.")]
+        [SwaggerResponse(401, "No auth from user.")]
+        [SwaggerResponseExample(200, typeof(MyPaymentTransactionsOkExample))]
+        [SwaggerResponseExample(401, typeof(BadAuthExample))]
+        [ProducesResponseType(typeof(ApiObjectResponse<List<StarsPaymentDTO>>), StatusCodes.Status200OK,           "application/json")]
+        [ProducesResponseType(typeof(ApiMessageResponse),                       StatusCodes.Status401Unauthorized, "application/json")]
+        public IActionResult MyTransactions()
+        {
+            int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
+            var invoker = _userRepository.GetById(userId);
+            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            {
+                ok      = false,
+                message = "No auth."
+            });
+
+            var payments = _starsPaymentRepository.GetAll().Where(p => p.UserId == invoker.Id);
+
+            List<StarsPaymentDTO> results = [];
+            foreach (var payment in payments)
+            {
+                results.Add(new()
+                {
+                    AmountStars       = payment.AmountStars,
+                    AmountUsd         = payment.AmountUsd,
+                    CreatedDateTime   = payment.CreatedDateTime,
+                    IsCompleted       = payment.IsCompleted,
+                    CompletedDateTime = payment.CompletedDateTime,
+                });
+            }
+
+            return Ok(new ApiObjectResponse<List<StarsPaymentDTO>>()
+            {
+                ok   = true,
+                data = results
+            });
+        }
+
+        // POST: api/PaymentTransaction/ConvertStarsToUSD
+        [HttpPost("ConvertStarsToUSD")]
+        [SwaggerResponse(200, "Success. Converted Stars to USD.")]
+        [SwaggerResponse(400, "Wrong amount of Stars was specified.")]
+        [SwaggerResponse(401, "No auth from user.")]
+        [SwaggerResponseExample(200, typeof(ConvertStarsToUsdOkExample))]
+        [SwaggerResponseExample(400, typeof(ConvertCurrenciesBadExample))]
+        [SwaggerResponseExample(401, typeof(BadAuthExample))]
+        [ProducesResponseType(typeof(ApiObjectResponse<decimal>), StatusCodes.Status200OK,           "application/json")]
+        [ProducesResponseType(typeof(ApiMessageResponse),         StatusCodes.Status400BadRequest,   "application/json")]
+        [ProducesResponseType(typeof(ApiMessageResponse),         StatusCodes.Status401Unauthorized, "application/json")]
+        public IActionResult ConvertStarsToUSD([FromBody] ConvertStarsToUSDInputModel model)
+        {
+            int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
+            var invoker = _userRepository.GetById(userId);
+            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            {
+                ok      = false,
+                message = "No auth."
+            });
+
+            if (model.stars <= 0)
+            {
+                return BadRequest(new ApiMessageResponse
+                {
+                    ok      = false,
+                    message = "Wrong number specified."
+                });
+            }
+
+            decimal priceUsd = (decimal)Config.Instance.TG_STARS_PAYMENT_STAR_USD_PRICE * model.stars;
+
+            return Ok(new ApiObjectResponse<decimal>()
+            {
+                ok   = true,
+                data = priceUsd
+            });
+        }
+
+        // POST: api/PaymentTransaction/ConvertUSDToStars
+        [HttpPost("ConvertUSDToStars")]
+        [SwaggerResponse(200, "Success. Converted USD to Stars.")]
+        [SwaggerResponse(400, "Wrong amount of USD was specified.")]
+        [SwaggerResponse(401, "No auth from user.")]
+        [SwaggerResponseExample(200, typeof(ConvertUsdToStarsOkExample))]
+        [SwaggerResponseExample(400, typeof(ConvertCurrenciesBadExample))]
+        [SwaggerResponseExample(401, typeof(BadAuthExample))]
+        [ProducesResponseType(typeof(ApiObjectResponse<int>), StatusCodes.Status200OK,           "application/json")]
+        [ProducesResponseType(typeof(ApiMessageResponse),     StatusCodes.Status400BadRequest,   "application/json")]
+        [ProducesResponseType(typeof(ApiMessageResponse),     StatusCodes.Status401Unauthorized, "application/json")]
+        public IActionResult ConvertUSDToStars([FromBody] ConvertUSDToStarsInputModel model)
+        {
+            int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
+            var invoker = _userRepository.GetById(userId);
+            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            {
+                ok      = false,
+                message = "No auth."
+            });
+
+            if (model.priceUsd <= 0)
+            {
+                return BadRequest(new ApiMessageResponse
+                {
+                    ok      = false,
+                    message = "Wrong number specified."
+                });
+            }
+
+            int tgStarsAmount = (int)Math.Round(model.priceUsd / (decimal)Config.Instance.TG_STARS_PAYMENT_STAR_USD_PRICE);
+
+            return Ok(new ApiObjectResponse<int>()
+            {
+                ok   = true,
+                data = tgStarsAmount
+            });
+        }
     }
 }

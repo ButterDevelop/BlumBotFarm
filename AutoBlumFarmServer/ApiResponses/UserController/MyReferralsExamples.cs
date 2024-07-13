@@ -3,11 +3,11 @@ using Swashbuckle.AspNetCore.Filters;
 
 namespace AutoBlumFarmServer.ApiResponses.UserController
 {
-    public class MyReferralsOkExample : IMultipleExamplesProvider<ApiObjectResponse<List<ReferralsModel>>>
+    public class MyReferralsOkExample : IMultipleExamplesProvider<ApiObjectResponse<List<ReferralsOutputModel>>>
     {
-        public IEnumerable<SwaggerExample<ApiObjectResponse<List<ReferralsModel>>>> GetExamples()
+        public IEnumerable<SwaggerExample<ApiObjectResponse<List<ReferralsOutputModel>>>> GetExamples()
         {
-            yield return SwaggerExample.Create("A few referrals", new ApiObjectResponse<List<ReferralsModel>>()
+            yield return SwaggerExample.Create("A few referrals", new ApiObjectResponse<List<ReferralsOutputModel>>()
             {
                 ok   = true,
                 data =
@@ -17,7 +17,7 @@ namespace AutoBlumFarmServer.ApiResponses.UserController
                     new() { FirstName = "Dalai",  LastName = "Lama", HostEarnings = 1M,    PhotoUrl = "" }
                 ]
             });
-            yield return SwaggerExample.Create("No referrals", new ApiObjectResponse<List<ReferralsModel>>()
+            yield return SwaggerExample.Create("No referrals", new ApiObjectResponse<List<ReferralsOutputModel>>()
             {
                 ok   = true,
                 data = []

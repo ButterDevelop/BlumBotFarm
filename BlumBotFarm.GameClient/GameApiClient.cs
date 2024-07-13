@@ -23,6 +23,7 @@ namespace BlumBotFarm.GameClient
                              TASKS_INFO_REQUEST_ENDPOINT           = "tasks",
                              START_TASK_REQUEST_ENDPOINT           = "tasks/{0}/start",
                              CLAIM_TASK_REQUEST_ENDPOINT           = "tasks/{0}/claim",
+                             FRIENDS_BALANCE_REQUEST_ENDPOINT      = "friends/balance",
                              FRIENDS_CLAIM_REQUEST_ENDPOINT        = "friends/claim";
 
         private readonly Dictionary<string, string> _commonHeaders = new Dictionary<string, string>
@@ -508,6 +509,51 @@ namespace BlumBotFarm.GameClient
             {
                 Log.Error($"GameApiClient ClaimTask (Account with Id: {account.Id}, Username: {account.Username}) Exception: {ex}");
                 return (ApiResponse.Error, 0);
+            }
+        }
+
+        public (ApiResponse response, bool canClaim, long canClaimAt, string referralToken, int referralsCount) FriendsBalance(Account account)
+        {
+            var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
+
+            var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
+                                     await HTTPController.SendRequestAsync(BASE_GATEWAY_API_URL + FRIENDS_BALANCE_REQUEST_ENDPOINT,
+                                                                RequestType.POST, account.Proxy, headers,
+                                                                parameters: null, parametersString: null, parametersContentType: null, referer: null,
+                                                                account.UserAgent)
+                                 );
+            (string? jsonAnswer, HttpStatusCode responseStatusCode) = taskResult.Result;
+
+            if (responseStatusCode == HttpStatusCode.Unauthorized)
+            {
+                Log.Error($"GameApiClient FriendsBalance (Account with Id: {account.Id}, Username: {account.Username}) responseStatusCode - Unauthorized!");
+                return (ApiResponse.Unauthorized, false, 0, string.Empty, 0);
+            }
+
+            if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
+            {
+                Log.Error($"GameApiClient FriendsBalance (Account with Id: {account.Id}, Username: {account.Username}) JSON answer: {jsonAnswer}");
+                return (ApiResponse.Error, false, 0, string.Empty, 0);
+            }
+
+            try
+            {
+                dynamic json = JObject.Parse(jsonAnswer.Replace("'", "\\'").Replace("\"", "'"));
+
+                bool   canClaim             = json.canClaim;
+                string referralToken        = json.referralToken;
+                string canClaimAtString     = json.canClaimAt;
+                string referralsCountString = json.usedInvitation;
+
+                long canClaimAt     = long.Parse(canClaimAtString);
+                int  referralsCount = int.Parse(referralsCountString);
+
+                return (ApiResponse.Success, canClaim, canClaimAt, referralToken, referralsCount);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"GameApiClient FriendsBalance (Account with Id: {account.Id}, Username: {account.Username}) Exception: {ex}");
+                return (ApiResponse.Error, false, 0, string.Empty, 0);
             }
         }
 
