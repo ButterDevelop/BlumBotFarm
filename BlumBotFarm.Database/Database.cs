@@ -86,7 +86,8 @@ namespace BlumBotFarm.Database
                     CREATE TABLE IF NOT EXISTS Accounts (
                         Id INTEGER PRIMARY KEY AUTOINCREMENT,
                         UserId INTEGER,
-                        Username TEXT,
+                        CustomUsername TEXT,
+                        BlumUsername TEXT,
                         Balance REAL,
                         Tickets INTEGER,
                         ReferralsCount INTEGER,

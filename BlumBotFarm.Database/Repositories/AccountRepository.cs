@@ -32,12 +32,18 @@ namespace BlumBotFarm.Database.Repositories
             }
         }
 
-        public void Add(Account account)
+        public int Add(Account account)
         {
             lock (dbLock)
             {
-                var sql = "INSERT INTO Accounts (Username, UserId, Balance, Tickets, ReferralsCount, ReferralLink, AccessToken, RefreshToken, ProviderToken, UserAgent, Proxy, TimezoneOffset) VALUES (@Username, @UserId, @Balance, @Tickets, @ReferralsCount, @ReferralLink, @AccessToken, @RefreshToken, @ProviderToken, @UserAgent, @Proxy, @TimezoneOffset)";
-                _db.Execute(sql, account);
+                var sql = @"INSERT INTO Accounts (
+                                CustomUsername, BlumUsername, UserId, Balance, Tickets, ReferralsCount, ReferralLink,
+                                AccessToken, RefreshToken, ProviderToken, UserAgent, Proxy, TimezoneOffset)
+                            VALUES (
+                                @CustomUsername, @BlumUsername, @UserId, @Balance, @Tickets, @ReferralsCount, @ReferralLink,
+                                @AccessToken, @RefreshToken, @ProviderToken, @UserAgent, @Proxy, @TimezoneOffset);
+                            SELECT last_insert_rowid();";
+                return _db.ExecuteScalar<int>(sql, account);
             }
         }
 
@@ -45,7 +51,7 @@ namespace BlumBotFarm.Database.Repositories
         {
             lock (dbLock)
             {
-                var sql = "UPDATE Accounts SET Username = @Username, UserId = @UserId, Balance = @Balance, Tickets = @Tickets, ReferralsCount = @ReferralsCount, ReferralLink = @ReferralLink, AccessToken = @AccessToken, RefreshToken = @RefreshToken, ProviderToken = @ProviderToken, UserAgent = @UserAgent, Proxy = @Proxy, TimezoneOffset = @TimezoneOffset WHERE Id = @Id";
+                var sql = "UPDATE Accounts SET CustomUsername = @CustomUsername, BlumUsername = @BlumUsername, UserId = @UserId, Balance = @Balance, Tickets = @Tickets, ReferralsCount = @ReferralsCount, ReferralLink = @ReferralLink, AccessToken = @AccessToken, RefreshToken = @RefreshToken, ProviderToken = @ProviderToken, UserAgent = @UserAgent, Proxy = @Proxy, TimezoneOffset = @TimezoneOffset WHERE Id = @Id";
                 _db.Execute(sql, account);
             }
         }

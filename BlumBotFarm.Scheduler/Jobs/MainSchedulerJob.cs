@@ -66,7 +66,8 @@ namespace BlumBotFarm.Scheduler.Jobs
                     // Schedule task
                     await TaskScheduler.ScheduleNewTask(taskScheduler, account.Id, task, nextRun);
 
-                    logLines.Add($"Schedule task - accountId: {account.Id}, accountUsername: {account.Username}, taskId: {task.Id}, " +
+                    logLines.Add($"Schedule task - accountId: {account.Id}, accountCustomUsername: {account.CustomUsername}, " +
+                                 $"accountBlumUsername: {account.BlumUsername}, taskId: {task.Id}, " +
                                  $"taskType: {task.TaskType}, time: {nextRun:dd.MM.yyyy HH:mm:ss}");
 
                     startAt = startAt.Add(interval);

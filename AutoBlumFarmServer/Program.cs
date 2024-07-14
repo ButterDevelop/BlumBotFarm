@@ -1,12 +1,13 @@
 using AutoBlumFarmServer;
 using AutoBlumFarmServer.ApiResponses;
 using AutoBlumFarmServer.ApiResponses.AccountController;
+using AutoBlumFarmServer.ApiResponses.PurchaseController;
 using AutoBlumFarmServer.ApiResponses.TelegramAuthController;
 using AutoBlumFarmServer.ApiResponses.UserController;
 using BlumBotFarm.Core;
 using BlumBotFarm.Database;
 using BlumBotFarm.Database.Repositories;
-using BlumBotFarm.MessageProcessor;
+using BlumBotFarm.GameClient;
 using BlumBotFarm.TelegramBot;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -18,6 +19,9 @@ using Telegram.Bot;
 
 Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo("en-US");
 Thread.CurrentThread.CurrentCulture   = System.Globalization.CultureInfo.GetCultureInfo("en-US");
+
+// Инициализация UserAgents
+HTTPController.Initialize(AutoBlumFarmServer.Properties.Resources.AndroidBoughtUserAgents);
 
 string MASK_DATE_LOG_FILE_PATH = "%DateTime%", LOG_FILE_PATH = $"logs/blumBotFarm-{MASK_DATE_LOG_FILE_PATH}.log";
 Log.Logger = new LoggerConfiguration()
@@ -93,6 +97,10 @@ builder.Services.AddSwaggerExamplesFromAssemblyOf<ConvertStarsToUsdOkExample>();
 builder.Services.AddSwaggerExamplesFromAssemblyOf<ConvertUsdToStarsOkExample>();
 builder.Services.AddSwaggerExamplesFromAssemblyOf<ConvertCurrenciesBadExample>();
 builder.Services.AddSwaggerExamplesFromAssemblyOf<MyPaymentTransactionsOkExample>();
+builder.Services.AddSwaggerExamplesFromAssemblyOf<BuyAccountsSlotsOkExample>();
+builder.Services.AddSwaggerExamplesFromAssemblyOf<BuyAccountsSlotsBadExample>();
+builder.Services.AddSwaggerExamplesFromAssemblyOf<PreBuyAccountsSlotsOkExample>();
+builder.Services.AddSwaggerExamplesFromAssemblyOf<PreBuyAccountsSlotsBadExample>();
 
 // I don't will joy for this, but I have no time actually to do some patterns like Strategy
 Database.Initialize();
@@ -103,6 +111,7 @@ builder.Services.AddScoped(provider => new ReferralRepository(databaseConnection
 builder.Services.AddScoped(provider => new WalletPaymentRepository(databaseConnection));
 builder.Services.AddScoped(provider => new DailyRewardRepository(databaseConnection));
 builder.Services.AddScoped(provider => new EarningRepository(databaseConnection));
+builder.Services.AddScoped(provider => new TaskRepository(databaseConnection));
 builder.Services.AddScoped(provider => new TelegramBotClient(Config.Instance.TELEGRAM_BOT_TOKEN));
 
 // Настройка аутентификации JWT

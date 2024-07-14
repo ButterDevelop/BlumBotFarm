@@ -32,21 +32,24 @@ namespace BlumBotFarm.Database.Repositories
             }
         }
 
-        public void Add(User User)
+        public int Add(User user)
         {
             lock (dbLock)
             {
-                var sql = "INSERT INTO Users (TelegramUserId, FirstName, LastName, BalanceUSD, IsBanned, LanguageCode, OwnReferralCode, CreatedAt, PhotoUrl) VALUES (@TelegramUserId, @FirstName, @LastName, @BalanceUSD, @IsBanned, @LanguageCode, @OwnReferralCode, @CreatedAt, @PhotoUrl)";
-                _db.Execute(sql, User);
+                var sql = "INSERT INTO Users " +
+                            "(TelegramUserId, FirstName, LastName, BalanceUSD, IsBanned, LanguageCode, OwnReferralCode, CreatedAt, PhotoUrl) VALUES " +
+                            "(@TelegramUserId, @FirstName, @LastName, @BalanceUSD, @IsBanned, @LanguageCode, @OwnReferralCode, @CreatedAt, @PhotoUrl); " +
+                          "SELECT last_insert_rowid();";
+                return _db.ExecuteScalar<int>(sql, user);
             }
         }
 
-        public void Update(User User)
+        public void Update(User user)
         {
             lock (dbLock)
             {
                 var sql = "UPDATE Users SET TelegramUserId = @TelegramUserId, FirstName = @FirstName, LastName = @LastName, BalanceUSD = @BalanceUSD, IsBanned = @IsBanned, LanguageCode = @LanguageCode, OwnReferralCode = @OwnReferralCode, CreatedAt = @CreatedAt, PhotoUrl = @PhotoUrl WHERE Id = @Id";
-                _db.Execute(sql, User);
+                _db.Execute(sql, user);
             }
         }
 

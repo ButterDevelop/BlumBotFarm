@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BlumBotFarm.AutoAccountStarter\BlumBotFarm.AutoAccountStarter.csproj" />
     <ProjectReference Include="..\BlumBotFarm.Core\BlumBotFarm.Core.csproj" />
     <ProjectReference Include="..\BlumBotFarm.Database\BlumBotFarm.Database.csproj" />
     <ProjectReference Include="..\BlumBotFarm.GameClient\BlumBotFarm.GameClient.csproj" />

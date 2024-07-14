@@ -108,7 +108,7 @@ namespace AutoBlumFarmServer.Controllers
         }
 
         // GET: api/PaymentTransaction/MyTransactions
-        [HttpPost("MyTransactions")]
+        [HttpGet("MyTransactions")]
         [SwaggerResponse(200, "Success. The list of transactions is returned.")]
         [SwaggerResponse(401, "No auth from user.")]
         [SwaggerResponseExample(200, typeof(MyPaymentTransactionsOkExample))]

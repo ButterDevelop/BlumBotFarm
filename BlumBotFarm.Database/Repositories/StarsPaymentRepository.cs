@@ -2,6 +2,7 @@
 using BlumBotFarm.Database.Interfaces;
 using Dapper;
 using System.Data;
+using System.Threading.Tasks;
 
 namespace BlumBotFarm.Database.Repositories
 {
@@ -32,7 +33,7 @@ namespace BlumBotFarm.Database.Repositories
             }
         }
 
-        public void Add(StarsPayment starsPaymentTransaction)
+        public int Add(StarsPayment starsPaymentTransaction)
         {
             lock (dbLock)
             {
@@ -49,8 +50,9 @@ namespace BlumBotFarm.Database.Repositories
                                 @AmountStars,
                                 @CreatedDateTime,
                                 @IsCompleted,
-                                @CompletedDateTime)";
-                _db.Execute(sql, starsPaymentTransaction);
+                                @CompletedDateTime);
+                            SELECT last_insert_rowid();";
+                return _db.ExecuteScalar<int>(sql, starsPaymentTransaction);
             }
         }
 

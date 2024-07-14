@@ -2,15 +2,11 @@
 using AutoBlumFarmServer.ApiResponses.AccountController;
 using AutoBlumFarmServer.DTO;
 using AutoBlumFarmServer.Model;
-using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 
 namespace AutoBlumFarmServer.Controllers
@@ -24,14 +20,17 @@ namespace AutoBlumFarmServer.Controllers
         private readonly UserRepository        _userRepository;
         private readonly DailyRewardRepository _dailyRewardRepository;
         private readonly EarningRepository     _earningRepository;
+        private readonly TaskRepository        _taskRepository;
 
         public AccountController(AccountRepository     accountRepository,     UserRepository    userRepository, 
-                                 DailyRewardRepository dailyRewardRepository, EarningRepository earningRepository)
+                                 DailyRewardRepository dailyRewardRepository, EarningRepository earningRepository,
+                                 TaskRepository taskRepository)
         {
             _accountRepository     = accountRepository;
             _userRepository        = userRepository;
             _dailyRewardRepository = dailyRewardRepository;
             _earningRepository     = earningRepository;
+            _taskRepository        = taskRepository;
         }
 
         private bool ValidateUsername(string username)
@@ -63,16 +62,28 @@ namespace AutoBlumFarmServer.Controllers
             var  today = DateTime.Now.Date; // Not UTC, here we are not using it because of Quartz in the main project
             var  dailyRewardsToday = _dailyRewardRepository.GetAll().Where(r => r.CreatedAt > today);
             var  earningsToday     = _earningRepository.GetAll().Where(earning => earning.Created > today);
+            var  tasks             = _taskRepository.GetAll();
 
             List<AccountDTO> results = [];
             foreach (var account in invokersAccounts)
             {
                 bool tookDailyRewardToday = dailyRewardsToday.Any(r => r.AccountId == account.Id);
-                var  todayEarningsSum     = earningsToday.Where(earning => earning.AccountId == account.Id).Sum(earning   => earning.Total);
+                var  todayEarningsSum     = earningsToday.Where(earning => earning.AccountId == account.Id).Sum(earning => earning.Total);
+
+                var dailyCheckJob = tasks.FirstOrDefault(task => task.AccountId == account.Id && task.TaskType == "DailyCheckJob");
+                string nearestWorkIn = "Unknown";
+                if (dailyCheckJob != null && !string.IsNullOrEmpty(account.ProviderToken) && !string.IsNullOrEmpty(account.RefreshToken))
+                {
+                    var    dailyIn    = dailyCheckJob.NextRunTime - DateTime.Now;
+                    string dailyMinus = dailyIn < TimeSpan.Zero ? "-" : "";
+                    nearestWorkIn = $"{dailyMinus}{dailyIn:hh\\:mm\\:ss}";
+                }
 
                 results.Add(new AccountDTO
                 {
-                    Username        = account.Username,
+                    Id              = account.Id,
+                    CustomUsername  = account.CustomUsername,
+                    BlumUsername    = account.BlumUsername,
                     Balance         = account.Balance,
                     Tickets         = account.Tickets,
                     ReferralCount   = account.ReferralsCount,
@@ -80,6 +91,7 @@ namespace AutoBlumFarmServer.Controllers
                     BlumAuthData    = account.ProviderToken,
                     EarnedToday     = todayEarningsSum,
                     TookDailyReward = tookDailyRewardToday,
+                    NearestWorkIn   = nearestWorkIn
                 });
             }
 
@@ -126,12 +138,23 @@ namespace AutoBlumFarmServer.Controllers
                                             .Where(earning => earning.Created > today && earning.AccountId == account.Id)
                                             .Sum(earning => earning.Total);
 
-            return Json(new ApiObjectResponse<AccountDTO>
+            var dailyCheckJob    = _taskRepository.GetAll().FirstOrDefault(task => task.AccountId == account.Id && task.TaskType == "DailyCheckJob");
+            string nearestWorkIn = "Unknown";
+            if (dailyCheckJob != null && !string.IsNullOrEmpty(account.ProviderToken) && !string.IsNullOrEmpty(account.RefreshToken))
+            {
+                var    dailyIn    = dailyCheckJob.NextRunTime - DateTime.Now;
+                string dailyMinus = dailyIn < TimeSpan.Zero ? "-" : "";
+                nearestWorkIn = $"{dailyMinus}{dailyIn:hh\\:mm\\:ss}";
+            }
+
+            return Ok(new ApiObjectResponse<AccountDTO>
             { 
                 ok   = true,
                 data = new()
                 {
-                    Username        = account.Username,
+                    Id              = account.Id,
+                    CustomUsername  = account.CustomUsername,
+                    BlumUsername    = account.BlumUsername,
                     Balance         = account.Balance,
                     Tickets         = account.Tickets,
                     ReferralCount   = account.ReferralsCount,
@@ -139,6 +162,7 @@ namespace AutoBlumFarmServer.Controllers
                     BlumAuthData    = account.ProviderToken,
                     EarnedToday     = todayEarningsSum,
                     TookDailyReward = tookDailyRewardToday,
+                    NearestWorkIn   = nearestWorkIn
                 }
             });
         }
@@ -175,7 +199,7 @@ namespace AutoBlumFarmServer.Controllers
                 });
             }
 
-            var account = _accountRepository.GetAll().FirstOrDefault(acc => acc.UserId == userId && acc.Username == username);
+            var account = _accountRepository.GetAll().FirstOrDefault(acc => acc.CustomUsername == username);
             if (account != null) return BadRequest(new ApiMessageResponse
             {
                 ok      = false,
@@ -217,7 +241,7 @@ namespace AutoBlumFarmServer.Controllers
                 message = "No such account that belongs to our user."
             });
 
-            if (!ValidateUsername(updateAccount.Username))
+            if (!ValidateUsername(updateAccount.CustomUsername))
             {
                 return BadRequest(new ApiMessageResponse
                 {
@@ -226,15 +250,15 @@ namespace AutoBlumFarmServer.Controllers
                 });
             }
 
-            var accountCheckUsername = _accountRepository.GetAll().FirstOrDefault(acc => acc.Username == updateAccount.Username);
+            var accountCheckUsername = _accountRepository.GetAll().FirstOrDefault(acc => acc.CustomUsername == updateAccount.CustomUsername);
             if (accountCheckUsername != null) return BadRequest(new ApiMessageResponse
             {
                 ok      = false,
                 message = "This username is already occupied by your account or someone else's."
             });
 
-            account.Username      = updateAccount.Username;
-            account.ProviderToken = updateAccount.BlumAuthData;
+            account.CustomUsername = updateAccount.CustomUsername;
+            account.ProviderToken  = updateAccount.BlumAuthData;
             _accountRepository.Update(account);
 
             return Ok(new ApiMessageResponse

@@ -32,7 +32,7 @@ namespace BlumBotFarm.Database.Repositories
             }
         }
 
-        public void Add(DailyReward dailyReward)
+        public int Add(DailyReward dailyReward)
         {
             lock (dbLock)
             {
@@ -41,8 +41,9 @@ namespace BlumBotFarm.Database.Repositories
                                 CreatedAt)
                             VALUES (
                                 @AccountId,
-                                @CreatedAt)";
-                _db.Execute(sql, dailyReward);
+                                @CreatedAt);
+                            SELECT last_insert_rowid();";
+                return _db.ExecuteScalar<int>(sql, dailyReward);
             }
         }
 

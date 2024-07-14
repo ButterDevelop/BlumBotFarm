@@ -32,12 +32,13 @@ namespace BlumBotFarm.Database.Repositories
             }
         }
 
-        public void Add(Earning earning)
+        public int Add(Earning earning)
         {
             lock (dbLock)
             {
-                var sql = "INSERT INTO Earnings (AccountId, Total, Created, Action) VALUES (@AccountId, @Total, @Created, @Action)";
-                _db.Execute(sql, earning);
+                var sql = "INSERT INTO Earnings (AccountId, Total, Created, Action) VALUES (@AccountId, @Total, @Created, @Action); " +
+                          "SELECT last_insert_rowid();";
+                return _db.ExecuteScalar<int>(sql, earning);
             }
         }
 

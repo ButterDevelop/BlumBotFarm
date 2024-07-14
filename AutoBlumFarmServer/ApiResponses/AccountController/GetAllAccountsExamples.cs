@@ -7,32 +7,52 @@ namespace AutoBlumFarmServer.ApiResponses.AccountController
     {
         public IEnumerable<SwaggerExample<ApiObjectResponse<List<AccountDTO>>>> GetExamples()
         {
-            yield return SwaggerExample.Create("1 account + 1 empty slot", new ApiObjectResponse<List<AccountDTO>>()
+            yield return SwaggerExample.Create("2 accounts + 1 empty slot", new ApiObjectResponse<List<AccountDTO>>()
             {
                 ok = true,
                 data =
                 [
                     new()
                     {
-                        Username        = "UserName",
+                        Id              = 1,
+                        CustomUsername  = "My account",
+                        BlumUsername    = "UserName1",
                         Balance         = 40193.7,
                         Tickets         = 4,
                         ReferralCount   = 2,
                         ReferralLink    = "t.me/BlumCryptoBot/app?startapp=ref_KiqH713Hfa",
-                        BlumAuthData    = "authData",
+                        BlumAuthData    = "authData1",
                         EarnedToday     = 1441.5,
-                        TookDailyReward = true
+                        TookDailyReward = true,
+                        NearestWorkIn   = "-00:03:45"
                     },
                     new()
                     {
-                        Username        = "",
+                        Id              = 2,
+                        CustomUsername  = "My second account",
+                        BlumUsername    = "UserName2",
+                        Balance         = 53219.7,
+                        Tickets         = 3,
+                        ReferralCount   = 0,
+                        ReferralLink    = "t.me/BlumCryptoBot/app?startapp=ref_13HfkIQH7a",
+                        BlumAuthData    = "authData2",
+                        EarnedToday     = 0,
+                        TookDailyReward = false,
+                        NearestWorkIn   = "03:05:32"
+                    },
+                    new()
+                    {
+                        Id              = 3,
+                        CustomUsername  = "",
+                        BlumUsername    = "",
                         Balance         = 0,
                         Tickets         = 0,
                         ReferralCount   = 0,
                         ReferralLink    = "",
                         BlumAuthData    = "",
                         EarnedToday     = 0,
-                        TookDailyReward = false
+                        TookDailyReward = false,
+                        NearestWorkIn   = "Unknown"
                     }
                 ]
             });

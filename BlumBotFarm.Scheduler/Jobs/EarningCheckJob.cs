@@ -48,9 +48,11 @@ namespace BlumBotFarm.Scheduler.Jobs
             ApiResponse authCheckResult = ApiResponse.Error;
             if ((authCheckResult = GameApiUtilsService.AuthCheck(account, accountRepository, gameApiClient)) != ApiResponse.Success)
             {
-                Log.Error($"Earning Check Job, GameApiUtilsService.AuthCheck: UNABLE TO REAUTH! Account with Id: {account.Id}, Username: {account.Username}.");
+                Log.Error($"Earning Check Job, GameApiUtilsService.AuthCheck: UNABLE TO REAUTH! Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
                 MessageProcessor.MessageProcessor.Instance.SendMessageToAdminsInQueue("<b>UNABLE TO REAUTH!</b>\nEarning Check Job!\n" +
-                                                                                      $"Account with Id: <code>{account.Id}</code>, Username: <code>{account.Username}</code>" +
+                                                                                      $"Account with Id: <code>{account.Id}</code>, " +
+                                                                                      $"Custom Username: <code>{account.CustomUsername}</code>, " +
+                                                                                      $"Blum Username: <code>{account.BlumUsername}</code>" +
                                                                                       (authCheckResult == ApiResponse.Error ? "\nIt is probably because of proxy." : ""));
             }
             else
@@ -79,16 +81,16 @@ namespace BlumBotFarm.Scheduler.Jobs
                     account.Tickets = tickets;
                     accountRepository.Update(account);
 
-                    Log.Information($"Earning Check Job, balance is {gotBalance}, ticket's count is {tickets} for an account with Id: {account.Id}, Username: {account.Username}.");
+                    Log.Information($"Earning Check Job, balance is {gotBalance}, ticket's count is {tickets} for an account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
 
                     if (tickets > 0)
                     {
-                        Log.Information($"Earning Check Job, ticket's count is {tickets}, more than 0, for an account with Id: {account.Id}, Username: {account.Username}. Starting Daily Check Job again.");
+                        Log.Information($"Earning Check Job, ticket's count is {tickets}, more than 0, for an account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}. Starting Daily Check Job again.");
 
                         var task = taskRepository.GetAll().FirstOrDefault(t => t.AccountId == accountId && t.TaskType == "DailyCheckJob");
                         if (task is null)
                         {
-                            Log.Error($"Earning Check Job, can't get the DailyCheckJob task from DB for an account with Id: {account.Id}, Username: {account.Username}.");
+                            Log.Error($"Earning Check Job, can't get the DailyCheckJob task from DB for an account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
                         }
                     }
                 }
@@ -98,7 +100,7 @@ namespace BlumBotFarm.Scheduler.Jobs
                     var startDate = DateTime.Now.AddMinutes(random.Next(MIN_MINUTES_TO_WAIT, MAX_MINUTES_TO_WAIT + 1));
                     await TaskScheduler.ScheduleEarningJob(taskScheduler, accountId, balance, type, startDate);
 
-                    Log.Error($"Earning Check Job, error while getting user info for an account with Id: {account.Id}, Username: {account.Username}. Scheduled new one.");
+                    Log.Error($"Earning Check Job, error while getting user info for an account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}. Scheduled new one.");
                 }
             }
         }

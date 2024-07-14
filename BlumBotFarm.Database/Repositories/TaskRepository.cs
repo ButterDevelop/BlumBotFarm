@@ -1,4 +1,5 @@
-﻿using BlumBotFarm.Database.Interfaces;
+﻿using BlumBotFarm.Core.Models;
+using BlumBotFarm.Database.Interfaces;
 using Dapper;
 using System.Data;
 using Task = BlumBotFarm.Core.Models.Task;
@@ -32,12 +33,14 @@ namespace BlumBotFarm.Database.Repositories
             }
         }
 
-        public void Add(Task task)
+        public int Add(Task task)
         {
             lock (dbLock)
             {
-                var sql = "INSERT INTO Tasks (AccountId, TaskType, MinScheduleSeconds, MaxScheduleSeconds, NextRunTime) VALUES (@AccountId, @TaskType, @MinScheduleSeconds, @MaxScheduleSeconds, @NextRunTime)";
-                _db.Execute(sql, task);
+                var sql = "INSERT INTO Tasks (AccountId, TaskType, MinScheduleSeconds, MaxScheduleSeconds, NextRunTime) VALUES " +
+                                            "(@AccountId, @TaskType, @MinScheduleSeconds, @MaxScheduleSeconds, @NextRunTime); " +
+                          "SELECT last_insert_rowid();";
+                return _db.ExecuteScalar<int>(sql, task);
             }
         }
 

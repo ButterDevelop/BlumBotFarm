@@ -127,7 +127,7 @@ namespace BlumBotFarm.TelegramBot
                             return;
                         }
 
-                        var account = accountRepository.GetAll().FirstOrDefault(user => user.Username == username);
+                        var account = accountRepository.GetAll().FirstOrDefault(user => user.CustomUsername == username);
                         if (account != null)
                         {
                             await botClient.SendTextMessageAsync(message.Chat, "The account with this username <b>already exists</b>.", null, ParseMode.Html);
@@ -170,7 +170,8 @@ namespace BlumBotFarm.TelegramBot
                             return;
                         }
 
-                        var account = accountRepository.GetAll().FirstOrDefault(user => user.Username == username);
+
+                        var account = accountRepository.GetAll().FirstOrDefault(user => user.CustomUsername == username);
                         if (account != null)
                         {
                             await botClient.SendTextMessageAsync(message.Chat, "The account with this username <b>already exists</b>.", null, ParseMode.Html);
@@ -198,7 +199,9 @@ namespace BlumBotFarm.TelegramBot
                         var username = parts[1];
                         var proxy = parts.Length == 3 ? parts[2] : null;
 
-                        var account = accountRepository.GetAll().FirstOrDefault(user => user.Username == username);
+                        var accountsProxy = accountRepository.GetAll();
+                        var account       = accountsProxy.FirstOrDefault(user => user.CustomUsername == username) ?? 
+                                            accountsProxy.FirstOrDefault(user => user.BlumUsername   == username);
                         if (account == null)
                         {
                             await botClient.SendTextMessageAsync(message.Chat, "The account with this username <b>does not exist</b>.", null, ParseMode.Html);
@@ -240,9 +243,10 @@ namespace BlumBotFarm.TelegramBot
                             if (dailyCheckJob == null) continue;
 
                             var    dailyIn    = dailyCheckJob.NextRunTime - DateTime.Now;
-                            string dailyMinus = dailyIn   < TimeSpan.Zero ? "-" : "";
+                            string dailyMinus = dailyIn < TimeSpan.Zero ? "-" : "";
 
-                            todayResultsLines.Add((dailyIn.Ticks, $"<code>{account.Username}</code>, " +
+                            todayResultsLines.Add((dailyIn.Ticks, $"Custom Username: <code>{account.CustomUsername}</code>, " +
+                                                                  $"Blum Username: <code>{account.BlumUsername}</code>, " + 
                                                                   $"Job in: <b>{dailyMinus}{dailyIn:hh\\:mm\\:ss}</b>"));
                         }
                     }
@@ -279,7 +283,9 @@ namespace BlumBotFarm.TelegramBot
                             return;
                         }
 
-                        var account = accountRepository.GetAll().FirstOrDefault(user => user.Username == username);
+                        var accountsInfo = accountRepository.GetAll();
+                        var account      = accountsInfo.FirstOrDefault(user => user.CustomUsername == username) ??
+                                           accountsInfo.FirstOrDefault(user => user.BlumUsername   == username);
                         if (account == null)
                         {
                             await botClient.SendTextMessageAsync(message.Chat, "The account with this username <b>does not exist</b>.", null, ParseMode.Html);
@@ -288,9 +294,12 @@ namespace BlumBotFarm.TelegramBot
 
                         await botClient.SendTextMessageAsync(message.Chat, $"You called info.\n" +
                                                                            $"Id: <b>{account.Id}</b>\n" + 
-                                                                           $"Username: <b>{account.Username}</b>\n" + 
+                                                                           $"Custom username: <code>{account.CustomUsername}</code>\n" +
+                                                                           $"Blum username: <code>{account.BlumUsername}</code>\n" +
                                                                            $"Balance: <b>{account.Balance}</b> ฿\n" + 
                                                                            $"Tickets: <b>{account.Tickets}</b>\n" +
+                                                                           $"Referrals count: <b>{account.ReferralsCount}</b>\n" +
+                                                                           $"Referral link: <code>{account.ReferralLink}</code>\n" +
                                                                            $"UserAgent: <code>{account.UserAgent}</code>\n" + 
                                                                            $"Proxy: <code>{account.Proxy}</code>\n" +
                                                                            $"Timezone offset: <b>{account.TimezoneOffset}</b>",
@@ -320,7 +329,8 @@ namespace BlumBotFarm.TelegramBot
                             var    dailyIn    = dailyCheckJob.NextRunTime - DateTime.Now;
                             string dailyMinus = dailyIn   < TimeSpan.Zero ? "-" : "";
 
-                            unspentTicketsLines.Add((dailyIn.Ticks, $"<code>{account.Username}</code>, " +
+                            unspentTicketsLines.Add((dailyIn.Ticks, $"(<code>{account.CustomUsername}</code>, " +
+                                                                    $"Blum <code>{account.BlumUsername}</code>), " +
                                                                     $"tickets: <b>{account.Tickets}</b>, " +
                                                                     $"Job in: <b>{dailyMinus}{dailyIn:hh\\:mm\\:ss}</b>"));
                         }
@@ -356,7 +366,8 @@ namespace BlumBotFarm.TelegramBot
                         string dailyMinus = dailyIn < TimeSpan.Zero ? "-" : "";
 
                         jobsInfoLines.Add((dailyIn.Ticks,
-                                          $"<code>{account.Username}</code>, " +
+                                          $"(<code>{account.CustomUsername}</code>, " +
+                                          $"Blum <code>{account.BlumUsername}</code>), " +
                                           $"tickets: <b>{account.Tickets}</b>, " +
                                           $"Job in: <b>{dailyMinus}{dailyIn:hh\\:mm\\:ss}</b>"));
                     }
@@ -383,7 +394,9 @@ namespace BlumBotFarm.TelegramBot
                     StringBuilder messageToSendAccounts = new("Accounts full info:\n");
                     foreach (var account in accountsList)
                     {
-                        messageToSendAccounts.AppendLine($"Id: <b>{account.Id}</b>, <code>{account.Username}</code>, " +
+                        messageToSendAccounts.AppendLine($"Id: <b>{account.Id}</b>, " +
+                                                         $"(<code>{account.CustomUsername}</code>, " +
+                                                         $"Blum <code>{account.BlumUsername}</code>), " +
                                                          $"<b>{account.Balance}</b> ฿, tickets: <b>{account.Tickets}</b>");
 
                         if (messageToSendAccounts.Length >= 2048) // TG message length limit is 4096
@@ -421,7 +434,9 @@ namespace BlumBotFarm.TelegramBot
                             return;
                         }
 
-                        var account = accountRepository.GetAll().FirstOrDefault(user => user.Username == username);
+                        var accountsAuthCheck = accountRepository.GetAll();
+                        var account           = accountsAuthCheck.FirstOrDefault(user => user.CustomUsername == username) ??
+                                                accountsAuthCheck.FirstOrDefault(user => user.BlumUsername   == username);
                         if (account == null)
                         {
                             await botClient.SendTextMessageAsync(message.Chat, "The account with this username <b>does not exist</b>.", null, ParseMode.Html);
@@ -485,7 +500,9 @@ namespace BlumBotFarm.TelegramBot
                         Log.Information($"{message.From.Username} forced unscheduled Daily Job for {username}.");
                         await SendMessageToAdmins($"<b>{message.From.Username}</b> forced unscheduled Daily Job for <b>{username}</b>.");
 
-                        var account = accountRepository.GetAll().FirstOrDefault(user => user.Username == username);
+                        var accountsForceDailyJob = accountRepository.GetAll();
+                        var account               = accountsForceDailyJob.FirstOrDefault(user => user.CustomUsername == username) ??
+                                                    accountsForceDailyJob.FirstOrDefault(user => user.BlumUsername   == username);
                         if (account == null)
                         {
                             await botClient.SendTextMessageAsync(message.Chat, "The account with this username <b>does not exist</b>.", null, ParseMode.Html);
@@ -547,7 +564,9 @@ namespace BlumBotFarm.TelegramBot
                             return;
                         }
 
-                        var account = accountRepository.GetAll().FirstOrDefault(user => user.Username == username);
+                        var accountsRefreshToken = accountRepository.GetAll();
+                        var account              = accountsRefreshToken.FirstOrDefault(user => user.CustomUsername == username) ??
+                                                   accountsRefreshToken.FirstOrDefault(user => user.BlumUsername   == username);
                         if (account == null)
                         {
                             await botClient.SendTextMessageAsync(message.Chat, "The account with this username <b>does not exist</b>.", null, ParseMode.Html);
@@ -578,7 +597,9 @@ namespace BlumBotFarm.TelegramBot
                             return;
                         }
 
-                        var account = accountRepository.GetAll().FirstOrDefault(user => user.Username == username);
+                        var accountsProviderToken = accountRepository.GetAll();
+                        var account               = accountsProviderToken.FirstOrDefault(user => user.CustomUsername == username) ??
+                                                    accountsProviderToken.FirstOrDefault(user => user.BlumUsername   == username);
                         if (account == null)
                         {
                             await botClient.SendTextMessageAsync(message.Chat, "The account with this username <b>does not exist</b>.", null, ParseMode.Html);
@@ -650,21 +671,21 @@ namespace BlumBotFarm.TelegramBot
             var account = new Account
             {
                 UserId         = userId,
-                Username       = username,
+                CustomUsername = username,
+                BlumUsername   = string.Empty,
                 Balance        = 0,
                 Tickets        = 0,
                 ReferralsCount = 0,
                 ReferralLink   = string.Empty,
                 AccessToken    = accessToken,
                 RefreshToken   = refreshToken,
-                ProviderToken  = "",
+                ProviderToken  = string.Empty,
                 UserAgent      = HTTPController.GetRandomUserAgent(),
                 Proxy          = proxy,
                 TimezoneOffset = timezoneOffset
             };
-            accountRepository.Add(account);
-
-            account = accountRepository.GetAll().FirstOrDefault(user => user.Username == username);
+            int accountId = accountRepository.Add(account);
+            account       = accountRepository.GetById(accountId);
             if (account == null) return;
 
             // Добавление задачи в базу данных

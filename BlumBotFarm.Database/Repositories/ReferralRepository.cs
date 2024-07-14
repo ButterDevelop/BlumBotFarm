@@ -32,12 +32,13 @@ namespace BlumBotFarm.Database.Repositories
             }
         }
 
-        public void Add(Referral referral)
+        public int Add(Referral referral)
         {
             lock (dbLock)
             {
-                var sql = "INSERT INTO Referrals (HostUserId, DependentUserId) VALUES (@HostUserId, @DependentUserId)";
-                _db.Execute(sql, referral);
+                var sql = "INSERT INTO Referrals (HostUserId, DependentUserId) VALUES (@HostUserId, @DependentUserId); " +
+                          "SELECT last_insert_rowid();";
+                return _db.ExecuteScalar<int>(sql, referral);
             }
         }
 

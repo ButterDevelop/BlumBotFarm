@@ -1,8 +1,6 @@
-﻿using BlumBotFarm.Core;
-using BlumBotFarm.Core.Models;
+﻿using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Repositories;
 using Serilog;
-using System;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;

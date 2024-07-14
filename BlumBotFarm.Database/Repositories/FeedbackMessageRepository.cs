@@ -32,7 +32,7 @@ namespace BlumBotFarm.Database.Repositories
             }
         }
 
-        public void Add(FeedbackMessage feedbackMessage)
+        public int Add(FeedbackMessage feedbackMessage)
         {
             lock (dbLock)
             {
@@ -47,8 +47,9 @@ namespace BlumBotFarm.Database.Repositories
                                 @UserFeedbackOriginalMessageId,
                                 @SupportFeedbackMessageId,
                                 @IsReplied,
-                                @SupportReplyMessageId)";
-                _db.Execute(sql, feedbackMessage);
+                                @SupportReplyMessageId);
+                            SELECT last_insert_rowid();";
+                return _db.ExecuteScalar<int>(sql, feedbackMessage);
             }
         }
 

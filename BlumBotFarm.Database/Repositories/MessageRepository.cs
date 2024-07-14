@@ -32,12 +32,13 @@ namespace BlumBotFarm.Database.Repositories
             }
         }
 
-        public void Add(Message message)
+        public int Add(Message message)
         {
             lock (dbLock)
             {
-                var sql = "INSERT INTO Messages (ChatId, MessageText) VALUES (@ChatId, @MessageText)";
-                _db.Execute(sql, message);
+                var sql = "INSERT INTO Messages (ChatId, MessageText) VALUES (@ChatId, @MessageText); " +
+                          "SELECT last_insert_rowid();";
+                return _db.ExecuteScalar<int>(sql, message);
             }
         }
 

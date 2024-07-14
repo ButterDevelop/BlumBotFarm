@@ -19,8 +19,9 @@
         }
 
         // COMMON PART
-        public string SERVER_DOMAIN                  => _configuration["ServerDomain"] ?? "";
-        public int    REFERRAL_BALANCE_BONUS_PERCENT => _configuration.GetValue("Referral:BalanceBonusPercent", 10);
+        public string  SERVER_DOMAIN                  => _configuration["ServerDomain"] ?? "";
+        public int     REFERRAL_BALANCE_BONUS_PERCENT => _configuration.GetValue("Referral:BalanceBonusPercent", 10);
+        public decimal ACCOUNT_SLOT_PRICE             => _configuration.GetValue("AccountSlotPrice", 0.99M);
 
         // JWT PART
         public string JWT_ISSUER            => _configuration["Jwt:Issuer"]   ?? "";

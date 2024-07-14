@@ -41,9 +41,12 @@ namespace BlumBotFarm.Scheduler.Jobs
                 ApiResponse authCheckResult = ApiResponse.Error;
                 if ((authCheckResult = GameApiUtilsService.AuthCheck(accountForeach, accountRepository, gameApiClient)) != ApiResponse.Success)
                 {
-                    Log.Error($"Update Users Info Job, GameApiUtilsService.AuthCheck: UNABLE TO REAUTH! Account with Id: {accountForeach.Id}, Username: {accountForeach.Username}.");
+                    Log.Error($"Update Users Info Job, GameApiUtilsService.AuthCheck: UNABLE TO REAUTH! Account with Id: {accountForeach.Id}, " +
+                              $"CustomUsername: {accountForeach.CustomUsername}, BlumUsername: {accountForeach.BlumUsername}.");
                     MessageProcessor.MessageProcessor.Instance.SendMessageToAdminsInQueue("<b>UNABLE TO REAUTH!</b>\nUpdate Users Info Job!\n" +
-                                                                                          $"Account with Id: <code>{accountForeach.Id}</code>, Username: <code>{accountForeach.Username}</code>" +
+                                                                                          $"Account with Id: <code>{accountForeach.Id}</code>, " +
+                                                                                          $"Custom Username: <code>{accountForeach.CustomUsername}</code>, " +
+                                                                                          $"Blum Username: <code>{accountForeach.BlumUsername}</code>" +
                                                                                           (authCheckResult == ApiResponse.Error ? "\nIt is probably because of proxy." : ""));
                 }
                 else
@@ -60,19 +63,20 @@ namespace BlumBotFarm.Scheduler.Jobs
                     {
                         string balanceChangedString = Math.Abs(account.Balance - balance) < 1e-5 ? "" : $" => <b>{balance}</b> ฿";
                         string ticketsChangedString = account.Tickets == tickets ? "" : $" => <b>{tickets}</b>";
-                        messageLines.Add($"<code>{account.Username}</code>: <b>{account.Balance}</b> ฿{balanceChangedString}, " +
-                                                                          $"<b>{account.Tickets}</b>{ticketsChangedString} tickets");
+                        messageLines.Add($"(<code>{account.CustomUsername}</code>, Blum <code>{account.BlumUsername}</code>): " +
+                                         $"<b>{account.Balance}</b> ฿{balanceChangedString}, " +
+                                         $"<b>{account.Tickets}</b>{ticketsChangedString} tickets");
 
                         account.Balance = balance;
                         account.Tickets = tickets;
                         accountRepository.Update(account);
-                        Log.Information($"Update Users Info Job, balance is {balance}, ticket's count is {tickets} for an account with Id: {account.Id}, Username: {account.Username}.");
+                        Log.Information($"Update Users Info Job, balance is {balance}, ticket's count is {tickets} for an account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
                     }
                     else
                     {
-                        messageLines.Add($"<code>{account.Username}</code>: cannot get the info");
+                        messageLines.Add($"(<code>{account.CustomUsername}</code>, Blum <code>{account.BlumUsername}</code>): cannot get the info");
 
-                        Log.Error($"Update Users Info Job, error while getting user info for an account with Id: {account.Id}, Username: {account.Username}.");
+                        Log.Error($"Update Users Info Job, error while getting user info for an account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
                     }
 
                     int msToWait = random.Next(MIN_MS_TO_WAIT_BETWEEN_REQUESTS, MAX_MS_TO_WAIT_BETWEEN_REQUESTS + 1);

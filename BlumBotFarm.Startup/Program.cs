@@ -1,4 +1,5 @@
-﻿using BlumBotFarm.Core;
+﻿using BlumBotFarm.AutoAccountStarter;
+using BlumBotFarm.Core;
 using BlumBotFarm.GameClient;
 using Serilog;
 using TaskScheduler = BlumBotFarm.Scheduler.TaskScheduler;
@@ -46,12 +47,17 @@ namespace BlumBotFarm.Startup
                 Log.Information("Started Admin Telegram bot and Message processor.");
             }
 
+            // Starting Auto Account Starter
+            var autoAccountStarter = new AutoAccountStarter.AutoAccountStarter(new CancellationToken());
+            await Task.Factory.StartNew(autoAccountStarter.StartAsync);
+
+            // Main Job execute
             await TaskScheduler.ExecuteMainJobNow();
             Log.Information("Started Main Scheduler Job.");
 
-            Log.Information("Started an infinite loop.");
-
+            // Infinite loop for proper work
             DateTime start = DateTime.Now;
+            Log.Information("Started an infinite loop.");
             while (true)
             {
                 Log.Information($"Infinite loop: I am working. Uptime: {DateTime.Now - start:hh\\:mm\\:ss}");

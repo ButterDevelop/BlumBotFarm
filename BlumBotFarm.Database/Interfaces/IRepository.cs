@@ -4,7 +4,7 @@
     {
         IEnumerable<T> GetAll();
         T? GetById(int id);
-        void Add(T obj);
+        int Add(T obj);
         void Update(T obj);
         void Delete(int id);
     }

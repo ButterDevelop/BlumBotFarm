@@ -32,7 +32,7 @@ namespace BlumBotFarm.Database.Repositories
             }
         }
 
-        public void Add(WalletPayment paymentTransaction)
+        public int Add(WalletPayment paymentTransaction)
         {
             lock (dbLock)
             {
@@ -71,8 +71,9 @@ namespace BlumBotFarm.Database.Repositories
                                 @ExpirationDateTime,
                                 @CompletedDateTime,
                                 @PayLink,
-                                @DirectPayLink)";
-                _db.Execute(sql, paymentTransaction);
+                                @DirectPayLink);
+                            SELECT last_insert_rowid();";
+                return _db.ExecuteScalar<int>(sql, paymentTransaction);
             }
         }
 
