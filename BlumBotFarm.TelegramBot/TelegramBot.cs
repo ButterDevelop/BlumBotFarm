@@ -356,15 +356,22 @@ namespace BlumBotFarm.TelegramBot
                         break;
                     case "/feedback":
                     case "/paysupport":
-                        var feedbackMessage = message.Text.Replace("/feedback ", "").Replace("/paysupport ", "");
+                        var feedbackMessage = message.Text.Replace("/feedback", "").Replace("/paysupport", "").Trim();
+
+                        if (string.IsNullOrEmpty(feedbackMessage))
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, "Your message is <b>empty</b>!", null, ParseMode.Html);
+                            return;
+                        }
+
                         string messageType  = command == "/paysupport" ? "PAY SUPPORT" : "feedback";
 
                         string languageCode = string.IsNullOrEmpty(message.From.LanguageCode) ? "-" : message.From.LanguageCode;
                         string username     = string.IsNullOrEmpty(message.From.Username) ? "Unknown username" : $"@{message.From.Username}";
                         string fullName     = $"First name: {message.From.FirstName}" +
                                           (message.From.LastName is null ? "" : $", last name: {message.From.LastName}");
-                        string textMessageToSendToSupport = $"We got {messageType} from <b>{username} ({fullName})</b> " +
-                                                            $"(lang: <b>{languageCode}</b>):\n" +
+                        string textMessageToSendToSupport = $"We got {messageType} from <b>{username}</b> (<i>{fullName}</i>, TG id is <code>{message.Chat.Id}</code>, " +
+                                                            $"lang: <b>{languageCode}</b>):\n" +
                                                             $"<blockquote expandable>{feedbackMessage}</blockquote>";
 
                         var sentMessageToSupport = await botClient.SendTextMessageAsync(techSupportGroupChatId, textMessageToSendToSupport,

@@ -22,7 +22,8 @@ namespace AutoBlumFarmServer.ApiResponses.AccountController
                     BlumAuthData    = "authData1",
                     EarnedToday     = 1441.5,
                     TookDailyReward = true,
-                    NearestWorkIn   = "06:55:33"
+                    NearestWorkIn   = "06:55:33",
+                    CountryCode     = "US"
                 }
             });
             yield return SwaggerExample.Create("Minus nearest work in", new ApiObjectResponse<AccountDTO>()
@@ -40,7 +41,8 @@ namespace AutoBlumFarmServer.ApiResponses.AccountController
                     BlumAuthData    = "authData2",
                     EarnedToday     = 275,
                     TookDailyReward = false,
-                    NearestWorkIn   = "-00:00:31"
+                    NearestWorkIn   = "-00:00:31",
+                    CountryCode     = "BY"
                 },
             });
             yield return SwaggerExample.Create("Empty slot", new ApiObjectResponse<AccountDTO>()
@@ -58,7 +60,8 @@ namespace AutoBlumFarmServer.ApiResponses.AccountController
                     BlumAuthData    = "",
                     EarnedToday     = 0,
                     TookDailyReward = false,
-                    NearestWorkIn   = "Unknown"
+                    NearestWorkIn   = "Unknown",
+                    CountryCode     = "CZ"
                 }
             });
         }

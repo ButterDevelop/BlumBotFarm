@@ -97,6 +97,8 @@ namespace BlumBotFarm.Database
                         ProviderToken TEXT,
                         UserAgent TEXT,
                         Proxy TEXT,
+                        CountryCode TEXT,
+                        ProxySellerListId INTEGER,
                         TimezoneOffset INTEGER,
                         FOREIGN KEY(UserId) REFERENCES Users(Id)
                     );

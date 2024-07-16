@@ -41,12 +41,12 @@ namespace BlumBotFarm.AutoAccountStarter
         {
             while (!_cancellationToken.IsCancellationRequested)
             {
-                await ProcessMessagesAsync();
+                await ProcessAsync();
                 await Task.Delay(5000); // Ждем 5 секунд перед следующей проверкой
             }
         }
 
-        private async Task ProcessMessagesAsync()
+        private async Task ProcessAsync()
         {
             var accounts = _accountRepository.GetAll();
             var tasks    = _taskRepository.GetAll();

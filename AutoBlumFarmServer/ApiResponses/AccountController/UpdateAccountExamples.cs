@@ -23,15 +23,40 @@ namespace AutoBlumFarmServer.ApiResponses.AccountController
                 ok      = false,
                 message = "No such account that belongs to our user."
             });
-            yield return SwaggerExample.Create("Validation error", new ApiMessageResponse()
+            yield return SwaggerExample.Create("Validation failed: Custom Username", new ApiMessageResponse()
             {
                 ok      = false,
-                message = "Validation failed. Use 6-10 alphanumeric symbols."
+                message = "Validation failed: Custom Username. Use 6-10 alphanumeric symbols."
             });
             yield return SwaggerExample.Create("Username is occupied", new ApiMessageResponse()
             {
                 ok      = false,
                 message = "This username is already occupied by your account or someone else's."
+            });
+            yield return SwaggerExample.Create("Validation failed: Country Code", new ApiMessageResponse()
+            {
+                ok      = false,
+                message = "Validation failed: Country Code. No such country code."
+            });
+            yield return SwaggerExample.Create("Validation failed: Blum Telegram Auth", new ApiMessageResponse()
+            {
+                ok      = false,
+                message = "Validation failed: Blum Telegram Auth. Check your string."
+            });
+            yield return SwaggerExample.Create("Can't add proxy", new ApiMessageResponse()
+            {
+                ok      = false,
+                message = "Can't add proxy to proxy service. Please, try again later."
+            });
+            yield return SwaggerExample.Create("Can't download proxy", new ApiMessageResponse()
+            {
+                ok      = false,
+                message = "Can't get proxy from proxy service. Please, try again later."
+            });
+            yield return SwaggerExample.Create("Wrong proxy format", new ApiMessageResponse()
+            {
+                ok      = false,
+                message = "Proxy service has returned proxy in wrong format. Please, try again later."
             });
         }
     }

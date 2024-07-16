@@ -1,4 +1,7 @@
-﻿namespace AutoBlumFarmServer
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
+namespace AutoBlumFarmServer
 {
     public class Config
     {
@@ -10,6 +13,14 @@
             // Билдер конфигураций
             var builder = new ConfigurationBuilder().AddJsonFile($"appsettings.Api.json", optional: false, reloadOnChange: true);
             _configuration = builder.Build();
+
+            string geoWithTZFilename = "geoWithTimezonesProxySeller.json";
+            if (File.Exists(geoWithTZFilename))
+            {
+                string geoWithTZText = File.ReadAllText(geoWithTZFilename);
+                var deserialized = JsonConvert.DeserializeObject<Dictionary<string, (string, int)>>(geoWithTZText);
+                if (deserialized != null) GEO_PROXY_SELLER = deserialized;
+            }
         }
 
         public static Config Instance 
@@ -20,8 +31,11 @@
 
         // COMMON PART
         public string  SERVER_DOMAIN                  => _configuration["ServerDomain"] ?? "";
+        public string  PROXY_SELLER_API_KEY           => _configuration["ProxySellerAPIKey"] ?? "";
         public int     REFERRAL_BALANCE_BONUS_PERCENT => _configuration.GetValue("Referral:BalanceBonusPercent", 10);
         public decimal ACCOUNT_SLOT_PRICE             => _configuration.GetValue("AccountSlotPrice", 0.99M);
+
+        public Dictionary<string, (string countryName, int timezoneOffset)> GEO_PROXY_SELLER = [];
 
         // JWT PART
         public string JWT_ISSUER            => _configuration["Jwt:Issuer"]   ?? "";
@@ -45,5 +59,94 @@
 
         // SQL PART                         
         public string SQL_CONNECTION_STRING => _configuration["DatabaseSettings:ConnectionString"] ?? "Data Source=blumbotfarm.db";
+
+
+        private void ParseProxySellerGeo()
+        {
+            Dictionary<string, List<string>> contryCodeToTimezone = [];
+            string timezonesText = File.ReadAllText("Resources\\timezones-per-country.json");
+            try
+            {
+                var jsonObject = JObject.Parse(timezonesText.Replace("'", "\\'").Replace("\"", "'"));
+
+                var iterator = jsonObject.First;
+                while (iterator != null)
+                {
+                    string iteratorStr = iterator.ToString();
+                    string countryKey  = iteratorStr[..(iteratorStr.IndexOf(':') - 1)].Replace("\"", "");
+
+                    if (countryKey != "ALL")
+                    {
+                        contryCodeToTimezone.Add(countryKey, iterator.Values().Select(v => v.ToString().ToLower()).ToList());
+                    }
+
+                    iterator = iterator.Next;
+                }
+            }
+            catch { }
+
+            Dictionary<string, int> timezoneToOffset = [];
+            string timezonesOffsetsText = File.ReadAllText("Resources\\timezones.json");
+            try
+            {
+                dynamic jsonArray = JArray.Parse(timezonesOffsetsText.Replace("'", "\\'").Replace("\"", "'"));
+
+                foreach (var obj in jsonArray)
+                {
+                    foreach (var tzname in obj.utc)
+                    {
+                        string realtzname = ((string)tzname).ToLower();
+                        if (!timezoneToOffset.ContainsKey(realtzname))
+                        {
+                            timezoneToOffset.Add(realtzname, (int)obj.offset * 60 * (-1));
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            const string geosFileName = "Resources\\geoProxySeller.json";
+            if (File.Exists(geosFileName))
+            {
+                var geosJson = File.ReadAllText(geosFileName);
+                try
+                {
+                    var jsonArray = JArray.Parse(geosJson.Replace("'", "\\'").Replace("\"", "'"));
+
+                    var arr = jsonArray.ToArray();
+                    for (int i = 0; i < arr.Length; i++)
+                    {
+                        var element = arr.ElementAt(i);
+
+                        var countryCode = (string?)element["code"];
+                        var countryName = (string?)element["name"];
+                        if (countryCode != null && contryCodeToTimezone.ContainsKey(countryCode))
+                        {
+                            var timezonesForThisCountry = contryCodeToTimezone[countryCode];
+                            foreach (var tz in timezonesForThisCountry)
+                            {
+                                if (timezoneToOffset.ContainsKey(tz) && !GEO_PROXY_SELLER.ContainsKey(countryCode)&&
+                                    countryName != null)
+                                {
+                                    GEO_PROXY_SELLER.Add(countryCode, (countryName, timezoneToOffset[tz]));
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Not found country code: " + countryCode);
+                        }
+                    }
+                }
+                catch (Exception ex) { Console.WriteLine(ex); }
+            }
+
+            GEO_PROXY_SELLER.Add("BQ", ("Bonaire, Sint Eustatius, and Saba", 240));
+            GEO_PROXY_SELLER.Add("CW", ("Curaçao", 240));
+            GEO_PROXY_SELLER.Add("SX", ("Sint Maarten", 240));
+            GEO_PROXY_SELLER.Add("XK", ("Kosovo", -120));
+
+            File.WriteAllText("geoWithTimezonesProxySeller.json", JsonConvert.SerializeObject(GEO_PROXY_SELLER));
+        }
     }
 }

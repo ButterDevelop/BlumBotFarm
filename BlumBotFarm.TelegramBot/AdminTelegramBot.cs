@@ -1,7 +1,9 @@
-﻿using BlumBotFarm.Core.Models;
+﻿using BlumBotFarm.Core;
+using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Repositories;
 using BlumBotFarm.GameClient;
 using Serilog;
+using System.Security.Cryptography;
 using System.Text;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
@@ -626,6 +628,68 @@ namespace BlumBotFarm.TelegramBot
                         Thread.Sleep(10000);
                         Environment.Exit(0);
                     }).Start();
+                    break;
+                case "/userusdbalance":
+                    if (parts.Length == 2 || parts.Length == 4)
+                    {
+                        var TGidString = parts[1];
+
+                        if (!long.TryParse(TGidString, out long tgUserId))
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, "Something went wrong with User ID, please, try again.", null, ParseMode.Html);
+                            return;
+                        }
+
+                        var user = userRepository.GetAll().FirstOrDefault(u => u.TelegramUserId == tgUserId);
+                        if (user == null)
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, "The user with this TG ID <b>does not exist</b>.", null, ParseMode.Html);
+                            return;
+                        }
+
+                        if (parts.Length == 4)
+                        {
+                            string newBalanceString       = parts[2];
+                            string sha256hashOfNewBalance = parts[3];
+
+                            if (!decimal.TryParse(newBalanceString, out decimal newBalance))
+                            {
+                                await botClient.SendTextMessageAsync(message.Chat, "Can't parse new balance.", null, ParseMode.Html);
+                                return;
+                            }
+                            if (sha256hashOfNewBalance is null)
+                            {
+                                await botClient.SendTextMessageAsync(message.Chat, "Something is wrong with your hash.", null, ParseMode.Html);
+                                return;
+                            }
+
+                            var ourHashBytes  = SHA256.HashData(Encoding.UTF8.GetBytes(newBalanceString));
+                            var userHashBytes = Convert.FromHexString(sha256hashOfNewBalance.ToLower());
+                            if (!ourHashBytes.SequenceEqual(userHashBytes))
+                            {
+                                await botClient.SendTextMessageAsync(message.Chat, "Wrong hash.", null, ParseMode.Html);
+                                return;
+                            }
+
+                            user.BalanceUSD = newBalance;
+                            userRepository.Update(user);
+
+                            await SendMessageToAdmins($"<b>{tgUserId}</b>'s USD balance updated successfully.\n" +
+                                                      $"Update called by <b>{message.From.Username}</b>.");
+
+                            Log.Information($"{tgUserId}'s USD balance updated successfully. Update called by {message.From.Username}");
+                        }
+                        else
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, $"<b>{tgUserId}</b>'s USD balance is <b>{user.BalanceUSD}</b>.", 
+                                                                               null, ParseMode.Html);
+                        }
+                    }
+                    else
+                    {
+                        await botClient.SendTextMessageAsync(message.Chat, "Usage: /userusdbalance <tgUserId>\n" +
+                                                                           "Or: /userusdbalance <tgUserId> <newBalance> <sha256hashOfNewBalance>");
+                    }
                     break;
                 default:
                     await botClient.SendTextMessageAsync(message.Chat, "Unknown command.", null, ParseMode.Html);

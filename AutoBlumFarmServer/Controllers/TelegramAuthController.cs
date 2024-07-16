@@ -1,7 +1,6 @@
 ﻿using AutoBlumFarmServer.ApiResponses;
 using AutoBlumFarmServer.ApiResponses.TelegramAuthController;
 using AutoBlumFarmServer.Model;
-using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;

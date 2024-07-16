@@ -24,7 +24,8 @@ namespace AutoBlumFarmServer.ApiResponses.AccountController
                         BlumAuthData    = "authData1",
                         EarnedToday     = 1441.5,
                         TookDailyReward = true,
-                        NearestWorkIn   = "-00:03:45"
+                        NearestWorkIn   = "-00:03:45",
+                        CountryCode     = "US"
                     },
                     new()
                     {
@@ -38,7 +39,8 @@ namespace AutoBlumFarmServer.ApiResponses.AccountController
                         BlumAuthData    = "authData2",
                         EarnedToday     = 0,
                         TookDailyReward = false,
-                        NearestWorkIn   = "03:05:32"
+                        NearestWorkIn   = "03:05:32",
+                        CountryCode     = "BY"
                     },
                     new()
                     {
@@ -52,7 +54,8 @@ namespace AutoBlumFarmServer.ApiResponses.AccountController
                         BlumAuthData    = "",
                         EarnedToday     = 0,
                         TookDailyReward = false,
-                        NearestWorkIn   = "Unknown"
+                        NearestWorkIn   = "Unknown",
+                        CountryCode     = "CZ"
                     }
                 ]
             });

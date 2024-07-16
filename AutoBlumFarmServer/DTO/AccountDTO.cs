@@ -13,5 +13,6 @@
         public double EarnedToday     { get; set; }
         public bool   TookDailyReward { get; set; }
         public string NearestWorkIn   { get; set; } = string.Empty;
+        public string CountryCode     { get; set; } = string.Empty;
     }
 }

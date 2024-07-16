@@ -4,10 +4,10 @@ using AutoBlumFarmServer.ApiResponses.AccountController;
 using AutoBlumFarmServer.ApiResponses.PurchaseController;
 using AutoBlumFarmServer.ApiResponses.TelegramAuthController;
 using AutoBlumFarmServer.ApiResponses.UserController;
+using AutoBlumFarmServer.Helpers;
 using BlumBotFarm.Core;
 using BlumBotFarm.Database;
 using BlumBotFarm.Database.Repositories;
-using BlumBotFarm.GameClient;
 using BlumBotFarm.TelegramBot;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -101,6 +101,7 @@ builder.Services.AddSwaggerExamplesFromAssemblyOf<BuyAccountsSlotsOkExample>();
 builder.Services.AddSwaggerExamplesFromAssemblyOf<BuyAccountsSlotsBadExample>();
 builder.Services.AddSwaggerExamplesFromAssemblyOf<PreBuyAccountsSlotsOkExample>();
 builder.Services.AddSwaggerExamplesFromAssemblyOf<PreBuyAccountsSlotsBadExample>();
+builder.Services.AddSwaggerExamplesFromAssemblyOf<AllGeoOkExample>();
 
 // I don't will joy for this, but I have no time actually to do some patterns like Strategy
 Database.Initialize();
@@ -113,6 +114,7 @@ builder.Services.AddScoped(provider => new DailyRewardRepository(databaseConnect
 builder.Services.AddScoped(provider => new EarningRepository(databaseConnection));
 builder.Services.AddScoped(provider => new TaskRepository(databaseConnection));
 builder.Services.AddScoped(provider => new TelegramBotClient(Config.Instance.TELEGRAM_BOT_TOKEN));
+builder.Services.AddScoped(provider => new ProxySellerAPIHelper(Config.Instance.PROXY_SELLER_API_KEY));
 
 // Настройка аутентификации JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace AutoBlumFarmServer
+namespace AutoBlumFarmServer.Helpers
 {
     public class Utils
     {

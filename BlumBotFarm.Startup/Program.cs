@@ -1,6 +1,4 @@
-﻿using BlumBotFarm.AutoAccountStarter;
-using BlumBotFarm.Core;
-using BlumBotFarm.GameClient;
+﻿using BlumBotFarm.Core;
 using Serilog;
 using TaskScheduler = BlumBotFarm.Scheduler.TaskScheduler;
 
@@ -50,6 +48,7 @@ namespace BlumBotFarm.Startup
             // Starting Auto Account Starter
             var autoAccountStarter = new AutoAccountStarter.AutoAccountStarter(new CancellationToken());
             await Task.Factory.StartNew(autoAccountStarter.StartAsync);
+            Log.Information("Started Auto Account Starter.");
 
             // Main Job execute
             await TaskScheduler.ExecuteMainJobNow();

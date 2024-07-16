@@ -1,9 +1,10 @@
 ﻿using AutoBlumFarmServer.ApiResponses;
 using AutoBlumFarmServer.ApiResponses.PurchaseController;
+using AutoBlumFarmServer.Helpers;
 using AutoBlumFarmServer.Model;
+using BlumBotFarm.Core;
 using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Repositories;
-using BlumBotFarm.GameClient;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -100,7 +101,9 @@ namespace AutoBlumFarmServer.Controllers
                 });
             }
 
-            if (invoker.BalanceUSD - (model.amount * Config.Instance.ACCOUNT_SLOT_PRICE) < 0)
+            decimal wholePrice = model.amount * Config.Instance.ACCOUNT_SLOT_PRICE;
+
+            if (invoker.BalanceUSD - wholePrice < 0)
             {
                 return BadRequest(new ApiMessageResponse
                 {
@@ -109,7 +112,7 @@ namespace AutoBlumFarmServer.Controllers
                 });
             }
 
-            invoker.BalanceUSD -= model.amount * Config.Instance.ACCOUNT_SLOT_PRICE;
+            invoker.BalanceUSD -= wholePrice;
             _userRepository.Update(invoker);
 
             var startAt = DateTime.Now.AddDays(1);

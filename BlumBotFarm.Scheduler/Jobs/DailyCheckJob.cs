@@ -101,8 +101,27 @@ namespace BlumBotFarm.Scheduler.Jobs
                     return;
                 }
 
+                // Doing Daily Reward Job
+                (dailyClaimResponse, bool sameDay) = gameApiClient.GetDailyReward(account);
+                if (dailyClaimResponse != ApiResponse.Success)
+                {
+                    Log.Error($"Daily Check Job, can't take daily reward for some reason for an account with Id: {account.Id}, " +
+                              $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}. Is same day: {sameDay}.");
+                }
+                else
+                {
+                    Log.Information($"Daily Check Job, took daily reward for an account with Id: {account.Id}, " +
+                                    $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
+
+                    dailyRewardRepository.Add(new DailyReward
+                    {
+                        AccountId = account.Id,
+                        CreatedAt = DateTime.Now,
+                    });
+                }
+
                 // Updating user info
-                (getUserInfoResult, var gotBalance, var tickets) = gameApiClient.GetUserInfo(account);
+                (getUserInfoResult, var gotBalance, int tickets) = gameApiClient.GetUserInfo(account);
                 if (getUserInfoResult == ApiResponse.Success)
                 {
                     account.Balance = gotBalance;
@@ -143,25 +162,6 @@ namespace BlumBotFarm.Scheduler.Jobs
                 {
                     Log.Error($"Daily Check Job, error while starting farming for an account with Id: {account.Id}, " +
                               $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
-                }
-
-                // Doing Daily Reward Job
-                (dailyClaimResponse, bool sameDay) = gameApiClient.GetDailyReward(account);
-                if (dailyClaimResponse != ApiResponse.Success)
-                {
-                    Log.Error($"Daily Check Job, can't take daily reward for some reason for an account with Id: {account.Id}, " +
-                              $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}. Is same day: {sameDay}.");
-                }
-                else
-                {
-                    Log.Information($"Daily Check Job, took daily reward for an account with Id: {account.Id}, " +
-                                    $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
-
-                    dailyRewardRepository.Add(new DailyReward
-                    {
-                        AccountId = account.Id,
-                        CreatedAt = DateTime.Now,
-                    });
                 }
 
                 // Starting and claiming all the tasks

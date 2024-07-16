@@ -6,12 +6,13 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Yove.Proxy;
 
-namespace BlumBotFarm.GameClient
+namespace BlumBotFarm.Core
 {
     public enum RequestType
     {
-        GET  = 0,
-        POST = 1
+        GET    = 0,
+        POST   = 1,
+        DELETE = 2
     }
 
     public class HTTPController
@@ -166,6 +167,11 @@ namespace BlumBotFarm.GameClient
                 {
                     var requestUri = parameters != null ? QueryHelpers.AddQueryString(url, parameters) : url;
                     response = await client.GetAsync(requestUri);
+                }
+                else if (type == RequestType.DELETE)
+                {
+                    var requestUri = parameters != null ? QueryHelpers.AddQueryString(url, parameters) : url;
+                    response = await client.DeleteAsync(requestUri);
                 }
                 else if (type == RequestType.POST)
                 {

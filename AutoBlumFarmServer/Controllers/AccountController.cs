@@ -1,6 +1,7 @@
 ﻿using AutoBlumFarmServer.ApiResponses;
 using AutoBlumFarmServer.ApiResponses.AccountController;
 using AutoBlumFarmServer.DTO;
+using AutoBlumFarmServer.Helpers;
 using AutoBlumFarmServer.Model;
 using BlumBotFarm.Database.Repositories;
 using Microsoft.AspNetCore.Authorization;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text.RegularExpressions;
+using System.Web;
 
 namespace AutoBlumFarmServer.Controllers
 {
@@ -21,21 +23,23 @@ namespace AutoBlumFarmServer.Controllers
         private readonly DailyRewardRepository _dailyRewardRepository;
         private readonly EarningRepository     _earningRepository;
         private readonly TaskRepository        _taskRepository;
+        private readonly ProxySellerAPIHelper  _proxySellerAPIHelper;
 
-        public AccountController(AccountRepository     accountRepository,     UserRepository    userRepository, 
-                                 DailyRewardRepository dailyRewardRepository, EarningRepository earningRepository,
-                                 TaskRepository taskRepository)
+        public AccountController(AccountRepository     accountRepository,     UserRepository       userRepository, 
+                                 DailyRewardRepository dailyRewardRepository, EarningRepository    earningRepository,
+                                 TaskRepository        taskRepository,        ProxySellerAPIHelper proxySellerAPIHelper)
         {
             _accountRepository     = accountRepository;
             _userRepository        = userRepository;
             _dailyRewardRepository = dailyRewardRepository;
             _earningRepository     = earningRepository;
             _taskRepository        = taskRepository;
+            _proxySellerAPIHelper  = proxySellerAPIHelper;
         }
 
         private bool ValidateUsername(string username)
         {
-            Regex regex = new(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,10}$");
+            Regex regex = new(@"^[A-Za-z\d]{6,10}$");
             return regex.IsMatch(username);
         }
 
@@ -46,7 +50,7 @@ namespace AutoBlumFarmServer.Controllers
         [SwaggerResponseExample(200, typeof(GetAllAccountsOkExample))]
         [SwaggerResponseExample(401, typeof(BadAuthExample))]
         [ProducesResponseType(typeof(ApiObjectResponse<List<AccountDTO>>), StatusCodes.Status200OK,           "application/json")]
-        [ProducesResponseType(typeof(ApiMessageResponse),               StatusCodes.Status401Unauthorized, "application/json")]
+        [ProducesResponseType(typeof(ApiMessageResponse),                  StatusCodes.Status401Unauthorized, "application/json")]
         public IActionResult GetAllAccounts()
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
@@ -91,7 +95,8 @@ namespace AutoBlumFarmServer.Controllers
                     BlumAuthData    = account.ProviderToken,
                     EarnedToday     = todayEarningsSum,
                     TookDailyReward = tookDailyRewardToday,
-                    NearestWorkIn   = nearestWorkIn
+                    NearestWorkIn   = nearestWorkIn,
+                    CountryCode     = account.CountryCode
                 });
             }
 
@@ -162,7 +167,8 @@ namespace AutoBlumFarmServer.Controllers
                     BlumAuthData    = account.ProviderToken,
                     EarnedToday     = todayEarningsSum,
                     TookDailyReward = tookDailyRewardToday,
-                    NearestWorkIn   = nearestWorkIn
+                    NearestWorkIn   = nearestWorkIn,
+                    CountryCode     = account.CountryCode,
                 }
             });
         }
@@ -213,6 +219,45 @@ namespace AutoBlumFarmServer.Controllers
             });
         }
 
+        // GET: api/Account/AllGeo
+        [HttpGet("AllGeo")]
+        [SwaggerResponse(200, "Success. All geo returned.")]
+        [SwaggerResponse(401, "No auth from user.")]
+        [SwaggerResponseExample(200, typeof(AllGeoOkExample))]
+        [SwaggerResponseExample(401, typeof(BadAuthExample))]
+        [ProducesResponseType(typeof(ApiObjectResponse<AllGeoOutputModel>), StatusCodes.Status200OK,           "application/json")]
+        [ProducesResponseType(typeof(ApiMessageResponse),                   StatusCodes.Status401Unauthorized, "application/json")]
+        public IActionResult AllGeo()
+        {
+            int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
+            var invoker = _userRepository.GetById(userId);
+            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            {
+                ok      = false,
+                message = "No auth."
+            });
+
+            AllGeoOutputModel output = new()
+            {
+                Geos = []
+            };
+            foreach (var item in Config.Instance.GEO_PROXY_SELLER)
+            {
+                output.Geos.Add(new()
+                {
+                    CountryCode    = item.Key,
+                    CountryName    = item.Value.countryName,
+                    TimezoneOffset = item.Value.timezoneOffset
+                });
+            }
+
+            return Ok(new ApiObjectResponse<AllGeoOutputModel>
+            {
+                ok   = true,
+                data = output
+            });
+        }
+
         // PUT: api/Account/5
         [HttpPut("{id}")]
         [SwaggerResponse(200, "Success. The account/slot was updated (only `Username` or `ProviderToken`).")]
@@ -224,7 +269,7 @@ namespace AutoBlumFarmServer.Controllers
         [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status200OK,           "application/json")]
         [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status400BadRequest,   "application/json")]
         [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status401Unauthorized, "application/json")]
-        public IActionResult UpdateAccount(int id, [FromBody] AccountDTO updateAccount)
+        public IActionResult UpdateAccount(int id, [FromBody] UpdateAccountInputModel model)
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
             var invoker = _userRepository.GetById(userId);
@@ -241,25 +286,104 @@ namespace AutoBlumFarmServer.Controllers
                 message = "No such account that belongs to our user."
             });
 
-            if (!ValidateUsername(updateAccount.CustomUsername))
+            if (account.CustomUsername != model.CustomUsername)
             {
-                return BadRequest(new ApiMessageResponse
+                if (!ValidateUsername(model.CustomUsername))
+                {
+                    return BadRequest(new ApiMessageResponse
+                    {
+                        ok      = false,
+                        message = "Validation failed: Custom Username. Use 6-10 alphanumeric symbols."
+                    });
+                }
+
+                var accountCheckUsername = _accountRepository.GetAll().FirstOrDefault(acc => acc.CustomUsername == model.CustomUsername && acc.Id != account.Id);
+                if (accountCheckUsername != null) return BadRequest(new ApiMessageResponse
                 {
                     ok      = false,
-                    message = "Validation failed. Use 6-10 alphanumeric symbols.",
+                    message = "This username is already occupied by your account or someone else's."
                 });
+
+                account.CustomUsername = model.CustomUsername;
+                _accountRepository.Update(account);
             }
 
-            var accountCheckUsername = _accountRepository.GetAll().FirstOrDefault(acc => acc.CustomUsername == updateAccount.CustomUsername);
-            if (accountCheckUsername != null) return BadRequest(new ApiMessageResponse
+            if (account.ProviderToken != model.BlumTelegramAuth)
             {
-                ok      = false,
-                message = "This username is already occupied by your account or someone else's."
-            });
+                if (model.BlumTelegramAuth.Contains("/#tgWebAppData="))
+                {
+                    Regex regex = new("/#tgWebAppData=(.*)&tg");
+                    if (regex.IsMatch(model.BlumTelegramAuth))
+                    {
+                        model.BlumTelegramAuth = HttpUtility.UrlDecode(regex.Match(model.BlumTelegramAuth).Groups[1].Value);
+                    }
+                }
 
-            account.CustomUsername = updateAccount.CustomUsername;
-            account.ProviderToken  = updateAccount.BlumAuthData;
-            _accountRepository.Update(account);
+                if (!model.BlumTelegramAuth.Contains("auth_date") ||
+                    !model.BlumTelegramAuth.Contains("user") ||
+                    !model.BlumTelegramAuth.Contains("hash"))
+                {
+                    return BadRequest(new ApiMessageResponse
+                    {
+                        ok = false,
+                        message = "Validation failed: Blum Telegram Auth. Check your string."
+                    });
+                }
+
+                account.ProviderToken = model.BlumTelegramAuth;
+                _accountRepository.Update(account);
+            }
+
+            if (account.CountryCode != model.CountryCode)
+            {
+                if (!Config.Instance.GEO_PROXY_SELLER.ContainsKey(model.CountryCode))
+                {
+                    return BadRequest(new ApiMessageResponse
+                    {
+                        ok      = false,
+                        message = "Validation failed: Country Code. No such country code."
+                    });
+                }
+
+                if (account.ProxySellerListId != 0) _ = _proxySellerAPIHelper.DeleteResident(invoker.Id, account.Id, account.ProxySellerListId);
+                
+                var (addProxyResult, listId) = _proxySellerAPIHelper.AddResident(invoker.Id, account.Id, model.CountryCode);
+                if (!addProxyResult)
+                {
+                    return BadRequest(new ApiMessageResponse
+                    {
+                        ok      = false,
+                        message = "Can't add proxy to proxy service. Please, try again later."
+                    });
+                }
+
+                var (downloadFileResult, content) = _proxySellerAPIHelper.DownloadFile(invoker.Id, account.Id, listId);
+                if (!downloadFileResult)
+                {
+                    return BadRequest(new ApiMessageResponse
+                    {
+                        ok      = false,
+                        message = "Can't get proxy from proxy service. Please, try again later."
+                    });
+                }
+
+                if (content.Contains('@'))
+                {
+                    content = content[(content.IndexOf('@') + 1)..] + "@" + content[..(content.IndexOf('@') - 1)];
+                }
+                else
+                {
+                    return BadRequest(new ApiMessageResponse
+                    {
+                        ok      = false,
+                        message = "Proxy service has returned proxy in wrong format. Please, try again later."
+                    });
+                }
+
+                account.Proxy       = "http://" + content;
+                account.CountryCode = model.CountryCode;
+                _accountRepository.Update(account);
+            }
 
             return Ok(new ApiMessageResponse
             {
