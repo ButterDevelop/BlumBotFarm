@@ -1,8 +1,10 @@
 ﻿using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Repositories;
 using BlumBotFarm.GameClient;
+using BlumBotFarm.Translation;
 using Quartz;
 using Serilog;
+using System.Runtime.CompilerServices;
 
 namespace BlumBotFarm.Scheduler.Jobs
 {
@@ -16,6 +18,7 @@ namespace BlumBotFarm.Scheduler.Jobs
         private readonly MessageRepository     messageRepository;
         private readonly EarningRepository     earningRepository;
         private readonly DailyRewardRepository dailyRewardRepository;
+        private readonly UserRepository        userRepository;
         private readonly TaskScheduler         taskScheduler;
 
         public DailyCheckJob()
@@ -28,6 +31,7 @@ namespace BlumBotFarm.Scheduler.Jobs
                 messageRepository     = new MessageRepository(db);
                 earningRepository     = new EarningRepository(db);
                 dailyRewardRepository = new DailyRewardRepository(db);
+                userRepository        = new UserRepository(db);
             }
             taskScheduler = new TaskScheduler();
         }
@@ -56,6 +60,14 @@ namespace BlumBotFarm.Scheduler.Jobs
                 return;
             }
 
+            var user = userRepository.GetById(account.UserId);
+            if (user == null)
+            {
+                Log.Error($"Exiting Daily Check Job because user was NULL for an account (Id: {account.Id}, CustomUsername: {account.CustomUsername}, " +
+                            $"BlumUsername: {account.BlumUsername}).");
+                return;
+            }
+
             Log.Information($"Started Daily Check Job for an account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, " +
                             $"BlumUsername: {account.BlumUsername}");
 
@@ -80,11 +92,27 @@ namespace BlumBotFarm.Scheduler.Jobs
             {
                 Log.Error($"Daily Check Job, GameApiUtilsService.AuthCheck: UNABLE TO REAUTH! Account with Id: {account.Id}, " +
                           $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
-                MessageProcessor.MessageProcessor.Instance.SendMessageToAdminsInQueue(
+
+                MessageProcessor.MessageProcessor.Instance?.SendMessageToAdminsInQueue(
                     "<b>UNABLE TO REAUTH!</b>\nDaily Check Job!\n" +
                     $"Account with Id: <code>{account.Id}</code>, Custom Username: <code>{account.CustomUsername}</code>, " +
                     $"Blum Username: <code>{account.BlumUsername}</code>" +
-                    (authCheckResult == ApiResponse.Error ? "\nIt is probably because of proxy." : ""));
+                    (authCheckResult == ApiResponse.Error ? "\nIt is probably because of proxy." : ""),
+                    isSilent: authCheckResult == ApiResponse.Error
+                );
+
+                if (authCheckResult == ApiResponse.Unauthorized)
+                {
+                    MessageProcessor.MessageProcessor.Instance?.SendMessageToUserInQueue(
+                        user.TelegramUserId,
+                        TranslationHelper.Instance.Translate(user.LanguageCode, "#%JOB_AUTH_LOST_PLEASE_LOGIN_AND_UPDATE_IT%#"),
+                        isSilent: false
+                    );
+
+                    account.LastStatus = TranslationHelper.Instance.Translate(user.LanguageCode, "#%JOB_LAST_STATUS_UNAUTHORIZED%#");
+                    accountRepository.Update(account);
+                }
+
                 isAuthGood = false;
             }
             else
@@ -262,6 +290,9 @@ namespace BlumBotFarm.Scheduler.Jobs
                 task.NextRunTime = nextRunTime;
                 taskRepository.Update(task);
             }
+
+            account.LastStatus = TranslationHelper.Instance.Translate(user.LanguageCode, "#%JOB_LAST_STATUS_OK%#");
+            accountRepository.Update(account);
 
             Log.Information($"Daily Check Job is done for an account with Id: {account.Id}, " +
                             $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");

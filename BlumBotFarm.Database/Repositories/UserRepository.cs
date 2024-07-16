@@ -37,8 +37,8 @@ namespace BlumBotFarm.Database.Repositories
             lock (dbLock)
             {
                 var sql = "INSERT INTO Users " +
-                            "(TelegramUserId, FirstName, LastName, BalanceUSD, IsBanned, LanguageCode, OwnReferralCode, CreatedAt, PhotoUrl) VALUES " +
-                            "(@TelegramUserId, @FirstName, @LastName, @BalanceUSD, @IsBanned, @LanguageCode, @OwnReferralCode, @CreatedAt, @PhotoUrl); " +
+                            "(TelegramUserId, FirstName, LastName, BalanceUSD, IsBanned, LanguageCode, OwnReferralCode, CreatedAt) VALUES " +
+                            "(@TelegramUserId, @FirstName, @LastName, @BalanceUSD, @IsBanned, @LanguageCode, @OwnReferralCode, @CreatedAt); " +
                           "SELECT last_insert_rowid();";
                 return _db.ExecuteScalar<int>(sql, user);
             }
@@ -48,7 +48,7 @@ namespace BlumBotFarm.Database.Repositories
         {
             lock (dbLock)
             {
-                var sql = "UPDATE Users SET TelegramUserId = @TelegramUserId, FirstName = @FirstName, LastName = @LastName, BalanceUSD = @BalanceUSD, IsBanned = @IsBanned, LanguageCode = @LanguageCode, OwnReferralCode = @OwnReferralCode, CreatedAt = @CreatedAt, PhotoUrl = @PhotoUrl WHERE Id = @Id";
+                var sql = "UPDATE Users SET TelegramUserId = @TelegramUserId, FirstName = @FirstName, LastName = @LastName, BalanceUSD = @BalanceUSD, IsBanned = @IsBanned, LanguageCode = @LanguageCode, OwnReferralCode = @OwnReferralCode, CreatedAt = @CreatedAt WHERE Id = @Id";
                 _db.Execute(sql, user);
             }
         }

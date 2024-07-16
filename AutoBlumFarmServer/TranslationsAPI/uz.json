@@ -1,0 +1,150 @@
+[
+  {
+    "Mask": "#%MESSAGE_NO_SUCH_ACCOUNT%#",
+    "Text": "Bunday hisob qaydi foydalanuvchimizga tegishli emas."
+  },
+  {
+    "Mask": "#%MESSAGE_USERNAME_VALIDATION_FAILED%#",
+    "Text": "Tasdiqlash muvaffaqiyatsiz tugadi. 6-10 ta alfasan avtorli belgilarni ishlating."
+  },
+  {
+    "Mask": "#%MESSAGE_USERNAME_IS_OCCUPIED%#",
+    "Text": "Ushbu foydalanuvchi nomi sizning yoki boshqa birovning hisobida mavjud."
+  },
+  {
+    "Mask": "#%MESSAGE_USERNAME_IS_AVAILABLE%#",
+    "Text": "Ushbu foydalanuvchi nomi sizning hisobingiz uchun mavjud."
+  },
+  {
+    "Mask": "#%MESSAGE_CUSTOM_USERNAME_VALIDATION_FAILED%#",
+    "Text": "Tasdiqlash muvaffaqiyatsiz tugadi: Maxsus foydalanuvchi nomi. 6-10 ta alfasan avtorli belgilarni ishlating."
+  },
+  {
+    "Mask": "#%MESSAGE_BLUM_TELEGRAM_AUTH_VALIDATION_FAILED%#",
+    "Text": "Tasdiqlash muvaffaqiyatsiz tugadi: Blum Telegram Auth. Stringni tekshiring."
+  },
+  {
+    "Mask": "#%MESSAGE_COUNTRY_CODE_VALIDATION_FAILED%#",
+    "Text": "Tasdiqlash muvaffaqiyatsiz tugadi: Mamlakat kodi. Bunday mamlakat kodi yo'q."
+  },
+  {
+    "Mask": "#%MESSAGE_CANT_ADD_PROXY_TO_PROXY_SERVICE%#",
+    "Text": "Proksini proksi xizmatiga qo'shib bo'lmaydi. Iltimos, keyinroq yana urinib ko'ring."
+  },
+  {
+    "Mask": "#%MESSAGE_CANT_GET_PROXY_FROM_PROXY_SERVICE%#",
+    "Text": "Proksi xizmatidan proksini olish mumkin emas. Iltimos, keyinroq yana urinib ko'ring."
+  },
+  {
+    "Mask": "#%MESSAGE_PROXY_SERVICE_RETURNED_WRONG_FORMAT%#",
+    "Text": "Proksi xizmati noto'g'ri formatda proksi qaytardi. Iltimos, keyinroq yana urinib ko'ring."
+  },
+  {
+    "Mask": "#%MESSAGE_ACCOUNT_WAS_UPDATED_SUCCESSFULLY%#",
+    "Text": "Hisob muvaffaqiyatli yangilandi."
+  },
+  {
+    "Mask": "#%MESSAGE_SOMETHING_WENT_WRONG%#",
+    "Text": "Nimadir xato bo'ldi. Iltimos, keyinroq yana urinib ko'ring."
+  },
+  {
+    "Mask": "#%MESSAGE_SOMETHING_WENT_WRONG_WITH_TELEGRAM%#",
+    "Text": "Telegram bilan nimadir xato bo'ldi. Iltimos, keyinroq yana urinib ko'ring."
+  },
+  {
+    "Mask": "#%MESSAGE_THE_TOPUP_BALANCE_INVOICE_WAS_SENT%#",
+    "Text": "Balansingizni to'ldirish uchun hisob-faktura sizga yuborildi."
+  },
+  {
+    "Mask": "#%MESSAGE_WRONG_NUMBER_SPECIFIED%#",
+    "Text": "Noto'g'ri raqam ko'rsatilgan."
+  },
+  {
+    "Mask": "#%MESSAGE_THE_AMOUNT_OF_STARS_IS_WRONG%#",
+    "Text": "Siz kiritgan slotlar soni noto'g'ri."
+  },
+  {
+    "Mask": "#%MESSAGE_NOT_ENOUGH_MONEY_ON_YOUR_BALANCE%#",
+    "Text": "Hisobingizda yetarli pul yo'q."
+  },
+  {
+    "Mask": "#%MESSAGE_YOU_HAVE_BOUGHT_SLOTS_SUCCESSFULLY%#",
+    "Text": "Siz muvaffaqiyatli ravishda {0} slot(s) sotib oldingiz!"
+  },
+  {
+    "Mask": "#%MESSAGE_REFERRAL_CODE_VALIDATION_FAILED%#",
+    "Text": "Tasdiqlash muvaffaqiyatsiz tugadi. Yo'naltirish kodi: 10 ta alfasan avtorli belgilarni ishlating."
+  },
+  {
+    "Mask": "#%MESSAGE_YOUR_OWN_REFERRAL_CODE_WAS_UPDATED%#",
+    "Text": "Sizning o'z yo'naltirish kodingiz muvaffaqiyatli yangilandi."
+  },
+  {
+    "Mask": "#%MESSAGE_TRANSLATION_NOT_FOUND%#",
+    "Text": "Tarjima fayli topilmadi."
+  },
+  {
+    "Mask": "#%TELEGRAM_MESSAGE_WE_ARE_USING_ONLY_TELEGRAM_STARS%#",
+    "Text": "Kechirasiz, hozirda biz faqat Telegram Yulduzlaridan to'lov usuli sifatida foydalanmoqdamiz.\nAgar bu haqda gaplashmoqchi yoki boshqa usullarni taklif qilmoqchi bo'lsangiz, iltimos, /feedback komandasidan foydalaning"
+  },
+  {
+    "Mask": "#%TELEGRAM_MESSAGE_AN_ERROR_WHILE_ORDERING_PLEASE_WAIT%#",
+    "Text": "Uzr, buyurtmangizni qayta ishlashda xato yuz berdi. Iltimos, keyinroq urinib ko'ring."
+  },
+  {
+    "Mask": "#%TELEGRAM_MESSAGE_YOUR_BALANCE_WAS_INCREASED%#",
+    "Text": "Sizning balansingiz <b>muvaffaqiyatli</b> ravishda <b>{0}$</b> ga oshirildi.\nSizga katta <b>rahmat</b>!"
+  },
+  {
+    "Mask": "#%TELEGRAM_MESSAGE_YOUR_BALANCE_WAS_INCREASED_BY_REFERRAL%#",
+    "Text": "Sizning balansingiz <b>muvaffaqiyatli</b> ravishda <b>{0}$</b> ga oshirildi.\nBu sizning yo'naltiruvchingiz <b>{1}</b> o'z balansini to'ldirgani uchun sodir bo'ldi! Ularga rahmat!\nVa sizga katta <b>rahmat</b>!"
+  },
+  {
+    "Mask": "#%TELEGRAM_MESSAGE_%#",
+    "Text": "Siz javob bergan xabar bazada topilmadi."
+  },
+  {
+    "Mask": "#%TELEGRAM_MESSAGE_YOU_GOT_NEW_REPLY_ON_FEEDBACK%#",
+    "Text": "<b>Sizning xabaringizga yangi javob oldingiz!</b>\nSabr-toqat uchun rahmat. Mana xabar.\n<blockquote expandable>{0}</blockquote>"
+  },
+  {
+    "Mask": "#%TELEGRAM_BUTTON_TEXT_OPEN_MINI_APP%#",
+    "Text": "Mini ilovani oching"
+  },
+  {
+    "Mask": "#%TELEGRAM_MESSAGE_HI_CLICK_BELOW_TO_OPEN_MINI_APP%#",
+    "Text": "Salom! Bizning Mini ilovamizni ochish uchun quyidagi tugmani bosing 💵"
+  },
+  {
+    "Mask": "#%TELEGRAM_MESSAGE_THANKS_WE_WILL_HELP_YOU%#",
+    "Text": "<b>Rahmat! Biz sizga yordam beramiz!</b>"
+  },
+  {
+    "Mask": "#%TELEGRAM_MESSAGE_THANKS_FOR_YOUR_FEEDBACK%#",
+    "Text": "<b>Fikr-mulohazangiz uchun rahmat!</b>"
+  },
+  {
+    "Mask": "#%TELEGRAM_MESSAGE_YOUR_MESSAGE_WAS_SUCCESSFULLY%#",
+    "Text": "\nSizning xabaringiz bizga muvaffaqiyatli yuborildi!\nSizga imkon qadar tezroq javob beramiz. Bu chatda xabar olasiz."
+  },
+  {
+    "Mask": "#%TELEGRAM_MESSAGE_YOUR_MESSAGE_IS_EMPTY%#",
+    "Text": "Sizning xabaringiz <b>bo'sh</b>!"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_OK%#",
+    "Text": "Hammasi yaxshi"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_UNAUTHORIZED%#",
+    "Text": "Noto‘g‘ri autentifikatsiya"
+  },
+  {
+    "Mask": "#%JOB_AUTH_LOST_PLEASE_LOGIN_AND_UPDATE_IT%#",
+    "Text": "<b>Hisoblaringizdan biri autentifikatsiyani yo‘qotdi.</b>\nIltimos, ilovani ishlating va nimalar bo‘lganini tekshiring (va autentifikatsiyani yangilang)."
+  },
+  {
+    "Mask": "#%baza%#",
+    "Text": ""
+  }
+]

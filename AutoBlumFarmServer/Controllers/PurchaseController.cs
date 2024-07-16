@@ -5,6 +5,7 @@ using AutoBlumFarmServer.Model;
 using BlumBotFarm.Core;
 using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Repositories;
+using BlumBotFarm.Translation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -54,7 +55,7 @@ namespace AutoBlumFarmServer.Controllers
                 return BadRequest(new ApiMessageResponse
                 {
                     ok      = false,
-                    message = "The amount of slots you specified is wrong."
+                    message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_THE_AMOUNT_OF_STARS_IS_WRONG%#")
                 });
             }
 
@@ -97,7 +98,7 @@ namespace AutoBlumFarmServer.Controllers
                 return BadRequest(new ApiMessageResponse
                 {
                     ok      = false,
-                    message = "The amount of slots you specified is wrong."
+                    message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_THE_AMOUNT_OF_STARS_IS_WRONG%#")
                 });
             }
 
@@ -108,7 +109,7 @@ namespace AutoBlumFarmServer.Controllers
                 return BadRequest(new ApiMessageResponse
                 {
                     ok      = false,
-                    message = "Not enough money on your balance."
+                    message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_NOT_ENOUGH_MONEY_ON_YOUR_BALANCE%#")
                 });
             }
 
@@ -139,7 +140,9 @@ namespace AutoBlumFarmServer.Controllers
             return Ok(new ApiMessageResponse
             {
                 ok      = true,
-                message = $"You have bought {model.amount} slot" + (model.amount == 1 ? "" : "s") + " successfully!"
+                message = string.Format(
+                              TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_YOU_HAVE_BOUGHT_SLOTS_SUCCESSFULLY%#"),
+                          model.amount)
             });
         }
     }

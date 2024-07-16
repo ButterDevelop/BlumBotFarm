@@ -43,11 +43,12 @@ namespace BlumBotFarm.Scheduler.Jobs
                 {
                     Log.Error($"Update Users Info Job, GameApiUtilsService.AuthCheck: UNABLE TO REAUTH! Account with Id: {accountForeach.Id}, " +
                               $"CustomUsername: {accountForeach.CustomUsername}, BlumUsername: {accountForeach.BlumUsername}.");
-                    MessageProcessor.MessageProcessor.Instance.SendMessageToAdminsInQueue("<b>UNABLE TO REAUTH!</b>\nUpdate Users Info Job!\n" +
+                    MessageProcessor.MessageProcessor.Instance?.SendMessageToAdminsInQueue("<b>UNABLE TO REAUTH!</b>\nUpdate Users Info Job!\n" +
                                                                                           $"Account with Id: <code>{accountForeach.Id}</code>, " +
                                                                                           $"Custom Username: <code>{accountForeach.CustomUsername}</code>, " +
                                                                                           $"Blum Username: <code>{accountForeach.BlumUsername}</code>" +
-                                                                                          (authCheckResult == ApiResponse.Error ? "\nIt is probably because of proxy." : ""));
+                                                                                          (authCheckResult == ApiResponse.Error ? "\nIt is probably because of proxy." : ""),
+                                                                                          isSilent: authCheckResult == ApiResponse.Error);
                 }
                 else
                 {
@@ -91,12 +92,12 @@ namespace BlumBotFarm.Scheduler.Jobs
 
                 if (messageToSend.Length > 2048) // The max TG message length is 4096
                 {
-                    MessageProcessor.MessageProcessor.Instance.SendMessageToAdminsInQueue(messageToSend.ToString());
+                    MessageProcessor.MessageProcessor.Instance?.SendMessageToAdminsInQueue(messageToSend.ToString(), isSilent: false);
 
                     messageToSend.Clear();
                 }
             }
-            MessageProcessor.MessageProcessor.Instance.SendMessageToAdminsInQueue(messageToSend.ToString());
+            MessageProcessor.MessageProcessor.Instance?.SendMessageToAdminsInQueue(messageToSend.ToString(), isSilent: false);
         }
     }
 }

@@ -36,7 +36,7 @@ namespace BlumBotFarm.Database.Repositories
         {
             lock (dbLock)
             {
-                var sql = "INSERT INTO Messages (ChatId, MessageText) VALUES (@ChatId, @MessageText); " +
+                var sql = "INSERT INTO Messages (ChatId, MessageText, CreatedAt, IsSilent) VALUES (@ChatId, @MessageText, @CreatedAt, @IsSilent); " +
                           "SELECT last_insert_rowid();";
                 return _db.ExecuteScalar<int>(sql, message);
             }
@@ -46,7 +46,7 @@ namespace BlumBotFarm.Database.Repositories
         {
             lock (dbLock)
             {
-                var sql = "UPDATE Messages SET ChatId = @ChatId, MessageText = @MessageText, CreatedAt = @CreatedAt WHERE Id = @Id";
+                var sql = "UPDATE Messages SET ChatId = @ChatId, MessageText = @MessageText, CreatedAt = @CreatedAt, IsSilent = @IsSilent WHERE Id = @Id";
                 _db.Execute(sql, message);
             }
         }

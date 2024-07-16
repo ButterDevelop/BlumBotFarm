@@ -1,5 +1,6 @@
 ﻿using AutoBlumFarmServer.ApiResponses;
 using AutoBlumFarmServer.ApiResponses.TelegramAuthController;
+using AutoBlumFarmServer.Helpers;
 using AutoBlumFarmServer.Model;
 using BlumBotFarm.Database.Repositories;
 using Microsoft.AspNetCore.Mvc;
@@ -35,7 +36,7 @@ namespace AutoBlumFarmServer.Controllers
         [SwaggerResponseExample(200, typeof(TelegramAuthOkExample))]
         [SwaggerResponseExample(401, typeof(TelegramAuthBadExample))]
         [ProducesResponseType(typeof(ApiObjectResponse<TGAuthOutputModel>), StatusCodes.Status200OK,           "application/json")]
-        [ProducesResponseType(typeof(ApiMessageResponse),                 StatusCodes.Status401Unauthorized, "application/json")]
+        [ProducesResponseType(typeof(ApiMessageResponse),                   StatusCodes.Status401Unauthorized, "application/json")]
         public IActionResult Authenticate([FromBody] TGAuthInputModel model)
         {
             if (string.IsNullOrEmpty(model.query))
@@ -54,7 +55,7 @@ namespace AutoBlumFarmServer.Controllers
                 if (parameters.ContainsKey("user"))
                 {
                     long userTelegramId = -1;
-                    string languageCode = "en", firstName = "", lastName = "", photoUrl = "";
+                    string languageCode = "en", firstName = "", lastName = "";
                     try
                     {
                         dynamic json   = JObject.Parse(parameters["user"].Replace("'", "\\'").Replace("\"", "'"));
@@ -62,13 +63,12 @@ namespace AutoBlumFarmServer.Controllers
                         languageCode   = json.language_code;
                         firstName      = json.first_name;
                         lastName       = json.last_name;
-                        photoUrl       = json.photo_url;
                     }
                     catch { }
 
                     if (userTelegramId > 0)
                     {
-                        (string? token, DateTime expires) = GenerateJwtToken(userTelegramId, languageCode, firstName, lastName, photoUrl);
+                        (string? token, DateTime expires) = GenerateJwtToken(userTelegramId, languageCode, firstName, lastName);
 
                         if (token != null)
                         {
@@ -132,7 +132,7 @@ namespace AutoBlumFarmServer.Controllers
             return actualHash.SequenceEqual(generatedHash);
         }
 
-        private (string? token, DateTime expired) GenerateJwtToken(long telegramUserId, string languageCode, string firstName, string lastName, string photoUrl)
+        private (string? token, DateTime expired) GenerateJwtToken(long telegramUserId, string languageCode, string firstName, string lastName)
         {
             var users = _userRepository.GetAll();
 
@@ -142,7 +142,6 @@ namespace AutoBlumFarmServer.Controllers
             user.FirstName    = firstName;
             user.LastName     = lastName;
             user.LanguageCode = languageCode;
-            user.PhotoUrl     = photoUrl;
             _userRepository.Update(user);
 
             var claims = new List<Claim>

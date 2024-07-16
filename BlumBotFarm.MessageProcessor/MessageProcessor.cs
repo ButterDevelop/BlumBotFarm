@@ -1,5 +1,4 @@
-﻿using BlumBotFarm.Core.Models;
-using BlumBotFarm.Database.Repositories;
+﻿using BlumBotFarm.Database.Repositories;
 using Telegram.Bot;
 using Task = System.Threading.Tasks.Task;
 
@@ -7,43 +6,48 @@ namespace BlumBotFarm.MessageProcessor
 {
     public class MessageProcessor
     {
-        public static MessageProcessor Instance { get; set; } = new MessageProcessor();
+        public static MessageProcessor? Instance { get; set; }
 
-        private readonly TelegramBotClient _telegramBotClient;
+        private readonly TelegramBotClient _adminTelegramBotClient;
+        private readonly TelegramBotClient _userTelegramBotClient;
         private readonly string[]          _adminUsernames;
         private readonly long[]            _adminChatIds;
         private readonly CancellationToken _cancellationToken;
         private readonly MessageRepository _messageRepository;
 
-        public MessageProcessor()
+        public MessageProcessor(TelegramBotClient adminTelegramBotClient, TelegramBotClient userTelegramBotClient, string[] adminUsernames, 
+                                long[] adminChatIds, CancellationToken cancellationToken)
         {
-            _telegramBotClient = new TelegramBotClient("");
-            _adminUsernames    = [];
-            _adminChatIds      = [];
-            _cancellationToken = new CancellationToken();
+            _adminTelegramBotClient = adminTelegramBotClient;
+            _userTelegramBotClient  = userTelegramBotClient;
+            _adminUsernames         = adminUsernames;
+            _adminChatIds           = adminChatIds;
+            _cancellationToken      = cancellationToken;
             using (var db = Database.Database.GetConnection())
             {
                 _messageRepository = new MessageRepository(db);
             }
         }
 
-        public MessageProcessor(string token, string[] adminUsernames, long[] adminChatIds, CancellationToken cancellationToken)
+        public void SendMessageToUserInQueue(long chatId, string text, bool isSilent)
         {
-            _telegramBotClient  = new TelegramBotClient(token);
-            _adminUsernames     = adminUsernames;
-            _adminChatIds       = adminChatIds;
-            _cancellationToken  = cancellationToken;
-            using (var db = Database.Database.GetConnection())
+            _messageRepository.Add(new Core.Models.Message
             {
-                _messageRepository = new MessageRepository(db);
-            }
+                ChatId      = chatId,
+                MessageText = text,
+                CreatedAt   = DateTime.Now,
+                IsSilent    = isSilent
+            });
         }
 
-        public void SendMessageToAdminsInQueue(string text)
+        public void SendMessageToAdminsInQueue(string text, bool isSilent)
         {
-            _messageRepository.Add(new Message
+            _messageRepository.Add(new Core.Models.Message
             {
-                MessageText = text
+                ChatId      = 0,
+                MessageText = text,
+                CreatedAt   = DateTime.Now,
+                IsSilent    = isSilent
             });
         }
 
@@ -62,9 +66,18 @@ namespace BlumBotFarm.MessageProcessor
 
             foreach (var message in messages)
             {
-                foreach (var chatId in _adminChatIds)
+                if (message.ChatId == 0)
                 {
-                    await _telegramBotClient.SendTextMessageAsync(chatId, message.MessageText, null, Telegram.Bot.Types.Enums.ParseMode.Html);
+                    foreach (var chatId in _adminChatIds)
+                    {
+                        await _adminTelegramBotClient.SendTextMessageAsync(chatId, message.MessageText, null,
+                                                                      Telegram.Bot.Types.Enums.ParseMode.Html, disableNotification: message.IsSilent);
+                    }
+                }
+                else
+                {
+                    await _userTelegramBotClient.SendTextMessageAsync(message.ChatId, message.MessageText, null,
+                                                                  Telegram.Bot.Types.Enums.ParseMode.Html, disableNotification: message.IsSilent);
                 }
 
                 _messageRepository.Delete(message.Id);

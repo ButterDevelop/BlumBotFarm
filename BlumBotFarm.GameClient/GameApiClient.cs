@@ -126,6 +126,12 @@ namespace BlumBotFarm.GameClient
                 return (ApiResponse.Unauthorized, string.Empty, string.Empty);
             }
 
+            if (jsonAnswer != null && jsonAnswer.Contains("signature is invalid"))
+            {
+                Log.Error($"GameApiClient GetAuthByProvider (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) Signature is invalid! ResponseStatusCode - Unauthorized!");
+                return (ApiResponse.Unauthorized, string.Empty, string.Empty);
+            }
+
             if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
             {
                 Log.Error($"GameApiClient GetAuthByProvider (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) JSON answer: {jsonAnswer}");
@@ -565,7 +571,7 @@ namespace BlumBotFarm.GameClient
             }
             catch (Exception ex)
             {
-                Log.Error($"GameApiClient FriendsBalance (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) Exception: {ex}");
+                Log.Error($"GameApiClient FriendsBalance (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) Exception: {ex}, JSON answer: {jsonAnswer}");
                 return (ApiResponse.Error, false, 0, string.Empty, 0);
             }
         }

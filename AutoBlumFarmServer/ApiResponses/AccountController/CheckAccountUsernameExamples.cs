@@ -1,4 +1,5 @@
-﻿using Swashbuckle.AspNetCore.Filters;
+﻿using BlumBotFarm.Translation;
+using Swashbuckle.AspNetCore.Filters;
 
 namespace AutoBlumFarmServer.ApiResponses.AccountController
 {
@@ -9,7 +10,7 @@ namespace AutoBlumFarmServer.ApiResponses.AccountController
             yield return SwaggerExample.Create("Username is available", new ApiMessageResponse()
             {
                 ok      = true,
-                message = "This username for your account is available."
+                message = TranslationHelper.Instance.Translate(TranslationHelper.DEFAULT_LANG_CODE, "#%MESSAGE_USERNAME_IS_AVAILABLE%#")
             });
         }
     }
@@ -21,12 +22,12 @@ namespace AutoBlumFarmServer.ApiResponses.AccountController
             yield return SwaggerExample.Create("Username is NOT available", new ApiMessageResponse()
             {
                 ok      = false,
-                message = "This username is already occupied by one of your accounts."
+                message = TranslationHelper.Instance.Translate(TranslationHelper.DEFAULT_LANG_CODE, "#%MESSAGE_USERNAME_IS_OCCUPIED%#")
             });
             yield return SwaggerExample.Create("Validation error", new ApiMessageResponse()
             {
                 ok      = false,
-                message = "Validation failed. Use 6-10 alphanumeric symbols."
+                message = TranslationHelper.Instance.Translate(TranslationHelper.DEFAULT_LANG_CODE, "#%MESSAGE_USERNAME_VALIDATION_FAILED%#")
             });
         }
     }

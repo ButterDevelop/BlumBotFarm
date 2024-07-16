@@ -1,4 +1,5 @@
 ﻿using AutoBlumFarmServer.DTO;
+using BlumBotFarm.Translation;
 using Swashbuckle.AspNetCore.Filters;
 
 namespace AutoBlumFarmServer.ApiResponses.AccountController
@@ -23,7 +24,8 @@ namespace AutoBlumFarmServer.ApiResponses.AccountController
                     EarnedToday     = 1441.5,
                     TookDailyReward = true,
                     NearestWorkIn   = "06:55:33",
-                    CountryCode     = "US"
+                    CountryCode     = "US",
+                    LastStatus      = "OK"
                 }
             });
             yield return SwaggerExample.Create("Minus nearest work in", new ApiObjectResponse<AccountDTO>()
@@ -42,7 +44,8 @@ namespace AutoBlumFarmServer.ApiResponses.AccountController
                     EarnedToday     = 275,
                     TookDailyReward = false,
                     NearestWorkIn   = "-00:00:31",
-                    CountryCode     = "BY"
+                    CountryCode     = "BY",
+                    LastStatus      = "Can't authenticate"
                 },
             });
             yield return SwaggerExample.Create("Empty slot", new ApiObjectResponse<AccountDTO>()
@@ -61,7 +64,8 @@ namespace AutoBlumFarmServer.ApiResponses.AccountController
                     EarnedToday     = 0,
                     TookDailyReward = false,
                     NearestWorkIn   = "Unknown",
-                    CountryCode     = "CZ"
+                    CountryCode     = "CZ",
+                    LastStatus      = ""
                 }
             });
         }
@@ -74,7 +78,7 @@ namespace AutoBlumFarmServer.ApiResponses.AccountController
             yield return SwaggerExample.Create("No such account", new ApiMessageResponse()
             {
                 ok      = true,
-                message = "No such account that belongs to our user."
+                message = TranslationHelper.Instance.Translate(TranslationHelper.DEFAULT_LANG_CODE, "#%MESSAGE_NO_SUCH_ACCOUNT%#")
             });
         }
     }

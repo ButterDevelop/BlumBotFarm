@@ -1,4 +1,5 @@
-﻿using Swashbuckle.AspNetCore.Filters;
+﻿using BlumBotFarm.Translation;
+using Swashbuckle.AspNetCore.Filters;
 
 namespace AutoBlumFarmServer.ApiResponses.UserController
 {
@@ -9,7 +10,7 @@ namespace AutoBlumFarmServer.ApiResponses.UserController
             yield return SwaggerExample.Create("Referral code was updated", new ApiMessageResponse()
             {
                 ok      = true,
-                message = "Your own referral code was updated successfully."
+                message = TranslationHelper.Instance.Translate(TranslationHelper.DEFAULT_LANG_CODE, "#%MESSAGE_YOUR_OWN_REFERRAL_CODE_WAS_UPDATED%#")
             });
         }
     }
@@ -21,7 +22,7 @@ namespace AutoBlumFarmServer.ApiResponses.UserController
             yield return SwaggerExample.Create("Validation error", new ApiMessageResponse()
             {
                 ok      = false,
-                message = "Validation failed. Use 10 alphanumeric symbols."
+                message = TranslationHelper.Instance.Translate(TranslationHelper.DEFAULT_LANG_CODE, "#%MESSAGE_USERNAME_VALIDATION_FAILED%#")
             });
         }
     }

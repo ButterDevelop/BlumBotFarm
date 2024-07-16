@@ -16,7 +16,7 @@ namespace BlumBotFarm.TelegramBot
 {
     public class AdminTelegramBot
     {
-        private readonly ITelegramBotClient botClient;
+        private readonly TelegramBotClient botClient;
         private readonly string[] adminUsernames;
         private readonly long[]   adminChatIds;
         private readonly AccountRepository     accountRepository;
@@ -26,9 +26,9 @@ namespace BlumBotFarm.TelegramBot
         private readonly UserRepository        userRepository;
         private readonly TaskScheduler         taskScheduler;
 
-        public AdminTelegramBot(string token, string[] adminUsernames, long[] adminChatIds)
+        public AdminTelegramBot(TelegramBotClient botClient, string[] adminUsernames, long[] adminChatIds)
         {
-            botClient = new TelegramBotClient(token);
+            this.botClient      = botClient;
             this.adminUsernames = adminUsernames;
             this.adminChatIds   = adminChatIds;
             using (var db = Database.Database.GetConnection())
@@ -304,7 +304,8 @@ namespace BlumBotFarm.TelegramBot
                                                                            $"Referral link: <code>{account.ReferralLink}</code>\n" +
                                                                            $"UserAgent: <code>{account.UserAgent}</code>\n" + 
                                                                            $"Proxy: <code>{account.Proxy}</code>\n" +
-                                                                           $"Timezone offset: <b>{account.TimezoneOffset}</b>",
+                                                                           $"Timezone offset: <b>{account.TimezoneOffset}</b>\n" +
+                                                                           $"Last status: <b>{account.LastStatus}</b>",
                                                                            null, ParseMode.Html);
 
                         Log.Information($"{message.From.Username} called info for {username}.");
@@ -316,7 +317,7 @@ namespace BlumBotFarm.TelegramBot
                     break;
                 case "/unspenttickets":
                     var accountsWithTicketsNotZero = accountRepository.GetAll().Where(acc => acc.Tickets > 0);
-                    var totalTickets = accountsWithTicketsNotZero.Sum(acc => acc.Tickets);
+                    var totalTickets = accountsWithTicketsNotZero.Select(acc => acc.Tickets).DefaultIfEmpty(0).Sum();
 
                     var tasks = taskRepository.GetAll();
 
@@ -782,8 +783,8 @@ namespace BlumBotFarm.TelegramBot
         private string GetStatistics()
         {
             var accounts     = accountRepository.GetAll();
-            var totalBalance = accounts.Sum(a => a.Balance);
-            var totalTickets = accounts.Sum(a => a.Tickets);
+            var totalBalance = accounts.Select(a => a.Balance).DefaultIfEmpty(0).Sum();
+            var totalTickets = accounts.Select(a => a.Tickets).DefaultIfEmpty(0).Sum();
 
             var todayDateTime = DateTime.Today;
 
@@ -792,7 +793,7 @@ namespace BlumBotFarm.TelegramBot
                 wholeCount        = accounts.Count();
 
             var todayEarnings    = earningRepository.GetAll().Where(earning => earning.Created > todayDateTime);
-            var todayEarningsSum = todayEarnings.Sum(earning => earning.Total);
+            var todayEarningsSum = todayEarnings.Select(earning => earning.Total).DefaultIfEmpty(0).Sum();
 
             return $"<b>CZ time:</b> <code>{DateTime.UtcNow.AddHours(2):dd.MM.yyyy HH:mm:ss}</code>\n" +
                    $"<b>MSK time:</b> <code>{DateTime.UtcNow.AddHours(3):dd.MM.yyyy HH:mm:ss}</code>\n" +

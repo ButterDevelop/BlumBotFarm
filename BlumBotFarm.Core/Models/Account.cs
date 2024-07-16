@@ -18,5 +18,6 @@
         public string CountryCode       { get; set; } = string.Empty;
         public int    ProxySellerListId { get; set; } = 0;
         public int    TimezoneOffset    { get; set; } = -120;
+        public string LastStatus        { get; set; } = string.Empty;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using BlumBotFarm.Core.Models;
+using BlumBotFarm.Translation;
 using Swashbuckle.AspNetCore.Filters;
 
 namespace AutoBlumFarmServer.ApiResponses.TelegramAuthController
@@ -10,7 +11,7 @@ namespace AutoBlumFarmServer.ApiResponses.TelegramAuthController
             yield return SwaggerExample.Create("Invoice created", new ApiMessageResponse()
             {
                 ok      = true,
-                message = "The invoice to top up your balance was sent to you."
+                message = TranslationHelper.Instance.Translate(TranslationHelper.DEFAULT_LANG_CODE, "#%MESSAGE_THE_TOPUP_BALANCE_INVOICE_WAS_SENT%#")
             });
         }
     }
@@ -22,12 +23,12 @@ namespace AutoBlumFarmServer.ApiResponses.TelegramAuthController
             yield return SwaggerExample.Create("Error with DB somewhere", new ApiMessageResponse()
             {
                 ok      = false,
-                message = "Something went wrong. Please, try again later."
+                message = TranslationHelper.Instance.Translate(TranslationHelper.DEFAULT_LANG_CODE, "#%MESSAGE_SOMETHING_WENT_WRONG%#")
             });
             yield return SwaggerExample.Create("Error with Telegram", new ApiMessageResponse()
             {
                 ok      = false,
-                message = "Something went wrong with Telegram. Please, try again later."
+                message = TranslationHelper.Instance.Translate(TranslationHelper.DEFAULT_LANG_CODE, "#%MESSAGE_SOMETHING_WENT_WRONG_WITH_TELEGRAM%#")
             });
         }
     }
@@ -63,7 +64,7 @@ namespace AutoBlumFarmServer.ApiResponses.TelegramAuthController
             yield return SwaggerExample.Create("Wrong number specified", new ApiMessageResponse
             {
                 ok      = false,
-                message = "Wrong number specified."
+                message = TranslationHelper.Instance.Translate(TranslationHelper.DEFAULT_LANG_CODE, "#%MESSAGE_WRONG_NUMBER_SPECIFIED%#")
             });
         }
     }

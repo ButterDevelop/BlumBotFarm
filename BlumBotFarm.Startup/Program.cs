@@ -1,5 +1,6 @@
 ﻿using BlumBotFarm.Core;
 using Serilog;
+using Telegram.Bot;
 using TaskScheduler = BlumBotFarm.Scheduler.TaskScheduler;
 
 namespace BlumBotFarm.Startup
@@ -31,15 +32,19 @@ namespace BlumBotFarm.Startup
             HTTPController.Initialize(Properties.Resources.AndroidBoughtUserAgents);
 
             // Настройка Telegram-бота через конфигурацию
-            var botToken       = AppConfig.BotSettings.Token;
+            var userBotToken   = AppConfig.BotSettings.BotToken;
+            var adminBotToken  = AppConfig.BotSettings.AdminBotToken;
             var adminUsernames = AppConfig.BotSettings.AdminUsernames;
             var adminChatIds   = AppConfig.BotSettings.AdminChatIds;
-            if (botToken != null && adminUsernames != null && adminChatIds != null)
+            if (adminBotToken != null && userBotToken != null && adminUsernames != null && adminChatIds != null)
             {
-                var adminTelegramBot = new TelegramBot.AdminTelegramBot(botToken, adminUsernames, adminChatIds);
+                var adminBotClient = new TelegramBotClient(adminBotToken);
+                var userBotClient  = new TelegramBotClient(userBotToken);
+
+                var adminTelegramBot = new TelegramBot.AdminTelegramBot(adminBotClient, adminUsernames, adminChatIds);
                 adminTelegramBot.Start();
 
-                var messageProcessor = new MessageProcessor.MessageProcessor(botToken, adminUsernames, adminChatIds, new CancellationToken());
+                var messageProcessor = new MessageProcessor.MessageProcessor(adminBotClient, userBotClient, adminUsernames, adminChatIds, new CancellationToken());
                 await Task.Factory.StartNew(messageProcessor.StartAsync);
 
                 Log.Information("Started Admin Telegram bot and Message processor.");

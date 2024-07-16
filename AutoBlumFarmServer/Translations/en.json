@@ -1,0 +1,14 @@
+[
+  {
+    "Mask": "#%MESSAGE_NO_SUCH_ACCOUNT%#",
+    "Text": "No such account that belongs to our user."
+  },
+  {
+    "Mask": "#%MESSAGE_USERNAME_VALIDATION_FAILED%#",
+    "Text": "Validation failed. Use 6-10 alphanumeric symbols."
+  },
+  {
+    "Mask": "#%baza%#",
+    "Text": ""
+  }
+]

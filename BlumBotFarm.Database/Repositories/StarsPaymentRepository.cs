@@ -2,7 +2,6 @@
 using BlumBotFarm.Database.Interfaces;
 using Dapper;
 using System.Data;
-using System.Threading.Tasks;
 
 namespace BlumBotFarm.Database.Repositories
 {

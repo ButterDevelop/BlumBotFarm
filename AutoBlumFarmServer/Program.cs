@@ -9,6 +9,7 @@ using BlumBotFarm.Core;
 using BlumBotFarm.Database;
 using BlumBotFarm.Database.Repositories;
 using BlumBotFarm.TelegramBot;
+using BlumBotFarm.Translation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -48,6 +49,8 @@ if (botToken != null && adminUsernames != null && adminChatIds != null)
 }
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.UseUrls("https://localhost:5000");
 
 // Add services to the container.
 
@@ -102,6 +105,8 @@ builder.Services.AddSwaggerExamplesFromAssemblyOf<BuyAccountsSlotsBadExample>();
 builder.Services.AddSwaggerExamplesFromAssemblyOf<PreBuyAccountsSlotsOkExample>();
 builder.Services.AddSwaggerExamplesFromAssemblyOf<PreBuyAccountsSlotsBadExample>();
 builder.Services.AddSwaggerExamplesFromAssemblyOf<AllGeoOkExample>();
+builder.Services.AddSwaggerExamplesFromAssemblyOf<TranslationOkExample>();
+builder.Services.AddSwaggerExamplesFromAssemblyOf<TranslationBadExample>();
 
 // I don't will joy for this, but I have no time actually to do some patterns like Strategy
 Database.Initialize();
@@ -109,12 +114,13 @@ var databaseConnection = Database.GetConnection();
 builder.Services.AddScoped(provider => new AccountRepository(databaseConnection));
 builder.Services.AddScoped(provider => new UserRepository(databaseConnection));
 builder.Services.AddScoped(provider => new ReferralRepository(databaseConnection));
-builder.Services.AddScoped(provider => new WalletPaymentRepository(databaseConnection));
+builder.Services.AddScoped(provider => new StarsPaymentRepository(databaseConnection));
 builder.Services.AddScoped(provider => new DailyRewardRepository(databaseConnection));
 builder.Services.AddScoped(provider => new EarningRepository(databaseConnection));
 builder.Services.AddScoped(provider => new TaskRepository(databaseConnection));
 builder.Services.AddScoped(provider => new TelegramBotClient(Config.Instance.TELEGRAM_BOT_TOKEN));
 builder.Services.AddScoped(provider => new ProxySellerAPIHelper(Config.Instance.PROXY_SELLER_API_KEY));
+builder.Services.AddScoped(provider => new TranslationHelper());
 
 // Настройка аутентификации JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

@@ -4,6 +4,7 @@ using AutoBlumFarmServer.DTO;
 using AutoBlumFarmServer.Helpers;
 using AutoBlumFarmServer.Model;
 using BlumBotFarm.Database.Repositories;
+using BlumBotFarm.Translation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -72,10 +73,10 @@ namespace AutoBlumFarmServer.Controllers
             foreach (var account in invokersAccounts)
             {
                 bool tookDailyRewardToday = dailyRewardsToday.Any(r => r.AccountId == account.Id);
-                var  todayEarningsSum     = earningsToday.Where(earning => earning.AccountId == account.Id).Sum(earning => earning.Total);
+                var  todayEarningsSum     = earningsToday.Where(earning => earning.AccountId == account.Id).Select(earning => earning.Total).DefaultIfEmpty(0).Sum();
 
                 var dailyCheckJob = tasks.FirstOrDefault(task => task.AccountId == account.Id && task.TaskType == "DailyCheckJob");
-                string nearestWorkIn = "Unknown";
+                string nearestWorkIn = "-";
                 if (dailyCheckJob != null && !string.IsNullOrEmpty(account.ProviderToken) && !string.IsNullOrEmpty(account.RefreshToken))
                 {
                     var    dailyIn    = dailyCheckJob.NextRunTime - DateTime.Now;
@@ -96,14 +97,15 @@ namespace AutoBlumFarmServer.Controllers
                     EarnedToday     = todayEarningsSum,
                     TookDailyReward = tookDailyRewardToday,
                     NearestWorkIn   = nearestWorkIn,
-                    CountryCode     = account.CountryCode
+                    CountryCode     = account.CountryCode,
+                    LastStatus      = account.LastStatus
                 });
             }
 
             return Ok(new ApiObjectResponse<List<AccountDTO>>
             {
                 ok   = true,
-                data = results
+                data = results.OrderBy(r => r.Id).ToList()
             });
         }
         
@@ -132,7 +134,7 @@ namespace AutoBlumFarmServer.Controllers
             if (account == null || account.UserId != userId) return BadRequest(new ApiMessageResponse
             {
                 ok      = false,
-                message = "No such account that belongs to our user."
+                message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_NO_SUCH_ACCOUNT%#")
             });
 
             var  today = DateTime.Now.Date; // Not UTC, here we are not using it because of Quartz in the main project
@@ -141,10 +143,11 @@ namespace AutoBlumFarmServer.Controllers
             var  todayEarningsSum     = _earningRepository
                                             .GetAll()
                                             .Where(earning => earning.Created > today && earning.AccountId == account.Id)
-                                            .Sum(earning => earning.Total);
+                                            .Select(earning => earning.Total)
+                                            .DefaultIfEmpty(0).Sum();
 
             var dailyCheckJob    = _taskRepository.GetAll().FirstOrDefault(task => task.AccountId == account.Id && task.TaskType == "DailyCheckJob");
-            string nearestWorkIn = "Unknown";
+            string nearestWorkIn = "-";
             if (dailyCheckJob != null && !string.IsNullOrEmpty(account.ProviderToken) && !string.IsNullOrEmpty(account.RefreshToken))
             {
                 var    dailyIn    = dailyCheckJob.NextRunTime - DateTime.Now;
@@ -169,6 +172,7 @@ namespace AutoBlumFarmServer.Controllers
                     TookDailyReward = tookDailyRewardToday,
                     NearestWorkIn   = nearestWorkIn,
                     CountryCode     = account.CountryCode,
+                    LastStatus      = account.LastStatus
                 }
             });
         }
@@ -201,7 +205,7 @@ namespace AutoBlumFarmServer.Controllers
                 return BadRequest(new ApiMessageResponse
                 {
                     ok      = false,
-                    message = "Validation failed. Use 6-10 alphanumeric symbols.",
+                    message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_USERNAME_VALIDATION_FAILED%#")
                 });
             }
 
@@ -209,13 +213,13 @@ namespace AutoBlumFarmServer.Controllers
             if (account != null) return BadRequest(new ApiMessageResponse
             {
                 ok      = false,
-                message = "This username is already occupied by one of your accounts."
+                message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_USERNAME_IS_OCCUPIED%#")
             });
 
             return Ok(new ApiMessageResponse
             {
                 ok      = true,
-                message = "This username for your account is available."
+                message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_USERNAME_IS_AVAILABLE%#")
             });
         }
 
@@ -283,7 +287,7 @@ namespace AutoBlumFarmServer.Controllers
             if (account == null || account.UserId != userId) return BadRequest(new ApiMessageResponse
             {
                 ok      = false,
-                message = "No such account that belongs to our user."
+                message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_NO_SUCH_ACCOUNT%#")
             });
 
             if (account.CustomUsername != model.CustomUsername)
@@ -293,7 +297,7 @@ namespace AutoBlumFarmServer.Controllers
                     return BadRequest(new ApiMessageResponse
                     {
                         ok      = false,
-                        message = "Validation failed: Custom Username. Use 6-10 alphanumeric symbols."
+                        message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_CUSTOM_USERNAME_VALIDATION_FAILED%#")
                     });
                 }
 
@@ -301,7 +305,7 @@ namespace AutoBlumFarmServer.Controllers
                 if (accountCheckUsername != null) return BadRequest(new ApiMessageResponse
                 {
                     ok      = false,
-                    message = "This username is already occupied by your account or someone else's."
+                    message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_USERNAME_IS_OCCUPIED%#")
                 });
 
                 account.CustomUsername = model.CustomUsername;
@@ -325,8 +329,8 @@ namespace AutoBlumFarmServer.Controllers
                 {
                     return BadRequest(new ApiMessageResponse
                     {
-                        ok = false,
-                        message = "Validation failed: Blum Telegram Auth. Check your string."
+                        ok      = false,
+                        message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_BLUM_TELEGRAM_AUTH_VALIDATION_FAILED%#")
                     });
                 }
 
@@ -341,7 +345,7 @@ namespace AutoBlumFarmServer.Controllers
                     return BadRequest(new ApiMessageResponse
                     {
                         ok      = false,
-                        message = "Validation failed: Country Code. No such country code."
+                        message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_COUNTRY_CODE_VALIDATION_FAILED%#")
                     });
                 }
 
@@ -353,7 +357,7 @@ namespace AutoBlumFarmServer.Controllers
                     return BadRequest(new ApiMessageResponse
                     {
                         ok      = false,
-                        message = "Can't add proxy to proxy service. Please, try again later."
+                        message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_CANT_ADD_PROXY_TO_PROXY_SERVICE%#")
                     });
                 }
 
@@ -363,7 +367,7 @@ namespace AutoBlumFarmServer.Controllers
                     return BadRequest(new ApiMessageResponse
                     {
                         ok      = false,
-                        message = "Can't get proxy from proxy service. Please, try again later."
+                        message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_CANT_GET_PROXY_FROM_PROXY_SERVICE%#")
                     });
                 }
 
@@ -376,7 +380,7 @@ namespace AutoBlumFarmServer.Controllers
                     return BadRequest(new ApiMessageResponse
                     {
                         ok      = false,
-                        message = "Proxy service has returned proxy in wrong format. Please, try again later."
+                        message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_PROXY_SERVICE_RETURNED_WRONG_FORMAT%#")
                     });
                 }
 
@@ -388,7 +392,7 @@ namespace AutoBlumFarmServer.Controllers
             return Ok(new ApiMessageResponse
             {
                 ok      = true,
-                message = "The account was updated successfully."
+                message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_ACCOUNT_WAS_UPDATED_SUCCESSFULLY%#")
             });
         }
     }

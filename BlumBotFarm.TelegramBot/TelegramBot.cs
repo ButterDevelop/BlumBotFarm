@@ -1,5 +1,6 @@
 ﻿using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Repositories;
+using BlumBotFarm.Translation;
 using Serilog;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
@@ -69,17 +70,24 @@ namespace BlumBotFarm.TelegramBot
 
         private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
+            var from        = update.Message == null ? update.PreCheckoutQuery?.From : update.Message.From;
+            var invoker     = from != null ? userRepository.GetAll().FirstOrDefault(u => u.TelegramUserId == from.Id) : null;
+            string langCode = invoker != null ? 
+                                  invoker.LanguageCode : (from is null ? 
+                                      TranslationHelper.DEFAULT_LANG_CODE : (from.LanguageCode ?? TranslationHelper.DEFAULT_LANG_CODE)
+                                  );
+
             if (update.Type == UpdateType.PreCheckoutQuery && update.PreCheckoutQuery != null)
             {
-                await HandlePreCheckoutQuery(update.PreCheckoutQuery);
+                await HandlePreCheckoutQuery(langCode, update.PreCheckoutQuery);
                 return;
             }
-
+            
             if (update.Message != null)
             {
                 if (update.Message.Type == MessageType.SuccessfulPayment && update.Message.SuccessfulPayment != null)
                 {
-                    await HandleSuccessfulPayment(update.Message);
+                    await HandleSuccessfulPayment(langCode, update.Message);
                     return;
                 }
 
@@ -88,12 +96,12 @@ namespace BlumBotFarm.TelegramBot
                     var message = update.Message;
                     if (message.From is null) return;
 
-                    await HandleUserMessage(message);
+                    await HandleUserMessage(langCode, message);
                 }
             }
         }
 
-        private async Task HandlePreCheckoutQuery(PreCheckoutQuery preCheckoutQuery)
+        private async Task HandlePreCheckoutQuery(string langCode, PreCheckoutQuery preCheckoutQuery)
         {
             try
             {
@@ -109,8 +117,7 @@ namespace BlumBotFarm.TelegramBot
                     // Error, user is not using stars
                     await botClient.AnswerPreCheckoutQueryAsync(
                         preCheckoutQuery.Id,
-                        errorMessage: "We are so sorry, but for now we are using only Telegram Stars as payment method.\n" +
-                                      "If you want to discuss it or offer some other ways, than please consider using command /feedback"
+                        errorMessage: TranslationHelper.Instance.Translate(langCode, "#%TELEGRAM_MESSAGE_WE_ARE_USING_ONLY_TELEGRAM_STARS%#")
                     );
                 }
             }
@@ -119,14 +126,14 @@ namespace BlumBotFarm.TelegramBot
                 // В случае ошибки, отклоните pre_checkout_query с описанием причины
                 await botClient.AnswerPreCheckoutQueryAsync(
                     preCheckoutQuery.Id,
-                    errorMessage: "Sorry, there was an error processing your order. Please, try later."
+                    errorMessage: TranslationHelper.Instance.Translate(langCode, "#%TELEGRAM_MESSAGE_AN_ERROR_WHILE_ORDERING_PLEASE_WAIT%#")
                 );
 
                 Log.Error($"Error in HandlePreCheckoutQuery: {ex.Message}");
             }
         }
 
-        private async Task HandleSuccessfulPayment(Telegram.Bot.Types.Message message)
+        private async Task HandleSuccessfulPayment(string langCode, Telegram.Bot.Types.Message message)
         {
             var payment = message.SuccessfulPayment;
             if (payment == null)
@@ -167,11 +174,14 @@ namespace BlumBotFarm.TelegramBot
             userRepository.Update(user);
 
             // Notify user
-            await botClient.SendTextMessageAsync(message.Chat, $"Your balance was <b>successfully</b> increased by <b>{amountUsd:N2}$</b>.\n" +
-                                                               $"Thank <b>you</b> very much!", 
+            await botClient.SendTextMessageAsync(message.Chat, 
+                                                 string.Format(
+                                                     TranslationHelper.Instance.Translate(langCode, "#%TELEGRAM_MESSAGE_YOUR_BALANCE_WAS_INCREASED%#"),
+                                                     amountUsd.ToString("N2")
+                                                 ),
                                                  null, ParseMode.Html);
 
-            string messageToAdmins = "<b>We got DONATED!!!</b>\nUser <b>" + (message.From is null ? "<i>Unknown username</i>" : message.From.Username) +
+            string messageToAdmins = "<b>We got PAYED!!!</b>\nUser <b>" + (message.From is null ? "<i>Unknown username</i>" : message.From.Username) +
                                      "</b> toped up their balance with " +
                                      $"<b>{amountStars}</b> stars (<b>~{amountUsd:N4}</b>$).";
 
@@ -188,10 +198,11 @@ namespace BlumBotFarm.TelegramBot
 
                     // Notify host user
                     await botClient.SendTextMessageAsync(hostUser.TelegramUserId,
-                                                            $"Your balance was <b>successfully</b> increased by <b>{amountUsd:N2}$</b>.\n" +
-                                                            $"That happened because your referral <b>{user.FirstName + " " + user.LastName}</b> " +
-                                                            "toped up their balance! Thanks to them!\n" +
-                                                            $"And thank <b>you</b> very much!",
+                                                         string.Format(
+                                                             TranslationHelper.Instance.Translate(langCode, "#%TELEGRAM_MESSAGE_YOUR_BALANCE_WAS_INCREASED_BY_REFERRAL%#"),
+                                                             increaseBy.ToString("N2"),
+                                                             user.FirstName + " " + user.LastName
+                                                         ),
                                                          null, ParseMode.Html);
 
                     messageToAdmins += "\nAlso referrals balance was toped up.\n" +
@@ -219,7 +230,7 @@ namespace BlumBotFarm.TelegramBot
             Log.Information($"Successful payment received: {payment.TotalAmount} {payment.Currency}. Chat Id: {message.Chat.Id}");
         }
 
-        private async Task HandleUserMessage(Telegram.Bot.Types.Message message)
+        private async Task HandleUserMessage(string langCode, Telegram.Bot.Types.Message message)
         {
             if (message.Text is null || message.From is null) return;
 
@@ -264,21 +275,30 @@ namespace BlumBotFarm.TelegramBot
                     usersFeedback.SupportReplyMessageId = message.MessageId;
                     feedbackMessageRepository.Update(usersFeedback);
 
-                    string userMessageReplyFeedback = "<b>You got feedback on your message!</b>\n" +
-                                                      "Thanks for your patience. Here is the message.\n" +
-                                                      $"<blockquote expandable>{message.Text}</blockquote>";
+                    string userMessageReplyFeedback = string.Format(
+                                                          TranslationHelper.Instance.Translate(langCode, "#%TELEGRAM_MESSAGE_YOU_GOT_NEW_REPLY_ON_FEEDBACK%#"), 
+                                                          message.Text
+                                                      );
                     try
                     {
                         await botClient.SendTextMessageAsync(usersFeedback.TelegramUserId, userMessageReplyFeedback, null, ParseMode.Html,
-                                                             replyToMessageId: usersFeedback.UserFeedbackOriginalMessageId);
+                                                             replyParameters: new ReplyParameters() { MessageId = usersFeedback.UserFeedbackOriginalMessageId });
+
+                        await botClient.SendTextMessageAsync(techSupportGroupChatId, "Your reply to user's feedback was sent successfully.",
+                                                         null, ParseMode.Html);
                     }
                     catch
                     {
-                        await botClient.SendTextMessageAsync(usersFeedback.TelegramUserId, userMessageReplyFeedback, null, ParseMode.Html);
+                        try
+                        {
+                            await botClient.SendTextMessageAsync(usersFeedback.TelegramUserId, userMessageReplyFeedback, null, ParseMode.Html);
+                        }
+                        catch
+                        {
+                            await botClient.SendTextMessageAsync(techSupportGroupChatId, "Can't send a message to user. Maybe we are blocked or user is deleted.",
+                                                                 null, ParseMode.Html);
+                        }
                     }
-
-                    await botClient.SendTextMessageAsync(techSupportGroupChatId, "Your reply to user's feedback was sent successfully.",
-                                                         null, ParseMode.Html);
                 }
             }
             else
@@ -298,15 +318,14 @@ namespace BlumBotFarm.TelegramBot
 
                             user = new Core.Models.User()
                             {
-                                BalanceUSD = 0M,
-                                TelegramUserId = message.Chat.Id,
-                                FirstName = message.From.FirstName,
-                                LastName = message.From.LastName ?? "",
-                                IsBanned = false,
-                                LanguageCode = message.From.LanguageCode ?? "en",
+                                BalanceUSD      = 0M,
+                                TelegramUserId  = message.Chat.Id,
+                                FirstName       = message.From.FirstName,
+                                LastName        = message.From.LastName ?? "",
+                                IsBanned        = false,
+                                LanguageCode    = message.From.LanguageCode ?? "en",
                                 OwnReferralCode = usersReferralCode,
-                                CreatedAt = DateTime.Now,
-                                PhotoUrl = string.Empty
+                                CreatedAt       = DateTime.Now
                             };
                             userRepository.Add(user);
 
@@ -339,17 +358,19 @@ namespace BlumBotFarm.TelegramBot
                         }
 
                         var inlineKeyboard = new InlineKeyboardMarkup(new[]
-                    {
-                        new[]
                         {
-                            InlineKeyboardButton.WithWebApp("Open Mini App",
-                            new WebAppInfo { Url = serverDomain })
-                        }
-                    });
+                            new[]
+                            {
+                                InlineKeyboardButton.WithWebApp(
+                                    TranslationHelper.Instance.Translate(langCode, "#%TELEGRAM_BUTTON_TEXT_OPEN_MINI_APP%#"),
+                                    new WebAppInfo { Url = serverDomain }
+                                )
+                            }
+                        });
 
                         await botClient.SendTextMessageAsync(
                             message.Chat,
-                            "Hi! Click the button below to open out Mini App 💵",
+                            TranslationHelper.Instance.Translate(langCode, "#%TELEGRAM_MESSAGE_HI_CLICK_BELOW_TO_OPEN_MINI_APP%#"),
                             replyMarkup: inlineKeyboard,
                             parseMode: ParseMode.Html
                         );
@@ -360,7 +381,11 @@ namespace BlumBotFarm.TelegramBot
 
                         if (string.IsNullOrEmpty(feedbackMessage))
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "Your message is <b>empty</b>!", null, ParseMode.Html);
+                            await botClient.SendTextMessageAsync(
+                                message.Chat,
+                                TranslationHelper.Instance.Translate(langCode, "#%TELEGRAM_MESSAGE_YOUR_MESSAGE_IS_EMPTY%#"),
+                                null, ParseMode.Html
+                            );
                             return;
                         }
 
@@ -375,7 +400,7 @@ namespace BlumBotFarm.TelegramBot
                                                             $"<blockquote expandable>{feedbackMessage}</blockquote>";
 
                         var sentMessageToSupport = await botClient.SendTextMessageAsync(techSupportGroupChatId, textMessageToSendToSupport,
-                                                                                    null, ParseMode.Html);
+                                                                                        null, ParseMode.Html);
 
                         feedbackMessageRepository.Add(new FeedbackMessage
                         {
@@ -388,12 +413,14 @@ namespace BlumBotFarm.TelegramBot
 
                         await botClient.SendTextMessageAsync(message.Chat,
                                                                 (command == "/paysupport" 
-                                                                  ? "<b>Thanks! We'll help you!</b>" 
-                                                                  : "<b>Thanks for your feedback!</b>") +
-                                                                "\nYour message was successfully sent to us!\n" +
-                                                                "We'll answer you as soon as possible. You will get the message to this chat.",
+                                                                  ? TranslationHelper.Instance.Translate(langCode, "#%TELEGRAM_MESSAGE_THANKS_WE_WILL_HELP_YOU%#") 
+                                                                  : TranslationHelper.Instance.Translate(langCode, "#%TELEGRAM_MESSAGE_THANKS_FOR_YOUR_FEEDBACK%#")) +
+                                                                TranslationHelper.Instance.Translate(langCode, "#%TELEGRAM_MESSAGE_YOUR_MESSAGE_WAS_SUCCESSFULLY%#"),
                                                              null, ParseMode.Html);
 
+                        break;
+                    default:
+                        await botClient.SendTextMessageAsync(message.Chat, "💎", null, ParseMode.Html);
                         break;
                 }
             }
@@ -401,7 +428,7 @@ namespace BlumBotFarm.TelegramBot
 
         private Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
         {
-            Log.Error($"Telegram Bot HandleErrorAsync: {exception}");
+            Log.Error($"Telegram Bot HandleErrorAsync: {exception.Message}");
             return Task.CompletedTask;
         }
 

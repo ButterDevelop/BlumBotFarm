@@ -71,5 +71,15 @@ namespace AutoBlumFarmServer.Properties {
                 return ResourceManager.GetString("AndroidBoughtUserAgents", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Byte[].
+        /// </summary>
+        internal static byte[] defaultAvatar {
+            get {
+                object obj = ResourceManager.GetObject("defaultAvatar", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }

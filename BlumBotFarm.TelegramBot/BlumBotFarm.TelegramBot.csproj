@@ -7,13 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Telegram.Bot" Version="19.0.0" />
+    <PackageReference Include="Telegram.Bot" Version="21.6.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BlumBotFarm.Core\BlumBotFarm.Core.csproj" />
     <ProjectReference Include="..\BlumBotFarm.Database\BlumBotFarm.Database.csproj" />
     <ProjectReference Include="..\BlumBotFarm.Scheduler\BlumBotFarm.Scheduler.csproj" />
+    <ProjectReference Include="..\BlumBotFarm.Translation\BlumBotFarm.Translation.csproj" />
   </ItemGroup>
 
 </Project>

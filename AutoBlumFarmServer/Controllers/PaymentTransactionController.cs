@@ -4,6 +4,7 @@ using AutoBlumFarmServer.Helpers;
 using AutoBlumFarmServer.Model;
 using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Repositories;
+using BlumBotFarm.Translation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -76,7 +77,7 @@ namespace AutoBlumFarmServer.Controllers
                 return BadRequest(new ApiMessageResponse()
                 {
                     ok      = false,
-                    message = "Something went wrong. Please, try again later."
+                    message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_SOMETHING_WENT_WRONG%#")
                 });
             }
 
@@ -97,14 +98,14 @@ namespace AutoBlumFarmServer.Controllers
                 return BadRequest(new ApiMessageResponse()
                 {
                     ok      = false,
-                    message = "Something went wrong with Telegram. Please, try again later."
+                    message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_SOMETHING_WENT_WRONG_WITH_TELEGRAM%#")
                 });
             }
 
             return Ok(new ApiMessageResponse()
             {
                 ok      = true,
-                message = "The invoice to top up your balance was sent to you."
+                message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_THE_TOPUP_BALANCE_INVOICE_WAS_SENT%#")
             });
         }
 
@@ -174,7 +175,7 @@ namespace AutoBlumFarmServer.Controllers
                 return BadRequest(new ApiMessageResponse
                 {
                     ok      = false,
-                    message = "Wrong number specified."
+                    message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_WRONG_NUMBER_SPECIFIED%#")
                 });
             }
 
@@ -213,7 +214,7 @@ namespace AutoBlumFarmServer.Controllers
                 return BadRequest(new ApiMessageResponse
                 {
                     ok      = false,
-                    message = "Wrong number specified."
+                    message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_WRONG_NUMBER_SPECIFIED%#")
                 });
             }
 

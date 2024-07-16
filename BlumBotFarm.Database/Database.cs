@@ -71,8 +71,7 @@ namespace BlumBotFarm.Database
                         IsBanned INTEGER NOT NULL,
                         LanguageCode TEXT,
                         OwnReferralCode TEXT,
-                        CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        PhotoUrl TEXT
+                        CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
                     );
 
                     CREATE TABLE IF NOT EXISTS Referrals (
@@ -100,6 +99,7 @@ namespace BlumBotFarm.Database
                         CountryCode TEXT,
                         ProxySellerListId INTEGER,
                         TimezoneOffset INTEGER,
+                        LastStatus TEXT,
                         FOREIGN KEY(UserId) REFERENCES Users(Id)
                     );
 
@@ -115,9 +115,10 @@ namespace BlumBotFarm.Database
 
                     CREATE TABLE IF NOT EXISTS Messages (
                         Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        ChatId TEXT,
+                        ChatId BIGINT,
                         MessageText TEXT,
-                        CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+                        CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        IsSilent INTEGER
                     );
 
                     CREATE TABLE IF NOT EXISTS Earnings (

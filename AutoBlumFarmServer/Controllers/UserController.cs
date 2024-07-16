@@ -3,12 +3,15 @@ using AutoBlumFarmServer.ApiResponses.UserController;
 using AutoBlumFarmServer.DTO;
 using AutoBlumFarmServer.Helpers;
 using AutoBlumFarmServer.Model;
+using AutoBlumFarmServer.Properties;
 using BlumBotFarm.Database.Repositories;
+using BlumBotFarm.Translation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text.RegularExpressions;
+using Telegram.Bot;
 
 namespace AutoBlumFarmServer.Controllers
 {
@@ -17,15 +20,20 @@ namespace AutoBlumFarmServer.Controllers
     [Authorize]
     public class UserController : Controller
     {
-        private readonly UserRepository     _userRepository;
-        private readonly AccountRepository  _accountRepository;
-        private readonly ReferralRepository _referralRepository;
+        private readonly UserRepository         _userRepository;
+        private readonly AccountRepository      _accountRepository;
+        private readonly ReferralRepository     _referralRepository;
+        private readonly StarsPaymentRepository _starsPaymentRepository;
+        private readonly TelegramBotClient      _botClient;
 
-        public UserController(UserRepository userRepository, AccountRepository accountRepository, ReferralRepository referralRepository)
+        public UserController(UserRepository userRepository, AccountRepository accountRepository, ReferralRepository referralRepository,
+                              StarsPaymentRepository starsPaymentRepository, TelegramBotClient botClient)
         {
-            _userRepository     = userRepository;
-            _accountRepository  = accountRepository;
-            _referralRepository = referralRepository;
+            _userRepository         = userRepository;
+            _accountRepository      = accountRepository;
+            _referralRepository     = referralRepository;
+            _starsPaymentRepository = starsPaymentRepository;
+            _botClient              = botClient;
         }
 
         // GET: api/User/Me
@@ -46,7 +54,10 @@ namespace AutoBlumFarmServer.Controllers
                 message = "No auth."
             });
 
-            var accountsBalancesSum = _accountRepository.GetAll().Where(acc => acc.UserId == invoker.Id).Sum(acc => acc.Balance);
+            var accountsBalancesSum = _accountRepository.GetAll()
+                                                        .Where(acc => acc.UserId == invoker.Id)
+                                                        .Select(acc => acc.Balance)
+                                                        .DefaultIfEmpty(0).Sum();
 
             var userDTO = new UserDTO()
             {
@@ -56,7 +67,6 @@ namespace AutoBlumFarmServer.Controllers
                 BalanceUSD          = invoker.BalanceUSD,
                 LanguageCode        = invoker.LanguageCode,
                 OwnReferralCode     = invoker.OwnReferralCode,
-                PhotoUrl            = invoker.PhotoUrl,
                 AccountsBalancesSum = accountsBalancesSum
             };
 
@@ -73,8 +83,8 @@ namespace AutoBlumFarmServer.Controllers
         [SwaggerResponse(401, "No auth from user.")]
         [SwaggerResponseExample(200, typeof(MyReferralsOkExample))]
         [SwaggerResponseExample(401, typeof(BadAuthExample))]
-        [ProducesResponseType(typeof(ApiObjectResponse<List<ReferralsOutputModel>>), StatusCodes.Status200OK,   "application/json")]
-        [ProducesResponseType(typeof(ApiMessageResponse),                      StatusCodes.Status401Unauthorized, "application/json")]
+        [ProducesResponseType(typeof(ApiObjectResponse<List<ReferralsOutputModel>>), StatusCodes.Status200OK,           "application/json")]
+        [ProducesResponseType(typeof(ApiMessageResponse),                            StatusCodes.Status401Unauthorized, "application/json")]
         public IActionResult MyReferrals()
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
@@ -86,19 +96,25 @@ namespace AutoBlumFarmServer.Controllers
             });
 
             var ourReferralsIds = _referralRepository.GetAll().Where(r => r.HostUserId == invoker.Id).Select(r => r.DependentUserId);
-            List<ReferralsOutputModel> referrals = new();
+            List<ReferralsOutputModel> referrals = [];
             foreach (var id in ourReferralsIds)
             {
-                // TODO: get host earnings from the Transactions table
-
                 var referral = _userRepository.GetById(id);
-                if (referral != null) referrals.Add(new ReferralsOutputModel
+                if (referral != null)
                 {
-                    FirstName    = referral.FirstName,
-                    LastName     = referral.LastName,
-                    HostEarnings = 0,
-                    PhotoUrl     = referral.PhotoUrl
-                });
+                    decimal hostEarningsUsd = _starsPaymentRepository.GetAll()
+                                                                     .Where(p => p.UserId == id && p.IsCompleted)
+                                                                     .Select(p => p.AmountUsd)
+                                                                     .DefaultIfEmpty(0).Sum();
+
+                    referrals.Add(new ReferralsOutputModel
+                    {
+                        Id           = referral.Id,
+                        FirstName    = referral.FirstName,
+                        LastName     = referral.LastName,
+                        HostEarnings = hostEarningsUsd
+                    });
+                }
             }
 
             return Ok(new ApiObjectResponse<List<ReferralsOutputModel>>()
@@ -135,7 +151,7 @@ namespace AutoBlumFarmServer.Controllers
                 return BadRequest(new ApiMessageResponse
                 {
                     ok      = false,
-                    message = "Validation failed. Use 10 alphanumeric symbols.",
+                    message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_REFERRAL_CODE_VALIDATION_FAILED%#")
                 });
             }
 
@@ -145,8 +161,42 @@ namespace AutoBlumFarmServer.Controllers
             return Ok(new ApiMessageResponse
             {
                 ok      = true,
-                message = "Your own referral code was updated successfully."
+                message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_YOUR_OWN_REFERRAL_CODE_WAS_UPDATED%#")
             });
+        }
+
+        // GET: /api/User/GetUserAvatar/5
+        [HttpGet("GetUserAvatar/{userId}")]
+        [AllowAnonymous]
+        [SwaggerResponse(200, "Success. User's avatar or placeholder image returned.")]
+        [SwaggerResponse(400, "User not found.")]
+        [ProducesResponseType(typeof(MemoryStream), StatusCodes.Status200OK, "image/png")]
+        public async Task<IActionResult> GetUserAvatar(int userId)
+        {
+            var user = _userRepository.GetById(userId);
+            if (user == null) return NotFound();
+
+            var usersPhoto = await _botClient.GetUserProfilePhotosAsync(user.TelegramUserId);
+            if (usersPhoto.TotalCount > 0)
+            {
+                var fileId = usersPhoto.Photos[0][0].FileId;
+                var file   = await _botClient.GetFileAsync(fileId);
+
+                var url    = $"https://api.telegram.org/file/bot{Config.Instance.TELEGRAM_BOT_TOKEN}/{file.FilePath}";
+                using (var httpClient = new HttpClient())
+                {
+                    var photoBytes = await httpClient.GetByteArrayAsync(url);
+                    var stream     = new MemoryStream(photoBytes);
+
+                    // Установка заголовков для кэширования
+                    Response.Headers.Append("Cache-Control", "public, max-age=86400"); // 86400 seconds = 24 hours
+                    return File(stream, "image/png");
+                }
+            }
+
+            var byteArray = Resources.defaultAvatar;
+            MemoryStream memoryStream = new(byteArray);
+            return File(memoryStream, "image/png"); // Если аватарка не найдена
         }
     }
 }

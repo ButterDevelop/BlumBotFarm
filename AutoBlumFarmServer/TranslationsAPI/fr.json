@@ -1,0 +1,150 @@
+[
+  {
+    "Mask": "#%MESSAGE_NO_SUCH_ACCOUNT%#",
+    "Text": "Aucun compte de ce type n'appartient à notre utilisateur."
+  },
+  {
+    "Mask": "#%MESSAGE_USERNAME_VALIDATION_FAILED%#",
+    "Text": "Échec de la validation. Utilisez 6 à 10 caractères alphanumériques."
+  },
+  {
+    "Mask": "#%MESSAGE_USERNAME_IS_OCCUPIED%#",
+    "Text": "Ce nom d'utilisateur est déjà pris par votre compte ou celui de quelqu'un d'autre."
+  },
+  {
+    "Mask": "#%MESSAGE_USERNAME_IS_AVAILABLE%#",
+    "Text": "Ce nom d'utilisateur est disponible pour votre compte."
+  },
+  {
+    "Mask": "#%MESSAGE_CUSTOM_USERNAME_VALIDATION_FAILED%#",
+    "Text": "Échec de la validation : Nom d'utilisateur personnalisé. Utilisez 6 à 10 caractères alphanumériques."
+  },
+  {
+    "Mask": "#%MESSAGE_BLUM_TELEGRAM_AUTH_VALIDATION_FAILED%#",
+    "Text": "Échec de la validation : Authentification Blum Telegram. Vérifiez votre chaîne."
+  },
+  {
+    "Mask": "#%MESSAGE_COUNTRY_CODE_VALIDATION_FAILED%#",
+    "Text": "Échec de la validation : Code pays. Aucun code pays de ce type."
+  },
+  {
+    "Mask": "#%MESSAGE_CANT_ADD_PROXY_TO_PROXY_SERVICE%#",
+    "Text": "Impossible d'ajouter le proxy au service proxy. Veuillez réessayer plus tard."
+  },
+  {
+    "Mask": "#%MESSAGE_CANT_GET_PROXY_FROM_PROXY_SERVICE%#",
+    "Text": "Impossible d'obtenir le proxy du service proxy. Veuillez réessayer plus tard."
+  },
+  {
+    "Mask": "#%MESSAGE_PROXY_SERVICE_RETURNED_WRONG_FORMAT%#",
+    "Text": "Le service proxy a retourné le proxy dans un format incorrect. Veuillez réessayer plus tard."
+  },
+  {
+    "Mask": "#%MESSAGE_ACCOUNT_WAS_UPDATED_SUCCESSFULLY%#",
+    "Text": "Le compte a été mis à jour avec succès."
+  },
+  {
+    "Mask": "#%MESSAGE_SOMETHING_WENT_WRONG%#",
+    "Text": "Une erreur s'est produite. Veuillez réessayer plus tard."
+  },
+  {
+    "Mask": "#%MESSAGE_SOMETHING_WENT_WRONG_WITH_TELEGRAM%#",
+    "Text": "Une erreur s'est produite avec Telegram. Veuillez réessayer plus tard."
+  },
+  {
+    "Mask": "#%MESSAGE_THE_TOPUP_BALANCE_INVOICE_WAS_SENT%#",
+    "Text": "La facture de recharge de votre solde vous a été envoyée."
+  },
+  {
+    "Mask": "#%MESSAGE_WRONG_NUMBER_SPECIFIED%#",
+    "Text": "Numéro incorrect spécifié."
+  },
+  {
+    "Mask": "#%MESSAGE_THE_AMOUNT_OF_STARS_IS_WRONG%#",
+    "Text": "Le nombre de slots spécifié est incorrect."
+  },
+  {
+    "Mask": "#%MESSAGE_NOT_ENOUGH_MONEY_ON_YOUR_BALANCE%#",
+    "Text": "Solde insuffisant."
+  },
+  {
+    "Mask": "#%MESSAGE_YOU_HAVE_BOUGHT_SLOTS_SUCCESSFULLY%#",
+    "Text": "Vous avez acheté avec succès {0} slot(s) !"
+  },
+  {
+    "Mask": "#%MESSAGE_REFERRAL_CODE_VALIDATION_FAILED%#",
+    "Text": "Échec de la validation. Code de parrainage : utilisez 10 caractères alphanumériques."
+  },
+  {
+    "Mask": "#%MESSAGE_YOUR_OWN_REFERRAL_CODE_WAS_UPDATED%#",
+    "Text": "Votre propre code de parrainage a été mis à jour avec succès."
+  },
+  {
+    "Mask": "#%MESSAGE_TRANSLATION_NOT_FOUND%#",
+    "Text": "Fichier de traduction non trouvé."
+  },
+  {
+    "Mask": "#%TELEGRAM_MESSAGE_WE_ARE_USING_ONLY_TELEGRAM_STARS%#",
+    "Text": "Nous sommes désolés, mais pour l'instant nous utilisons uniquement les étoiles Telegram comme méthode de paiement.\nSi vous souhaitez en discuter ou proposer d'autres moyens, veuillez utiliser la commande /feedback"
+  },
+  {
+    "Mask": "#%TELEGRAM_MESSAGE_AN_ERROR_WHILE_ORDERING_PLEASE_WAIT%#",
+    "Text": "Désolé, une erreur s'est produite lors du traitement de votre commande. Veuillez réessayer plus tard."
+  },
+  {
+    "Mask": "#%TELEGRAM_MESSAGE_YOUR_BALANCE_WAS_INCREASED%#",
+    "Text": "Votre solde a été <b>augmenté</b> avec succès de <b>{0}$</b>.\nMerci <b>beaucoup</b>!"
+  },
+  {
+    "Mask": "#%TELEGRAM_MESSAGE_YOUR_BALANCE_WAS_INCREASED_BY_REFERRAL%#",
+    "Text": "Votre solde a été <b>augmenté</b> avec succès de <b>{0}$</b>.\nCela s'est produit parce que votre parrain <b>{1}</b> a rechargé son solde ! Merci à lui !\nEt merci <b>beaucoup</b> à vous !"
+  },
+  {
+    "Mask": "#%TELEGRAM_MESSAGE_%#",
+    "Text": "Impossible de trouver le message auquel vous avez répondu dans la base de données."
+  },
+  {
+    "Mask": "#%TELEGRAM_MESSAGE_YOU_GOT_NEW_REPLY_ON_FEEDBACK%#",
+    "Text": "<b>Vous avez reçu une réponse à votre message !</b>\nMerci pour votre patience. Voici le message.\n<blockquote expandable>{0}</blockquote>"
+  },
+  {
+    "Mask": "#%TELEGRAM_BUTTON_TEXT_OPEN_MINI_APP%#",
+    "Text": "Ouvrir l'application Mini"
+  },
+  {
+    "Mask": "#%TELEGRAM_MESSAGE_HI_CLICK_BELOW_TO_OPEN_MINI_APP%#",
+    "Text": "Bonjour ! Cliquez sur le bouton ci-dessous pour ouvrir notre mini-application 💵"
+  },
+  {
+    "Mask": "#%TELEGRAM_MESSAGE_THANKS_WE_WILL_HELP_YOU%#",
+    "Text": "<b>Merci! Nous vous aiderons !</b>"
+  },
+  {
+    "Mask": "#%TELEGRAM_MESSAGE_THANKS_FOR_YOUR_FEEDBACK%#",
+    "Text": "<b>Merci pour votre retour !</b>"
+  },
+  {
+    "Mask": "#%TELEGRAM_MESSAGE_YOUR_MESSAGE_WAS_SUCCESSFULLY%#",
+    "Text": "\nVotre message nous a été envoyé avec succès !\nNous vous répondrons dès que possible. Vous recevrez le message dans cette discussion."
+  },
+  {
+    "Mask": "#%TELEGRAM_MESSAGE_YOUR_MESSAGE_IS_EMPTY%#",
+    "Text": "Votre message est <b>vide</b> !"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_OK%#",
+    "Text": "Tout va bien"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_UNAUTHORIZED%#",
+    "Text": "Authentification incorrecte"
+  },
+  {
+    "Mask": "#%JOB_AUTH_LOST_PLEASE_LOGIN_AND_UPDATE_IT%#",
+    "Text": "<b>L'un de vos comptes a perdu son authentification.</b>\nVeuillez utiliser l'application et vérifier ce qui se passe (et mettre à jour l'authentification)."
+  },
+  {
+    "Mask": "#%baza%#",
+    "Text": ""
+  }
+]

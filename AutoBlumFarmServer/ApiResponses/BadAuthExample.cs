@@ -8,7 +8,7 @@ namespace AutoBlumFarmServer.ApiResponses
         {
             yield return SwaggerExample.Create("Unauthorized", new ApiMessageResponse()
             {
-                ok = true,
+                ok      = true,
                 message = "No auth."
             });
         }

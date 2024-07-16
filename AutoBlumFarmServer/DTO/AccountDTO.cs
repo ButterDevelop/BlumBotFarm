@@ -14,5 +14,6 @@
         public bool   TookDailyReward { get; set; }
         public string NearestWorkIn   { get; set; } = string.Empty;
         public string CountryCode     { get; set; } = string.Empty;
+        public string LastStatus      { get; set; } = string.Empty;
     }
 }

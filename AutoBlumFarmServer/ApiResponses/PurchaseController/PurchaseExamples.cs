@@ -1,6 +1,6 @@
 ﻿using AutoBlumFarmServer.Model;
+using BlumBotFarm.Translation;
 using Swashbuckle.AspNetCore.Filters;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AutoBlumFarmServer.ApiResponses.PurchaseController
 {
@@ -11,7 +11,10 @@ namespace AutoBlumFarmServer.ApiResponses.PurchaseController
             yield return SwaggerExample.Create("Successful buy", new ApiMessageResponse
             {
                 ok      = true,
-                message = "You have bought 1 slot successfully!"
+                message = string.Format(
+                              TranslationHelper.Instance.Translate(TranslationHelper.DEFAULT_LANG_CODE, 
+                              "#%MESSAGE_YOU_HAVE_BOUGHT_SLOTS_SUCCESSFULLY%#"),
+                          10)
             });
         }
     }
@@ -23,12 +26,12 @@ namespace AutoBlumFarmServer.ApiResponses.PurchaseController
             yield return SwaggerExample.Create("Wrong amount number", new ApiMessageResponse
             {
                 ok      = false,
-                message = "The amount of slots you specified is wrong."
+                message = TranslationHelper.Instance.Translate(TranslationHelper.DEFAULT_LANG_CODE, "#%MESSAGE_THE_AMOUNT_OF_STARS_IS_WRONG%#")
             });
             yield return SwaggerExample.Create("Not enough money", new ApiMessageResponse
             {
                 ok      = false,
-                message = "Not enough money on your balance."
+                message = TranslationHelper.Instance.Translate(TranslationHelper.DEFAULT_LANG_CODE, "#%MESSAGE_NOT_ENOUGH_MONEY_ON_YOUR_BALANCE%#")
             });
         }
     }
@@ -56,7 +59,7 @@ namespace AutoBlumFarmServer.ApiResponses.PurchaseController
             yield return SwaggerExample.Create("Wrong amount number", new ApiMessageResponse
             {
                 ok      = false,
-                message = "The amount of slots you specified is wrong."
+                message = TranslationHelper.Instance.Translate(TranslationHelper.DEFAULT_LANG_CODE, "#%MESSAGE_THE_AMOUNT_OF_STARS_IS_WRONG%#")
             });
         }
     }
