@@ -140,6 +140,10 @@
     "Text": "Noto‘g‘ri autentifikatsiya"
   },
   {
+    "Mask": "#%JOB_LAST_STATUS_PROXY_PROBLEM%#",
+    "Text": "Proksi muammolari"
+  },
+  {
     "Mask": "#%JOB_AUTH_LOST_PLEASE_LOGIN_AND_UPDATE_IT%#",
     "Text": "<b>Hisoblaringizdan biri autentifikatsiyani yo‘qotdi.</b>\nIltimos, ilovani ishlating va nimalar bo‘lganini tekshiring (va autentifikatsiyani yangilang)."
   },

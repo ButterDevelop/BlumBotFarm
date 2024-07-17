@@ -140,6 +140,10 @@
     "Text": "مصادقة خاطئة"
   },
   {
+    "Mask": "#%JOB_LAST_STATUS_PROXY_PROBLEM%#",
+    "Text": "مشاكل البروكسي"
+  },
+  {
     "Mask": "#%JOB_AUTH_LOST_PLEASE_LOGIN_AND_UPDATE_IT%#",
     "Text": "<b>أحد حساباتك فقد المصادقة.</b>\nيرجى استخدام التطبيق والتحقق من الوضع (وتحديث المصادقة)."
   },

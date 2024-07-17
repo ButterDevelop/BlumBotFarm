@@ -110,8 +110,12 @@ namespace BlumBotFarm.Scheduler.Jobs
                     );
 
                     account.LastStatus = TranslationHelper.Instance.Translate(user.LanguageCode, "#%JOB_LAST_STATUS_UNAUTHORIZED%#");
-                    accountRepository.Update(account);
                 }
+                else
+                {
+                    account.LastStatus = TranslationHelper.Instance.Translate(user.LanguageCode, "#%JOB_LAST_STATUS_PROXY_PROBLEM%#");
+                }
+                accountRepository.Update(account);
 
                 isAuthGood = false;
             }
@@ -250,6 +254,9 @@ namespace BlumBotFarm.Scheduler.Jobs
                     var startDate = DateTime.Now.AddMinutes(random.Next(EarningCheckJob.MIN_MINUTES_TO_WAIT, EarningCheckJob.MAX_MINUTES_TO_WAIT + 1));
                     await TaskScheduler.ScheduleEarningJob(taskScheduler, accountId, gotBalance, "ClaimFarming", startDate);
                 }
+
+                account.LastStatus = TranslationHelper.Instance.Translate(user.LanguageCode, "#%JOB_LAST_STATUS_OK%#");
+                accountRepository.Update(account);
             }
 
             if (isPlanned && task != null)
@@ -290,9 +297,6 @@ namespace BlumBotFarm.Scheduler.Jobs
                 task.NextRunTime = nextRunTime;
                 taskRepository.Update(task);
             }
-
-            account.LastStatus = TranslationHelper.Instance.Translate(user.LanguageCode, "#%JOB_LAST_STATUS_OK%#");
-            accountRepository.Update(account);
 
             Log.Information($"Daily Check Job is done for an account with Id: {account.Id}, " +
                             $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
