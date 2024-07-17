@@ -33,7 +33,9 @@ namespace AutoBlumFarmServer
         public string  SERVER_DOMAIN                  => _configuration["ServerDomain"] ?? "";
         public string  PROXY_SELLER_API_KEY           => _configuration["ProxySellerAPIKey"] ?? "";
         public int     REFERRAL_BALANCE_BONUS_PERCENT => _configuration.GetValue("Referral:BalanceBonusPercent", 10);
-        public decimal ACCOUNT_SLOT_PRICE             => _configuration.GetValue("AccountSlotPrice", 0.99M);
+        public decimal MAX_SLOT_PRICE                 => _configuration.GetValue("Prices:MaxSlotPrice",  0.99M);
+        public decimal MIN_SLOT_PRICE                 => _configuration.GetValue("Prices:MinSlotPrice",  0.49M);
+        public decimal STEP_SLOT_PRICE                => _configuration.GetValue("Prices:StepSlotPrice", 0.05M);
         public string  DEFAULT_AVATAR_PATH            => _configuration["DefaultAvatarPath"] ?? "defaultAvatar.png";
 
         public Dictionary<string, (string countryName, int timezoneOffset)> GEO_PROXY_SELLER = [];

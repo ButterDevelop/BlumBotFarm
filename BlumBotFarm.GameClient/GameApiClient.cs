@@ -531,7 +531,7 @@ namespace BlumBotFarm.GameClient
             }
         }
 
-        public (ApiResponse response, bool canClaim, long canClaimAt, string referralToken, int referralsCount) FriendsBalance(Account account)
+        public (ApiResponse response, bool canClaim, string referralToken, int referralsCount) FriendsBalance(Account account)
         {
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
@@ -546,13 +546,13 @@ namespace BlumBotFarm.GameClient
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
                 Log.Error($"GameApiClient FriendsBalance (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) responseStatusCode - Unauthorized!");
-                return (ApiResponse.Unauthorized, false, 0, string.Empty, 0);
+                return (ApiResponse.Unauthorized, false, string.Empty, 0);
             }
 
             if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
             {
                 Log.Error($"GameApiClient FriendsBalance (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) JSON answer: {jsonAnswer}");
-                return (ApiResponse.Error, false, 0, string.Empty, 0);
+                return (ApiResponse.Error, false, string.Empty, 0);
             }
 
             try
@@ -561,18 +561,16 @@ namespace BlumBotFarm.GameClient
 
                 bool   canClaim             = json.canClaim;
                 string referralToken        = json.referralToken;
-                string canClaimAtString     = json.canClaimAt;
                 string referralsCountString = json.usedInvitation;
 
-                long canClaimAt     = long.Parse(canClaimAtString);
                 int  referralsCount = int.Parse(referralsCountString);
 
-                return (ApiResponse.Success, canClaim, canClaimAt, referralToken, referralsCount);
+                return (ApiResponse.Success, canClaim, referralToken, referralsCount);
             }
             catch (Exception ex)
             {
                 Log.Error($"GameApiClient FriendsBalance (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) Exception: {ex}, JSON answer: {jsonAnswer}");
-                return (ApiResponse.Error, false, 0, string.Empty, 0);
+                return (ApiResponse.Error, false, string.Empty, 0);
             }
         }
 

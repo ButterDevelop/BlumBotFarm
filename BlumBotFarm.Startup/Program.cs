@@ -45,6 +45,7 @@ namespace BlumBotFarm.Startup
                 adminTelegramBot.Start();
 
                 var messageProcessor = new MessageProcessor.MessageProcessor(adminBotClient, userBotClient, adminUsernames, adminChatIds, new CancellationToken());
+                MessageProcessor.MessageProcessor.Instance = messageProcessor;
                 await Task.Factory.StartNew(messageProcessor.StartAsync);
 
                 Log.Information("Started Admin Telegram bot and Message processor.");

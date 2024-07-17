@@ -8,6 +8,7 @@ using BlumBotFarm.Database.Repositories;
 using BlumBotFarm.Translation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Quartz.Impl.Triggers;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
 
@@ -24,9 +25,25 @@ namespace AutoBlumFarmServer.Controllers
 
         public PurchaseController(AccountRepository accountRepository, TaskRepository taskRepository, UserRepository userRepository)
         {
-            _accountRepository = accountRepository;
-            _taskRepository    = taskRepository;
-            _userRepository    = userRepository;
+            _accountRepository      = accountRepository;
+            _taskRepository         = taskRepository;
+            _userRepository         = userRepository;
+        }
+
+        private decimal GetNextSlotPriceByNumber(int currentSlotAmount)
+        {
+            decimal supposedPrice = Config.Instance.MAX_SLOT_PRICE - ((currentSlotAmount + 1) * Config.Instance.STEP_SLOT_PRICE);
+            return supposedPrice >= Config.Instance.MIN_SLOT_PRICE ? supposedPrice : Config.Instance.MIN_SLOT_PRICE;
+        }
+
+        private decimal GetNextSeveralSlotsPrice(int currentSlotAmount, int wantedAmount)
+        {
+            decimal result = 0;
+            for (int i = 0; i < wantedAmount; i++)
+            {
+                result += GetNextSlotPriceByNumber(currentSlotAmount + i);
+            }
+            return result;
         }
 
         // POST: api/Purchase/PreBuyAccountsSlots
@@ -50,7 +67,7 @@ namespace AutoBlumFarmServer.Controllers
                 message = "No auth."
             });
 
-            if (model.amount <= 0)
+            if (model.amount <= 0 || model.amount > 1000)
             {
                 return BadRequest(new ApiMessageResponse
                 {
@@ -59,7 +76,8 @@ namespace AutoBlumFarmServer.Controllers
                 });
             }
 
-            decimal priceUsd = model.amount * Config.Instance.ACCOUNT_SLOT_PRICE;
+            var currentSlotsAmount = _accountRepository.GetAll().Where(a => a.UserId == invoker.Id).Count();
+            decimal priceUsd = GetNextSeveralSlotsPrice(currentSlotsAmount, model.amount);
 
             return Ok(new ApiObjectResponse<PreBuyAccountsSlotsOutputModel>
             {
@@ -67,7 +85,7 @@ namespace AutoBlumFarmServer.Controllers
                 data = new()
                 {
                     price    = priceUsd,
-                    discount = 0M
+                    discount = (model.amount * Config.Instance.MAX_SLOT_PRICE) - priceUsd
                 }
             });
         }
@@ -93,7 +111,7 @@ namespace AutoBlumFarmServer.Controllers
                 message = "No auth."
             });
 
-            if (model.amount <= 0)
+            if (model.amount <= 0 || model.amount > 1000)
             {
                 return BadRequest(new ApiMessageResponse
                 {
@@ -102,9 +120,10 @@ namespace AutoBlumFarmServer.Controllers
                 });
             }
 
-            decimal wholePrice = model.amount * Config.Instance.ACCOUNT_SLOT_PRICE;
+            var currentSlotsAmount = _accountRepository.GetAll().Where(a => a.UserId == invoker.Id).Count();
+            decimal priceUsd = GetNextSeveralSlotsPrice(currentSlotsAmount, model.amount);
 
-            if (invoker.BalanceUSD - wholePrice < 0)
+            if (invoker.BalanceUSD - priceUsd < 0)
             {
                 return BadRequest(new ApiMessageResponse
                 {
@@ -113,7 +132,7 @@ namespace AutoBlumFarmServer.Controllers
                 });
             }
 
-            invoker.BalanceUSD -= wholePrice;
+            invoker.BalanceUSD -= priceUsd;
             _userRepository.Update(invoker);
 
             var startAt = DateTime.Now.AddDays(1);

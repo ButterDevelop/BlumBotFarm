@@ -4,7 +4,6 @@ using BlumBotFarm.GameClient;
 using BlumBotFarm.Translation;
 using Quartz;
 using Serilog;
-using System.Runtime.CompilerServices;
 
 namespace BlumBotFarm.Scheduler.Jobs
 {
@@ -201,7 +200,7 @@ namespace BlumBotFarm.Scheduler.Jobs
                 Log.Information($"Daily Check Job, ended working with tasks for an account with Id: {account.Id}, " +
                                 $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
 
-                (ApiResponse responseFriendsBalance, bool canClaim, long canClaimAt, string referralToken, int referralsCount) 
+                (ApiResponse responseFriendsBalance, bool canClaim, string referralToken, int referralsCount) 
                     = gameApiClient.FriendsBalance(account);
                 if (responseFriendsBalance == ApiResponse.Success)
                 {
@@ -209,7 +208,7 @@ namespace BlumBotFarm.Scheduler.Jobs
                     account.ReferralLink   = REFERRAL_LINK_PREFIX + referralToken;
                     accountRepository.Update(account);
 
-                    Log.Information($"Daily Check Job, got friends balance (canClaim: {canClaim}, canClaimAt: {canClaimAt}, " +
+                    Log.Information($"Daily Check Job, got friends balance (canClaim: {canClaim}, " +
                                     $"referralToken: {referralToken}, referralsCount: {referralsCount}) for an account Id: {account.Id}, " +
                                     $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
                 }
