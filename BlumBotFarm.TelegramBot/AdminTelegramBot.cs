@@ -16,7 +16,7 @@ namespace BlumBotFarm.TelegramBot
 {
     public class AdminTelegramBot
     {
-        private readonly TelegramBotClient botClient;
+        private readonly ITelegramBotClient botClient;
         private readonly string[] adminUsernames;
         private readonly long[]   adminChatIds;
         private readonly AccountRepository     accountRepository;

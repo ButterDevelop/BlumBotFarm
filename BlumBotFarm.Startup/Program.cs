@@ -1,4 +1,5 @@
 ﻿using BlumBotFarm.Core;
+using BlumBotFarm.Translation;
 using Serilog;
 using Telegram.Bot;
 using TaskScheduler = BlumBotFarm.Scheduler.TaskScheduler;
@@ -50,6 +51,9 @@ namespace BlumBotFarm.Startup
 
                 Log.Information("Started Admin Telegram bot and Message processor.");
             }
+
+            Log.Information("Let's test Translation Helper on #%MESSAGE_THE_TOPUP_BALANCE_INVOICE_WAS_SENT%#: " + 
+                TranslationHelper.Instance.Translate(TranslationHelper.DEFAULT_LANG_CODE, "#%MESSAGE_THE_TOPUP_BALANCE_INVOICE_WAS_SENT%#"));
 
             // Starting Auto Account Starter
             var autoAccountStarter = new AutoAccountStarter.AutoAccountStarter(new CancellationToken());

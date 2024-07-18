@@ -8,8 +8,8 @@ namespace BlumBotFarm.MessageProcessor
     {
         public static MessageProcessor? Instance { get; set; }
 
-        private readonly TelegramBotClient _adminTelegramBotClient;
-        private readonly TelegramBotClient _userTelegramBotClient;
+        private readonly ITelegramBotClient _adminTelegramBotClient;
+        private readonly ITelegramBotClient _userTelegramBotClient;
         private readonly string[]          _adminUsernames;
         private readonly long[]            _adminChatIds;
         private readonly CancellationToken _cancellationToken;

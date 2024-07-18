@@ -21,7 +21,7 @@ namespace AutoBlumFarmServer.Controllers
         private readonly UserRepository         _userRepository;
         private readonly StarsPaymentRepository _starsPaymentRepository;
         private readonly ReferralRepository     _referralRepository;
-        private readonly TelegramBotClient      _telegramBotClient;
+        private readonly ITelegramBotClient     _telegramBotClient;
 
         public PaymentTransactionController(UserRepository         userRepository,
                                             StarsPaymentRepository starsPaymentRepository, 

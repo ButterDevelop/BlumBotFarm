@@ -1,10 +1,11 @@
 ﻿using Newtonsoft.Json;
+using Serilog;
 
 namespace BlumBotFarm.Translation
 {
     public class TranslationHelper
     {
-        public static TranslationHelper Instance = new();
+        public readonly static TranslationHelper Instance = new();
 
         public const string DEFAULT_LANG_CODE = "en";
 
@@ -33,10 +34,19 @@ namespace BlumBotFarm.Translation
                             if (!localTranslator.ContainsKey(item.Mask)) localTranslator.Add(item.Mask, item.Text);
                         }
 
-                        string langCode = file.Replace(".json", "").Replace(directoryName + "\\", "");
+                        string langCode = file.Replace(".json", "").Replace(directoryName + Path.DirectorySeparatorChar, "");
                         _translator.Add(langCode, localTranslator);
                     }
                 }
+            }
+            
+            if (!Directory.Exists(directoryName) || _translator.Count == 0 || _translator.Keys.Select(k => k.Length).Any(l => l > 3))
+            {
+                Log.Error("Translation Helper: can't find TranslationsAPI folder!!!");
+            }
+            else
+            {
+                Log.Information("Translation Helper was loaded successfully.");
             }
         }
 
