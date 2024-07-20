@@ -8,6 +8,7 @@ namespace BlumBotFarm.Database
     public static class Database
     {
         private static readonly string ConnectionString = AppConfig.DatabaseSettings.ConnectionString ?? "Data Source=blumbotfarmDefault.db";
+        private static readonly IDbConnection _connection = new SqliteConnection(ConnectionString);
 
         public static void Initialize()
         {
@@ -135,7 +136,8 @@ namespace BlumBotFarm.Database
 
         public static IDbConnection GetConnection()
         {
-            return new SqliteConnection(ConnectionString);
+            //return new SqliteConnection(ConnectionString);
+            return _connection;
         }
     }
 }

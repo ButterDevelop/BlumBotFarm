@@ -22,17 +22,15 @@ namespace BlumBotFarm.Scheduler.Jobs
 
         public DailyCheckJob()
         {
-            gameApiClient = new GameApiClient();
-            using (var db = Database.Database.GetConnection())
-            {
-                accountRepository     = new AccountRepository(db);
-                taskRepository        = new TaskRepository(db);
-                messageRepository     = new MessageRepository(db);
-                earningRepository     = new EarningRepository(db);
-                dailyRewardRepository = new DailyRewardRepository(db);
-                userRepository        = new UserRepository(db);
-            }
-            taskScheduler = new TaskScheduler();
+            gameApiClient         = new GameApiClient();
+            var db                = Database.Database.GetConnection();
+            accountRepository     = new AccountRepository(db);
+            taskRepository        = new TaskRepository(db);
+            messageRepository     = new MessageRepository(db);
+            earningRepository     = new EarningRepository(db);
+            dailyRewardRepository = new DailyRewardRepository(db);
+            userRepository        = new UserRepository(db);
+            taskScheduler         = new TaskScheduler();
         }
 
         public async System.Threading.Tasks.Task Execute(IJobExecutionContext context)
@@ -92,13 +90,13 @@ namespace BlumBotFarm.Scheduler.Jobs
                 Log.Error($"Daily Check Job, GameApiUtilsService.AuthCheck: UNABLE TO REAUTH! Account with Id: {account.Id}, " +
                           $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
 
-                MessageProcessor.MessageProcessor.Instance?.SendMessageToAdminsInQueue(
-                    "<b>UNABLE TO REAUTH!</b>\nDaily Check Job!\n" +
-                    $"Account with Id: <code>{account.Id}</code>, Custom Username: <code>{account.CustomUsername}</code>, " +
-                    $"Blum Username: <code>{account.BlumUsername}</code>" +
-                    (authCheckResult == ApiResponse.Error ? "\nIt is probably because of proxy." : ""),
-                    isSilent: authCheckResult == ApiResponse.Error
-                );
+                //MessageProcessor.MessageProcessor.Instance?.SendMessageToAdminsInQueue(
+                //    "<b>UNABLE TO REAUTH!</b>\nDaily Check Job!\n" +
+                //    $"Account with Id: <code>{account.Id}</code>, Custom Username: <code>{account.CustomUsername}</code>, " +
+                //    $"Blum Username: <code>{account.BlumUsername}</code>" +
+                //    (authCheckResult == ApiResponse.Error ? "\nIt is probably because of proxy." : ""),
+                //    isSilent: authCheckResult == ApiResponse.Error
+                //);
 
                 if (authCheckResult == ApiResponse.Unauthorized)
                 {

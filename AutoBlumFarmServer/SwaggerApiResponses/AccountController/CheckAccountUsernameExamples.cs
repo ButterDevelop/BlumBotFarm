@@ -1,7 +1,7 @@
 ﻿using BlumBotFarm.Translation;
 using Swashbuckle.AspNetCore.Filters;
 
-namespace AutoBlumFarmServer.ApiResponses.AccountController
+namespace AutoBlumFarmServer.SwaggerApiResponses.AccountController
 {
     public class CheckAccountUsernameOkExample : IMultipleExamplesProvider<ApiMessageResponse>
     {

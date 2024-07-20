@@ -2,7 +2,7 @@
 using BlumBotFarm.Translation;
 using Swashbuckle.AspNetCore.Filters;
 
-namespace AutoBlumFarmServer.ApiResponses.PurchaseController
+namespace AutoBlumFarmServer.SwaggerApiResponses.PurchaseController
 {
     public class BuyAccountsSlotsOkExample : IMultipleExamplesProvider<ApiMessageResponse>
     {

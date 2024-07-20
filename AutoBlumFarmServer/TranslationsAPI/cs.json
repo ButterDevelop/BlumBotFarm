@@ -148,6 +148,34 @@
     "Text": "<b>Jeden z vašich účtů ztratil autorizaci.</b>\nProsím, použijte aplikaci a zkontrolujte, co se děje (a aktualizujte autorizaci)."
   },
   {
+    "Mask": "#%TELEGRAM_BUTTON_TEXT_OPEN_CHANNEL%#",
+    "Text": "Připojte se k našemu kanálu pro návody a novinky!"
+  },
+  {
+    "Mask": "#%TELEGRAM_INVOICE_TITLE%#",
+    "Text": "Vklad na účet!"
+  },
+  {
+    "Mask": "#%TELEGRAM_INVOICE_DESCRIPTION%#",
+    "Text": "Váš zůstatek bude navýšen o {0}$. Velký dík, že jste si vybrali nás!"
+  },
+  {
+    "Mask": "#%TELEGRAM_INVOICE_PRICE_LABEL%#",
+    "Text": "Dobít zůstatek!"
+  },
+  {
+    "Mask": "#%MESSAGE_THE_PRICE_USD_IS_WRONG%#",
+    "Text": "Cena v USD, kterou jste zadali, je nesprávná nebo příliš vysoká pro jednu platbu."
+  },
+  {
+    "Mask": "#%MESSAGE_LANGUAGE_WAS_CHANGED_SUCCESSFULLY%#",
+    "Text": "Váš jazyk byl úspěšně změněn!"
+  },
+  {
+    "Mask": "#%MESSAGE_LANGUAGE_NOT_FOUND%#",
+    "Text": "Jazyk, který jste zadali, nebyl nalezen!"
+  },
+  {
     "Mask": "#%baza%#",
     "Text": ""
   }

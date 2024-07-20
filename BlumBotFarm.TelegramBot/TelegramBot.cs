@@ -30,25 +30,25 @@ namespace BlumBotFarm.TelegramBot
         private readonly string                    serverDomain;
         private readonly string                    publicBotName;
         private readonly long                      techSupportGroupChatId;
+        private readonly string                    telegramChannelName;
 
-        public TelegramBot(string token, string[] adminUsernames, long[] adminChatIds, double starPriceUsd, 
-                           int referralBalanceBonusPercent, string serverDomain, string publicBotName, long techSupportGroupChatId)
+        public TelegramBot(string token, string[] adminUsernames, long[] adminChatIds, double starPriceUsd, int referralBalanceBonusPercent,
+                           string serverDomain, string publicBotName, long techSupportGroupChatId, string telegramChannelName)
         {
             botClient           = new TelegramBotClient(token);
             this.adminUsernames = adminUsernames;
             this.adminChatIds   = adminChatIds;
             this.starPriceUsd   = starPriceUsd;
-            using (var db = Database.Database.GetConnection())
-            {
-                userRepository            = new UserRepository(db);
-                starsPaymentRepository    = new StarsPaymentRepository(db);
-                referralRepository        = new ReferralRepository(db);
-                feedbackMessageRepository = new FeedbackMessageRepository(db);
-            }
+            var db = Database.Database.GetConnection();
+            userRepository            = new UserRepository(db);
+            starsPaymentRepository    = new StarsPaymentRepository(db);
+            referralRepository        = new ReferralRepository(db);
+            feedbackMessageRepository = new FeedbackMessageRepository(db);
             this.referralBalanceBonusPercent = referralBalanceBonusPercent;
             this.serverDomain                = serverDomain;
             this.publicBotName               = publicBotName;
             this.techSupportGroupChatId      = techSupportGroupChatId;
+            this.telegramChannelName         = telegramChannelName;
         }
 
         public void Start()
@@ -341,7 +341,7 @@ namespace BlumBotFarm.TelegramBot
                         {
                             var hostReferralCode = parts[1];
 
-                            var hostUser     = users.FirstOrDefault(u => u.OwnReferralCode == hostReferralCode && u.Id != user.Id);
+                            var hostUser = users.FirstOrDefault(u => u.OwnReferralCode == hostReferralCode && u.Id != user.Id);
                             if (hostUser != null)
                             {
                                 var referralUser = referralRepository.GetAll().FirstOrDefault(u => u.DependentUserId == user.Id);
@@ -359,11 +359,17 @@ namespace BlumBotFarm.TelegramBot
 
                         var inlineKeyboard = new InlineKeyboardMarkup(new[]
                         {
-                            new[]
-                            {
+                            [
                                 InlineKeyboardButton.WithWebApp(
                                     TranslationHelper.Instance.Translate(langCode, "#%TELEGRAM_BUTTON_TEXT_OPEN_MINI_APP%#"),
                                     new WebAppInfo { Url = serverDomain }
+                                )
+                            ],
+                            new[]
+                            {
+                                InlineKeyboardButton.WithUrl(
+                                    TranslationHelper.Instance.Translate(langCode, "#%TELEGRAM_BUTTON_TEXT_OPEN_CHANNEL%#"),
+                                    new WebAppInfo { Url = "https://t.me/" + telegramChannelName }
                                 )
                             }
                         });
@@ -372,7 +378,7 @@ namespace BlumBotFarm.TelegramBot
                             message.Chat,
                             TranslationHelper.Instance.Translate(langCode, "#%TELEGRAM_MESSAGE_HI_CLICK_BELOW_TO_OPEN_MINI_APP%#"),
                             replyMarkup: inlineKeyboard,
-                            parseMode: ParseMode.Html
+                            parseMode:   ParseMode.Html
                         );
                         break;
                     case "/feedback":

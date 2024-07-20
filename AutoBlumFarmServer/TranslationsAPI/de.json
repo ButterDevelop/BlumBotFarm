@@ -148,6 +148,34 @@
     "Text": "<b>Einer Ihrer Konten hat die Authentifizierung verloren.</b>\nBitte verwenden Sie die App und überprüfen Sie, was los ist (und aktualisieren Sie die Authentifizierung)."
   },
   {
+    "Mask": "#%TELEGRAM_BUTTON_TEXT_OPEN_CHANNEL%#",
+    "Text": "Treten Sie unserem Kanal für Anleitungen und Neuigkeiten bei!"
+  },
+  {
+    "Mask": "#%TELEGRAM_INVOICE_TITLE%#",
+    "Text": "Guthabeneinzahlung!"
+  },
+  {
+    "Mask": "#%TELEGRAM_INVOICE_DESCRIPTION%#",
+    "Text": "Ihr Guthaben wird um {0}$ erhöht. Vielen Dank, dass Sie sich für uns entschieden haben!"
+  },
+  {
+    "Mask": "#%TELEGRAM_INVOICE_PRICE_LABEL%#",
+    "Text": "Guthaben aufladen!"
+  },
+  {
+    "Mask": "#%MESSAGE_THE_PRICE_USD_IS_WRONG%#",
+    "Text": "Der von Ihnen angegebene USD-Preis ist falsch oder zu hoch für eine Zahlung."
+  },
+  {
+    "Mask": "#%MESSAGE_LANGUAGE_WAS_CHANGED_SUCCESSFULLY%#",
+    "Text": "Ihre Sprache wurde erfolgreich geändert!"
+  },
+  {
+    "Mask": "#%MESSAGE_LANGUAGE_NOT_FOUND%#",
+    "Text": "Die von Ihnen angegebene Sprache wurde nicht gefunden!"
+  },
+  {
     "Mask": "#%baza%#",
     "Text": ""
   }

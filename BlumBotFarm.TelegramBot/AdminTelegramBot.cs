@@ -31,14 +31,12 @@ namespace BlumBotFarm.TelegramBot
             this.botClient      = botClient;
             this.adminUsernames = adminUsernames;
             this.adminChatIds   = adminChatIds;
-            using (var db = Database.Database.GetConnection())
-            {
-                accountRepository     = new AccountRepository(db);
-                taskRepository        = new TaskRepository(db);
-                earningRepository     = new EarningRepository(db);
-                dailyRewardRepository = new DailyRewardRepository(db);
-                userRepository        = new UserRepository(db);
-            }
+            var db = Database.Database.GetConnection();
+            accountRepository     = new AccountRepository(db);
+            taskRepository        = new TaskRepository(db);
+            earningRepository     = new EarningRepository(db);
+            dailyRewardRepository = new DailyRewardRepository(db);
+            userRepository        = new UserRepository(db);
             taskScheduler = new TaskScheduler();
         }
 

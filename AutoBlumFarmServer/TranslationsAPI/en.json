@@ -148,6 +148,34 @@
     "Text": "<b>One of your accounts has lost their auth.</b>\nPlease, use the app and check what's up (and update the auth)."
   },
   {
+    "Mask": "#%TELEGRAM_BUTTON_TEXT_OPEN_CHANNEL%#",
+    "Text": "Join our channel for guides and news!"
+  },
+  {
+    "Mask": "#%TELEGRAM_INVOICE_TITLE%#",
+    "Text": "Balance deposit!"
+  },
+  {
+    "Mask": "#%TELEGRAM_INVOICE_DESCRIPTION%#",
+    "Text": "Your balance will be increased by {0}$. Big thanks to you for choosing us!"
+  },
+  {
+    "Mask": "#%TELEGRAM_INVOICE_PRICE_LABEL%#",
+    "Text": "Top Up Balance!"
+  },
+  {
+    "Mask": "#%MESSAGE_THE_PRICE_USD_IS_WRONG%#",
+    "Text": "The USD price you specified is wrong or too big for one payment."
+  },
+  {
+    "Mask": "#%MESSAGE_LANGUAGE_WAS_CHANGED_SUCCESSFULLY%#",
+    "Text": "Your language was changed successfully!"
+  },
+  {
+    "Mask": "#%MESSAGE_LANGUAGE_NOT_FOUND%#",
+    "Text": "The language you specified was not found!"
+  },
+  {
     "Mask": "#%baza%#",
     "Text": ""
   }

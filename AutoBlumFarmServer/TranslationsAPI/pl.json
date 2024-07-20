@@ -148,6 +148,34 @@
     "Text": "<b>Jedno z Twoich kont straciło autoryzację.</b>\nProszę, użyj aplikacji i sprawdź, co się dzieje (i zaktualizuj autoryzację)."
   },
   {
+    "Mask": "#%TELEGRAM_BUTTON_TEXT_OPEN_CHANNEL%#",
+    "Text": "Dołącz do naszego kanału, aby uzyskać poradniki i wiadomości!"
+  },
+  {
+    "Mask": "#%TELEGRAM_INVOICE_TITLE%#",
+    "Text": "Wpłata na saldo!"
+  },
+  {
+    "Mask": "#%TELEGRAM_INVOICE_DESCRIPTION%#",
+    "Text": "Twój saldo zostanie zwiększone o {0}$. Bardzo dziękujemy za wybranie nas!"
+  },
+  {
+    "Mask": "#%TELEGRAM_INVOICE_PRICE_LABEL%#",
+    "Text": "Doładuj saldo!"
+  },
+  {
+    "Mask": "#%MESSAGE_THE_PRICE_USD_IS_WRONG%#",
+    "Text": "Podana przez Ciebie cena w USD jest nieprawidłowa lub zbyt wysoka na jedną płatność."
+  },
+  {
+    "Mask": "#%MESSAGE_LANGUAGE_WAS_CHANGED_SUCCESSFULLY%#",
+    "Text": "Twój język został pomyślnie zmieniony!"
+  },
+  {
+    "Mask": "#%MESSAGE_LANGUAGE_NOT_FOUND%#",
+    "Text": "Nie znaleziono języka, który określiłeś!"
+  },
+  {
     "Mask": "#%baza%#",
     "Text": ""
   }

@@ -7,8 +7,6 @@ namespace BlumBotFarm.Database.Repositories
 {
     public class UserRepository : IRepository<User>
     {
-        private static readonly object dbLock = new();
-
         private readonly IDbConnection _db;
 
         public UserRepository(IDbConnection db)
@@ -18,7 +16,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public IEnumerable<User> GetAll()
         {
-            lock (dbLock)
+            lock (_db)
             {
                 return _db.Query<User>("SELECT * FROM Users").ToList();
             }
@@ -26,7 +24,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public User? GetById(int id)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 return _db.QuerySingleOrDefault<User>("SELECT * FROM Users WHERE Id = @Id", new { Id = id });
             }
@@ -34,7 +32,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public int Add(User user)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = "INSERT INTO Users " +
                             "(TelegramUserId, FirstName, LastName, BalanceUSD, IsBanned, LanguageCode, OwnReferralCode, CreatedAt) VALUES " +
@@ -46,7 +44,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public void Update(User user)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = "UPDATE Users SET TelegramUserId = @TelegramUserId, FirstName = @FirstName, LastName = @LastName, BalanceUSD = @BalanceUSD, IsBanned = @IsBanned, LanguageCode = @LanguageCode, OwnReferralCode = @OwnReferralCode, CreatedAt = @CreatedAt WHERE Id = @Id";
                 _db.Execute(sql, user);
@@ -55,7 +53,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public void Delete(int id)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = "DELETE FROM Users WHERE Id = @Id";
                 _db.Execute(sql, new { Id = id });

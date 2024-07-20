@@ -7,8 +7,6 @@ namespace BlumBotFarm.Database.Repositories
 {
     public class DailyRewardRepository : IRepository<DailyReward>
     {
-        private static readonly object dbLock = new();
-
         private readonly IDbConnection _db;
 
         public DailyRewardRepository(IDbConnection db)
@@ -18,7 +16,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public IEnumerable<DailyReward> GetAll()
         {
-            lock (dbLock)
+            lock (_db)
             {
                 return _db.Query<DailyReward>("SELECT * FROM DailyRewards").ToList();
             }
@@ -26,7 +24,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public DailyReward? GetById(int id)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 return _db.QuerySingleOrDefault<DailyReward>("SELECT * FROM DailyRewards WHERE Id = @Id", new { Id = id });
             }
@@ -34,7 +32,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public int Add(DailyReward dailyReward)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = @"INSERT INTO DailyRewards (
                                 AccountId,
@@ -49,7 +47,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public void Update(DailyReward dailyReward)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = @"UPDATE DailyRewards SET
                                 AccountId = @AccountId,
@@ -61,7 +59,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public void Delete(int id)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = "DELETE FROM DailyRewards WHERE Id = @Id";
                 _db.Execute(sql, new { Id = id });

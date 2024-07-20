@@ -7,8 +7,6 @@ namespace BlumBotFarm.Database.Repositories
 {
     public class StarsPaymentRepository : IRepository<StarsPayment>
     {
-        private static readonly object dbLock = new();
-
         private readonly IDbConnection _db;
 
         public StarsPaymentRepository(IDbConnection db)
@@ -18,25 +16,25 @@ namespace BlumBotFarm.Database.Repositories
 
         public IEnumerable<StarsPayment> GetAll()
         {
-            lock (dbLock)
+            lock (_db)
             {
-                return _db.Query<StarsPayment>("SELECT * FROM StarsPaymentTransactions").ToList();
+                return _db.Query<StarsPayment>("SELECT * FROM StarsPayments").ToList();
             }
         }
 
         public StarsPayment? GetById(int id)
         {
-            lock (dbLock)
+            lock (_db)
             {
-                return _db.QuerySingleOrDefault<StarsPayment>("SELECT * FROM StarsPaymentTransactions WHERE Id = @Id", new { Id = id });
+                return _db.QuerySingleOrDefault<StarsPayment>("SELECT * FROM StarsPayments WHERE Id = @Id", new { Id = id });
             }
         }
 
         public int Add(StarsPayment starsPaymentTransaction)
         {
-            lock (dbLock)
+            lock (_db)
             {
-                var sql = @"INSERT INTO StarsPaymentTransactions (
+                var sql = @"INSERT INTO StarsPayments (
                                 UserId,
                                 AmountUsd,
                                 AmountStars,
@@ -57,9 +55,9 @@ namespace BlumBotFarm.Database.Repositories
 
         public void Update(StarsPayment starsPaymentTransaction)
         {
-            lock (dbLock)
+            lock (_db)
             {
-                var sql = @"UPDATE StarsPaymentTransactions SET
+                var sql = @"UPDATE StarsPayments SET
                                 UserId = @UserId,
                                 AmountUsd = @AmountUsd,
                                 AmountStars = @AmountStars,
@@ -73,9 +71,9 @@ namespace BlumBotFarm.Database.Repositories
 
         public void Delete(int id)
         {
-            lock (dbLock)
+            lock (_db)
             {
-                var sql = "DELETE FROM StarsPaymentTransactions WHERE Id = @Id";
+                var sql = "DELETE FROM StarsPayments WHERE Id = @Id";
                 _db.Execute(sql, new { Id = id });
             }
         }

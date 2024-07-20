@@ -38,6 +38,7 @@ namespace AutoBlumFarmServer
         public decimal STEP_SLOT_PRICE                => _configuration.GetValue("Prices:StepSlotPrice", 0.05M);
         public string  DEFAULT_AVATAR_PATH            => _configuration["DefaultAvatarPath"] ?? "defaultAvatar.png";
 
+        // GEO PROXY SELLER
         public Dictionary<string, (string countryName, int timezoneOffset)> GEO_PROXY_SELLER = [];
 
         // JWT PART
@@ -47,6 +48,7 @@ namespace AutoBlumFarmServer
         public int    JWT_LIVE_HOURS        => _configuration.GetValue("Jwt:LiveHours", 8);
 
         // TELEGRAM PART
+        public string TELEGRAM_CHANNEL_NAME               => _configuration["Telegram:ChannelName"] ?? "AutoBlumFarm";
         public long   TELEGRAM_TECH_SUPPORT_GROUP_CHAT_ID => _configuration.GetValue<long>("Telegram:TechSupportGroupChatId", 0);
         public string TELEGRAM_PUBLIC_BOT_NAME            => _configuration["Telegram:PublicBotName"] ?? "";
         public string TELEGRAM_BOT_TOKEN                  => _configuration["Telegram:BotToken"] ?? "";
@@ -54,11 +56,10 @@ namespace AutoBlumFarmServer
         public string TELEGRAM_WALLET_TOKEN               => _configuration["Telegram:WalletToken"] ?? "";
 
         // TELEGRAM STARS
-        public string  TG_STARS_PAYMENT_TITLE             => _configuration["TelegramStarsPayment:Title"] ?? "";
-        public string  TG_STARS_PAYMENT_DESCRIPTION       => _configuration["TelegramStarsPayment:Description"] ?? "";
-        public string  TG_STARS_PAYMENT_PRICE_LABEL       => _configuration["TelegramStarsPayment:PriceLabel"] ?? "";
-        public string  TG_STARS_PAYMENT_INVOICE_PHOTO_URL => _configuration["TelegramStarsPayment:InvoicePhotoUrl"] ?? "";
-        public double  TG_STARS_PAYMENT_STAR_USD_PRICE    => _configuration.GetValue("TelegramStarsPayment:StarUsdPrice", 2.24);
+        public string  TG_STARS_PAYMENT_INVOICE_PHOTO_URL    => _configuration["TelegramStarsPayment:InvoicePhotoUrl"] ?? "";
+        public int     TG_STARS_PAYMENT_INVOICE_PHOTO_WIDTH  => _configuration.GetValue("TelegramStarsPayment:InvoicePhotoWidth", 700);
+        public int     TG_STARS_PAYMENT_INVOICE_PHOTO_HEIGHT => _configuration.GetValue("TelegramStarsPayment:InvoicePhotoHeight", 370);
+        public double  TG_STARS_PAYMENT_STAR_USD_PRICE       => _configuration.GetValue("TelegramStarsPayment:StarUsdPrice", 2.24);
 
         // SQL PART                         
         public string SQL_CONNECTION_STRING => _configuration["DatabaseSettings:ConnectionString"] ?? "Data Source=blumbotfarm.db";

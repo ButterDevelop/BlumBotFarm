@@ -7,8 +7,6 @@ namespace BlumBotFarm.Database.Repositories
 {
     public class TaskRepository : IRepository<Task>
     {
-        private static readonly object dbLock = new();
-
         private readonly IDbConnection _db;
 
         public TaskRepository(IDbConnection db)
@@ -18,7 +16,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public IEnumerable<Task> GetAll()
         {
-            lock (dbLock)
+            lock (_db)
             {
                 return _db.Query<Task>("SELECT * FROM Tasks").ToList();
             }
@@ -26,7 +24,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public Task? GetById(int id)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 return _db.QuerySingleOrDefault<Task>("SELECT * FROM Tasks WHERE Id = @Id", new { Id = id });
             }
@@ -34,7 +32,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public int Add(Task task)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = "INSERT INTO Tasks (AccountId, TaskType, MinScheduleSeconds, MaxScheduleSeconds, NextRunTime) VALUES " +
                                             "(@AccountId, @TaskType, @MinScheduleSeconds, @MaxScheduleSeconds, @NextRunTime); " +
@@ -45,7 +43,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public void Update(Task task)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = "UPDATE Tasks SET AccountId = @AccountId, TaskType = @TaskType, MinScheduleSeconds = @MinScheduleSeconds, MaxScheduleSeconds = @MaxScheduleSeconds, NextRunTime = @NextRunTime WHERE Id = @Id";
                 _db.Execute(sql, task);
@@ -54,7 +52,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public void Delete(int id)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = "DELETE FROM Tasks WHERE Id = @Id";
                 _db.Execute(sql, new { Id = id });

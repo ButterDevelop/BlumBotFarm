@@ -7,8 +7,6 @@ namespace BlumBotFarm.Database.Repositories
 {
     public class EarningRepository : IRepository<Earning>
     {
-        private static readonly object dbLock = new();
-
         private readonly IDbConnection _db;
 
         public EarningRepository(IDbConnection db)
@@ -18,7 +16,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public IEnumerable<Earning> GetAll()
         {
-            lock (dbLock)
+            lock (_db)
             {
                 return _db.Query<Earning>("SELECT * FROM Earnings").ToList();
             }
@@ -26,7 +24,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public Earning? GetById(int id)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 return _db.QuerySingleOrDefault<Earning>("SELECT * FROM Earnings WHERE Id = @Id", new { Id = id });
             }
@@ -34,7 +32,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public int Add(Earning earning)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = "INSERT INTO Earnings (AccountId, Total, Created, Action) VALUES (@AccountId, @Total, @Created, @Action); " +
                           "SELECT last_insert_rowid();";
@@ -44,7 +42,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public void Update(Earning earning)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = "UPDATE Earnings SET AccountId = @AccountId, Total = @Total, Created = @Created, Action = @Action WHERE Id = @Id";
                 _db.Execute(sql, earning);
@@ -53,7 +51,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public void Delete(int id)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = "DELETE FROM Earnings WHERE Id = @Id";
                 _db.Execute(sql, new { Id = id });

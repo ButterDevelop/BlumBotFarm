@@ -148,6 +148,34 @@
     "Text": "<b>Hisoblaringizdan biri autentifikatsiyani yo‘qotdi.</b>\nIltimos, ilovani ishlating va nimalar bo‘lganini tekshiring (va autentifikatsiyani yangilang)."
   },
   {
+    "Mask": "#%TELEGRAM_BUTTON_TEXT_OPEN_CHANNEL%#",
+    "Text": "Qo‘llanmalar va yangiliklar uchun bizning kanalga qo‘shiling!"
+  },
+  {
+    "Mask": "#%TELEGRAM_INVOICE_TITLE%#",
+    "Text": "Hisobni to‘ldirish!"
+  },
+  {
+    "Mask": "#%TELEGRAM_INVOICE_DESCRIPTION%#",
+    "Text": "Hisobingiz {0}$ ga oshiriladi. Bizni tanlaganingiz uchun katta rahmat!"
+  },
+  {
+    "Mask": "#%TELEGRAM_INVOICE_PRICE_LABEL%#",
+    "Text": "Hisobni to‘ldirish!"
+  },
+  {
+    "Mask": "#%MESSAGE_THE_PRICE_USD_IS_WRONG%#",
+    "Text": "Ko‘rsatilgan AQSh dollari narxi noto‘g‘ri yoki bitta to‘lov uchun juda katta."
+  },
+  {
+    "Mask": "#%MESSAGE_LANGUAGE_WAS_CHANGED_SUCCESSFULLY%#",
+    "Text": "Sizning tilingiz muvaffaqiyatli o'zgartirildi!"
+  },
+  {
+    "Mask": "#%MESSAGE_LANGUAGE_NOT_FOUND%#",
+    "Text": "Siz kiritgan til topilmadi!"
+  },
+  {
     "Mask": "#%baza%#",
     "Text": ""
   }

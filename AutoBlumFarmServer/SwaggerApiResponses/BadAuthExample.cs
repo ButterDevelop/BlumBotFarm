@@ -1,6 +1,6 @@
 ﻿using Swashbuckle.AspNetCore.Filters;
 
-namespace AutoBlumFarmServer.ApiResponses
+namespace AutoBlumFarmServer.SwaggerApiResponses
 {
     public class BadAuthExample : IMultipleExamplesProvider<ApiMessageResponse>
     {

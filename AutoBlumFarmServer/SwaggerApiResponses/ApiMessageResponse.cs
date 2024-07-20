@@ -1,4 +1,4 @@
-﻿namespace AutoBlumFarmServer.ApiResponses
+﻿namespace AutoBlumFarmServer.SwaggerApiResponses
 {
     public class ApiMessageResponse
     {

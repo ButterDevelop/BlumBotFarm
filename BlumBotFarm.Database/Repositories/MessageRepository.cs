@@ -7,8 +7,6 @@ namespace BlumBotFarm.Database.Repositories
 {
     public class MessageRepository : IRepository<Message>
     {
-        private static readonly object dbLock = new();
-
         private readonly IDbConnection _db;
 
         public MessageRepository(IDbConnection db)
@@ -18,7 +16,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public IEnumerable<Message> GetAll()
         {
-            lock (dbLock)
+            lock (_db)
             {
                 return _db.Query<Message>("SELECT * FROM Messages").ToList();
             }
@@ -26,7 +24,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public Message? GetById(int id)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 return _db.QuerySingleOrDefault<Message>("SELECT * FROM Messages WHERE Id = @Id", new { Id = id });
             }
@@ -34,7 +32,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public int Add(Message message)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = "INSERT INTO Messages (ChatId, MessageText, CreatedAt, IsSilent) VALUES (@ChatId, @MessageText, @CreatedAt, @IsSilent); " +
                           "SELECT last_insert_rowid();";
@@ -44,7 +42,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public void Update(Message message)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = "UPDATE Messages SET ChatId = @ChatId, MessageText = @MessageText, CreatedAt = @CreatedAt, IsSilent = @IsSilent WHERE Id = @Id";
                 _db.Execute(sql, message);
@@ -53,7 +51,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public void Delete(int id)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = "DELETE FROM Messages WHERE Id = @Id";
                 _db.Execute(sql, new { Id = id });

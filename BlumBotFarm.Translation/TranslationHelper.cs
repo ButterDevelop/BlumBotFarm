@@ -63,5 +63,13 @@ namespace BlumBotFarm.Translation
 
             return result;
         }
+
+        public List<string> AvailableLanguageCodes
+        {
+            get
+            {
+                return _translator.Keys.ToList();
+            }
+        }
     }
 }

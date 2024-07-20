@@ -1,7 +1,7 @@
 ﻿using BlumBotFarm.Translation;
 using Swashbuckle.AspNetCore.Filters;
 
-namespace AutoBlumFarmServer.ApiResponses.UserController
+namespace AutoBlumFarmServer.SwaggerApiResponses.UserController
 {
     public class ChangeUsersReferralCodeOkExample : IMultipleExamplesProvider<ApiMessageResponse>
     {

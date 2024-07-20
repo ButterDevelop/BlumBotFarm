@@ -1,7 +1,7 @@
 ﻿using AutoBlumFarmServer.Model;
 using Swashbuckle.AspNetCore.Filters;
 
-namespace AutoBlumFarmServer.ApiResponses.TelegramAuthController
+namespace AutoBlumFarmServer.SwaggerApiResponses.TelegramAuthController
 {
     public class TelegramAuthOkExample : IMultipleExamplesProvider<ApiObjectResponse<TGAuthOutputModel>>
     {

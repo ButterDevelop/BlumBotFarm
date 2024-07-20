@@ -15,11 +15,9 @@ namespace BlumBotFarm.Scheduler.Jobs
 
         public MainSchedulerJob()
         {
-            using (var db = Database.Database.GetConnection())
-            {
-                accountRepository = new AccountRepository(db);
-                taskRepository    = new TaskRepository(db);
-            }
+            var db = Database.Database.GetConnection();
+            accountRepository = new AccountRepository(db);
+            taskRepository    = new TaskRepository(db);
             taskScheduler = new TaskScheduler();
         }
 

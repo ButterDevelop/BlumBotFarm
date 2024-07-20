@@ -1,5 +1,5 @@
-﻿using AutoBlumFarmServer.ApiResponses;
-using AutoBlumFarmServer.ApiResponses.UserController;
+﻿using AutoBlumFarmServer.SwaggerApiResponses;
+using AutoBlumFarmServer.SwaggerApiResponses.UserController;
 using AutoBlumFarmServer.Helpers;
 using BlumBotFarm.Database.Repositories;
 using BlumBotFarm.Translation;
@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
+using AutoBlumFarmServer.Model;
 
 namespace AutoBlumFarmServer.Controllers
 {
@@ -26,9 +27,9 @@ namespace AutoBlumFarmServer.Controllers
         [SwaggerResponse(200, "Success.")]
         [SwaggerResponse(401, "No auth from user.")]
         [SwaggerResponse(404, "Translation was not found.")]
-        [SwaggerResponseExample(200, typeof(TranslationOkExample))]
+        [SwaggerResponseExample(200, typeof(GetTranslationsOkExample))]
         [SwaggerResponseExample(401, typeof(BadAuthExample))]
-        [SwaggerResponseExample(404, typeof(TranslationBadExample))]
+        [SwaggerResponseExample(404, typeof(GetTranslationsBadExample))]
         [ProducesResponseType(typeof(ApiObjectResponse<List<TranslationModel>>), StatusCodes.Status200OK,           "application/json")]
         [ProducesResponseType(typeof(ApiMessageResponse),                        StatusCodes.Status401Unauthorized, "application/json")]
         [ProducesResponseType(typeof(ApiMessageResponse),                        StatusCodes.Status404NotFound,     "application/json")]
@@ -58,6 +59,71 @@ namespace AutoBlumFarmServer.Controllers
             {
                 ok   = true,
                 data = obj
+            });
+        }
+
+        // GET: api/Translation/GetAvailableLanguages
+        [HttpGet("GetAvailableLanguages")]
+        [SwaggerResponse(200, "Success.")]
+        [SwaggerResponse(401, "No auth from user.")]
+        [SwaggerResponseExample(200, typeof(GetAvailableLanguagesOkExample))]
+        [SwaggerResponseExample(401, typeof(BadAuthExample))]
+        [ProducesResponseType(typeof(ApiObjectResponse<List<string>>), StatusCodes.Status200OK,           "application/json")]
+        [ProducesResponseType(typeof(ApiMessageResponse),              StatusCodes.Status401Unauthorized, "application/json")]
+        public IActionResult GetAvailableLanguages()
+        {
+            int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
+            var invoker = _userRepository.GetById(userId);
+            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            {
+                ok      = false,
+                message = "No auth."
+            });
+
+            return Ok(new ApiObjectResponse<List<string>>
+            {
+                ok   = true,
+                data = TranslationHelper.Instance.AvailableLanguageCodes
+            });
+        }
+
+        // POST: api/Translation/ChangeLanguage
+        [HttpPost("ChangeLanguage")]
+        [SwaggerResponse(200, "Success.")]
+        [SwaggerResponse(401, "No auth from user.")]
+        [SwaggerResponse(404, "No such language.")]
+        [SwaggerResponseExample(200, typeof(ChangeLanguageOkExample))]
+        [SwaggerResponseExample(401, typeof(BadAuthExample))]
+        [SwaggerResponseExample(404, typeof(ChangeLanguageBadExample))]
+        [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status200OK,           "application/json")]
+        [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status401Unauthorized, "application/json")]
+        [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status404NotFound,     "application/json")]
+        public IActionResult ChangeLanguage(ChangeLanguageInputModel model)
+        {
+            int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
+            var invoker = _userRepository.GetById(userId);
+            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            {
+                ok      = false,
+                message = "No auth."
+            });
+
+            if (!TranslationHelper.Instance.AvailableLanguageCodes.Contains(model.LanguageCode))
+            {
+                return NotFound(new ApiMessageResponse
+                {
+                    ok      = false,
+                    message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_LANGUAGE_NOT_FOUND%#")
+                });
+            }
+
+            invoker.LanguageCode = model.LanguageCode;
+            _userRepository.Update(invoker);
+
+            return Ok(new ApiMessageResponse
+            {
+                ok      = true,
+                message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_LANGUAGE_WAS_CHANGED_SUCCESSFULLY%#")
             });
         }
     }

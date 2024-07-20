@@ -7,8 +7,6 @@ namespace BlumBotFarm.Database.Repositories
 {
     public class FeedbackMessageRepository : IRepository<FeedbackMessage>
     {
-        private static readonly object dbLock = new();
-
         private readonly IDbConnection _db;
 
         public FeedbackMessageRepository(IDbConnection db)
@@ -18,7 +16,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public IEnumerable<FeedbackMessage> GetAll()
         {
-            lock (dbLock)
+            lock (_db)
             {
                 return _db.Query<FeedbackMessage>("SELECT * FROM FeedbackMessages").ToList();
             }
@@ -26,7 +24,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public FeedbackMessage? GetById(int id)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 return _db.QuerySingleOrDefault<FeedbackMessage>("SELECT * FROM FeedbackMessages WHERE Id = @Id", new { Id = id });
             }
@@ -34,7 +32,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public int Add(FeedbackMessage feedbackMessage)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = @"INSERT INTO FeedbackMessages (
                                 TelegramUserId,
@@ -55,7 +53,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public void Update(FeedbackMessage feedbackMessage)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = @"UPDATE FeedbackMessages SET
                                 TelegramUserId = @TelegramUserId,
@@ -70,7 +68,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public void Delete(int id)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = "DELETE FROM FeedbackMessages WHERE Id = @Id";
                 _db.Execute(sql, new { Id = id });

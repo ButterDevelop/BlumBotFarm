@@ -148,6 +148,34 @@
     "Text": "<b>L'un de vos comptes a perdu son authentification.</b>\nVeuillez utiliser l'application et vérifier ce qui se passe (et mettre à jour l'authentification)."
   },
   {
+    "Mask": "#%TELEGRAM_BUTTON_TEXT_OPEN_CHANNEL%#",
+    "Text": "Rejoignez notre chaîne pour des guides et des nouvelles!"
+  },
+  {
+    "Mask": "#%TELEGRAM_INVOICE_TITLE%#",
+    "Text": "Dépôt de solde!"
+  },
+  {
+    "Mask": "#%TELEGRAM_INVOICE_DESCRIPTION%#",
+    "Text": "Votre solde sera augmenté de {0}$. Un grand merci de nous avoir choisi!"
+  },
+  {
+    "Mask": "#%TELEGRAM_INVOICE_PRICE_LABEL%#",
+    "Text": "Recharger le solde!"
+  },
+  {
+    "Mask": "#%MESSAGE_THE_PRICE_USD_IS_WRONG%#",
+    "Text": "Le prix en USD que vous avez spécifié est incorrect ou trop élevé pour un seul paiement."
+  },
+  {
+    "Mask": "#%MESSAGE_LANGUAGE_WAS_CHANGED_SUCCESSFULLY%#",
+    "Text": "Votre langue a été changée avec succès!"
+  },
+  {
+    "Mask": "#%MESSAGE_LANGUAGE_NOT_FOUND%#",
+    "Text": "La langue que vous avez spécifiée est introuvable!"
+  },
+  {
     "Mask": "#%baza%#",
     "Text": ""
   }

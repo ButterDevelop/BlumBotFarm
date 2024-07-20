@@ -18,12 +18,10 @@ namespace BlumBotFarm.Scheduler.Jobs
 
         public EarningCheckJob()
         {
-            using (var db = Database.Database.GetConnection())
-            {
-                accountRepository = new AccountRepository(db);
-                taskRepository    = new TaskRepository(db);
-                earningRepository = new EarningRepository(db);
-            }
+            var db = Database.Database.GetConnection();
+            accountRepository = new AccountRepository(db);
+            taskRepository    = new TaskRepository(db);
+            earningRepository = new EarningRepository(db);
             taskScheduler = new TaskScheduler();
         }
 

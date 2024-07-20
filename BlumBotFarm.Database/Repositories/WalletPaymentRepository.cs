@@ -7,8 +7,6 @@ namespace BlumBotFarm.Database.Repositories
 {
     public class WalletPaymentRepository : IRepository<WalletPayment>
     {
-        private static readonly object dbLock = new();
-
         private readonly IDbConnection _db;
 
         public WalletPaymentRepository(IDbConnection db)
@@ -18,7 +16,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public IEnumerable<WalletPayment> GetAll()
         {
-            lock (dbLock)
+            lock (_db)
             {
                 return _db.Query<WalletPayment>("SELECT * FROM PaymentTransactions").ToList();
             }
@@ -26,7 +24,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public WalletPayment? GetById(int id)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 return _db.QuerySingleOrDefault<WalletPayment>("SELECT * FROM PaymentTransactions WHERE Id = @Id", new { Id = id });
             }
@@ -34,7 +32,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public int Add(WalletPayment paymentTransaction)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = @"INSERT INTO PaymentTransactions (
                                 AmountUsd,
@@ -79,7 +77,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public void Update(WalletPayment paymentTransaction)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = @"UPDATE PaymentTransactions SET
                                 AmountUsd = @AmountUsd,
@@ -106,7 +104,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public void Delete(int id)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = "DELETE FROM PaymentTransactions WHERE Id = @Id";
                 _db.Execute(sql, new { Id = id });

@@ -1,5 +1,5 @@
-﻿using AutoBlumFarmServer.ApiResponses;
-using AutoBlumFarmServer.ApiResponses.TelegramAuthController;
+﻿using AutoBlumFarmServer.SwaggerApiResponses;
+using AutoBlumFarmServer.SwaggerApiResponses.TelegramAuthController;
 using AutoBlumFarmServer.Helpers;
 using AutoBlumFarmServer.Model;
 using BlumBotFarm.Database.Repositories;

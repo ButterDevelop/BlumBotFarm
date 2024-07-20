@@ -7,8 +7,6 @@ namespace BlumBotFarm.Database.Repositories
 {
     public class AccountRepository : IRepository<Account>
     {
-        private static readonly object dbLock = new();
-
         private readonly IDbConnection _db;
 
         public AccountRepository(IDbConnection db)
@@ -18,7 +16,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public IEnumerable<Account> GetAll()
         {
-            lock (dbLock)
+            lock (_db)
             {
                 return _db.Query<Account>("SELECT * FROM Accounts").ToList();
             }
@@ -26,7 +24,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public Account? GetById(int id)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 return _db.QuerySingleOrDefault<Account>("SELECT * FROM Accounts WHERE Id = @Id", new { Id = id });
             }
@@ -34,7 +32,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public int Add(Account account)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = @"INSERT INTO Accounts (
                                 CustomUsername, BlumUsername, UserId, Balance, Tickets, ReferralsCount, ReferralLink,
@@ -51,7 +49,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public void Update(Account account)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = "UPDATE Accounts SET CustomUsername = @CustomUsername, BlumUsername = @BlumUsername, UserId = @UserId, Balance = @Balance, Tickets = @Tickets, ReferralsCount = @ReferralsCount, ReferralLink = @ReferralLink, AccessToken = @AccessToken, RefreshToken = @RefreshToken, ProviderToken = @ProviderToken, UserAgent = @UserAgent, Proxy = @Proxy, CountryCode = @CountryCode, ProxySellerListId = @ProxySellerListId, TimezoneOffset = @TimezoneOffset, LastStatus = @LastStatus WHERE Id = @Id";
                 _db.Execute(sql, account);
@@ -60,7 +58,7 @@ namespace BlumBotFarm.Database.Repositories
 
         public void Delete(int id)
         {
-            lock (dbLock)
+            lock (_db)
             {
                 var sql = "DELETE FROM Accounts WHERE Id = @Id";
                 _db.Execute(sql, new { Id = id });

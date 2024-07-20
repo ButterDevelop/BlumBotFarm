@@ -148,6 +148,34 @@
     "Text": "<b>أحد حساباتك فقد المصادقة.</b>\nيرجى استخدام التطبيق والتحقق من الوضع (وتحديث المصادقة)."
   },
   {
+    "Mask": "#%TELEGRAM_BUTTON_TEXT_OPEN_CHANNEL%#",
+    "Text": "انضم إلى قناتنا للحصول على الأدلة والأخبار!"
+  },
+  {
+    "Mask": "#%TELEGRAM_INVOICE_TITLE%#",
+    "Text": "إيداع الرصيد!"
+  },
+  {
+    "Mask": "#%TELEGRAM_INVOICE_DESCRIPTION%#",
+    "Text": "سيتم زيادة رصيدك بمقدار {0}$. شكراً جزيلاً لاختيارك لنا!"
+  },
+  {
+    "Mask": "#%TELEGRAM_INVOICE_PRICE_LABEL%#",
+    "Text": "اشحن الرصيد!"
+  },
+  {
+    "Mask": "#%MESSAGE_THE_PRICE_USD_IS_WRONG%#",
+    "Text": "السعر المحدد بالدولار الأمريكي غير صحيح أو كبير جداً لدفع واحد."
+  },
+  {
+    "Mask": "#%MESSAGE_LANGUAGE_WAS_CHANGED_SUCCESSFULLY%#",
+    "Text": "تم تغيير لغتك بنجاح!"
+  },
+  {
+    "Mask": "#%MESSAGE_LANGUAGE_NOT_FOUND%#",
+    "Text": "لم يتم العثور على اللغة التي حددتها!"
+  },
+  {
     "Mask": "#%baza%#",
     "Text": ""
   }

@@ -1,7 +1,7 @@
 ﻿using AutoBlumFarmServer.Model;
 using Swashbuckle.AspNetCore.Filters;
 
-namespace AutoBlumFarmServer.ApiResponses.AccountController
+namespace AutoBlumFarmServer.SwaggerApiResponses.AccountController
 {
     public class AllGeoOkExample : IMultipleExamplesProvider<ApiObjectResponse<AllGeoOutputModel>>
     {

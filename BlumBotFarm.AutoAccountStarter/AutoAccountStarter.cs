@@ -54,27 +54,24 @@ namespace BlumBotFarm.AutoAccountStarter
 
             foreach (var account in accounts)
             {
-                if (!_workingAccounts.Contains(account.Id))
+                if (!_workingAccounts.Contains(account.Id) && !string.IsNullOrEmpty(account.ProviderToken))
                 {
-                    if (!string.IsNullOrEmpty(account.ProviderToken))
-                    {
-                        var task = tasks.FirstOrDefault(t => t.AccountId == account.Id && t.TaskType == "DailyCheckJob");
-                        if (task == null) continue;
+                    var task = tasks.FirstOrDefault(t => t.AccountId == account.Id && t.TaskType == "DailyCheckJob");
+                    if (task == null) continue;
 
-                        // Update task in DB
-                        var nextRun = DateTime.Now.AddSeconds(task.TaskType.Length);
-                        task.NextRunTime = nextRun;
-                        _taskRepository.Update(task);
-                        
-                        // Schedule task
-                        await TaskScheduler.ScheduleNewTask(_taskScheduler, account.Id, task, nextRun);
-                        
-                        _workingAccounts.Add(account.Id);
+                    // Update task in DB
+                    var nextRun = DateTime.Now.AddSeconds(task.TaskType.Length);
+                    task.NextRunTime = nextRun;
+                    _taskRepository.Update(task);
+                    
+                    // Schedule task
+                    await TaskScheduler.ScheduleNewTask(_taskScheduler, account.Id, task, nextRun);
+                    
+                    _workingAccounts.Add(account.Id);
 
-                        Log.Information($"Auto Account Starter: successfully scheduled job for account - accountId: {account.Id}, " +
-                                        $"accountCustomUsername: {account.CustomUsername}, accountBlumUsername: {account.BlumUsername}, " +
-                                        $"taskId: {task.Id}, taskType: {task.TaskType}, time: {nextRun:dd.MM.yyyy HH:mm:ss}");
-                    }
+                    Log.Information($"Auto Account Starter: successfully scheduled job for account - accountId: {account.Id}, " +
+                                    $"accountCustomUsername: {account.CustomUsername}, accountBlumUsername: {account.BlumUsername}, " +
+                                    $"taskId: {task.Id}, taskType: {task.TaskType}, time: {nextRun:dd.MM.yyyy HH:mm:ss}");
                 }
             }
         }

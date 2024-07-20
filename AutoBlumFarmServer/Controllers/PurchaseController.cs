@@ -1,5 +1,5 @@
-﻿using AutoBlumFarmServer.ApiResponses;
-using AutoBlumFarmServer.ApiResponses.PurchaseController;
+﻿using AutoBlumFarmServer.SwaggerApiResponses;
+using AutoBlumFarmServer.SwaggerApiResponses.PurchaseController;
 using AutoBlumFarmServer.Helpers;
 using AutoBlumFarmServer.Model;
 using BlumBotFarm.Core;

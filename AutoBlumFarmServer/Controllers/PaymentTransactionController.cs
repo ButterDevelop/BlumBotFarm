@@ -1,5 +1,5 @@
-﻿using AutoBlumFarmServer.ApiResponses;
-using AutoBlumFarmServer.ApiResponses.TelegramAuthController;
+﻿using AutoBlumFarmServer.SwaggerApiResponses;
+using AutoBlumFarmServer.SwaggerApiResponses.TelegramAuthController;
 using AutoBlumFarmServer.Helpers;
 using AutoBlumFarmServer.Model;
 using BlumBotFarm.Core.Models;
@@ -44,7 +44,7 @@ namespace AutoBlumFarmServer.Controllers
         [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status200OK,           "application/json")]
         [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status400BadRequest,   "application/json")]
         [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status401Unauthorized, "application/json")]
-        public async Task<IActionResult> CreateOrder([FromBody] decimal priceUsd)
+        public async Task<IActionResult> CreateOrder([FromBody] CreateOrderInputModel model)
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
             var invoker = _userRepository.GetById(userId);
@@ -53,6 +53,16 @@ namespace AutoBlumFarmServer.Controllers
                 ok      = false,
                 message = "No auth."
             });
+
+            decimal priceUsd = model.priceUsd;
+            if (priceUsd <= 0 || priceUsd > 1000)
+            {
+                return BadRequest(new ApiMessageResponse
+                {
+                    ok      = false,
+                    message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_THE_PRICE_USD_IS_WRONG%#")
+                });
+            }
 
             int tgStarsAmount = (int)Math.Round(priceUsd / (decimal)Config.Instance.TG_STARS_PAYMENT_STAR_USD_PRICE);
 
@@ -70,7 +80,7 @@ namespace AutoBlumFarmServer.Controllers
                                                                                p.AmountStars == tgStarsAmount &&
                                                                                !p.IsCompleted &&
                                                                                p.CreatedDateTime.Ticks == now.Ticks &&
-                                                                               Math.Abs(p.AmountUsd - priceUsd) < 1e-5M);
+                                                                               p.AmountUsd == priceUsd);
 
             if (payment == null)
             {
@@ -82,15 +92,23 @@ namespace AutoBlumFarmServer.Controllers
             }
 
             var message = await _telegramBotClient.SendInvoiceAsync(
-                        invoker.TelegramUserId, 
-                        Config.Instance.TG_STARS_PAYMENT_TITLE,
-                        Config.Instance.TG_STARS_PAYMENT_DESCRIPTION.Replace("{priceUsd}", priceUsd.ToString("N2")),
+                        invoker.TelegramUserId,
+                        TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%TELEGRAM_INVOICE_TITLE%#"),
+                        string.Format(
+                            TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%TELEGRAM_INVOICE_DESCRIPTION%#"),
+                            priceUsd.ToString("N2")
+                        ),
                         payload:        payment.Id.ToString(),
                         providerToken:  string.Empty,
                         currency:       "XTR",
-                        prices:         [new(Config.Instance.TG_STARS_PAYMENT_PRICE_LABEL, tgStarsAmount)],
+                        prices:         [
+                                            new(TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%TELEGRAM_INVOICE_PRICE_LABEL%#"),
+                                            tgStarsAmount)
+                                        ],
                         startParameter: invoker.OwnReferralCode,
-                        photoUrl:       Config.Instance.TG_STARS_PAYMENT_INVOICE_PHOTO_URL
+                        photoUrl:       Config.Instance.TG_STARS_PAYMENT_INVOICE_PHOTO_URL,
+                        photoWidth:     Config.Instance.TG_STARS_PAYMENT_INVOICE_PHOTO_WIDTH,
+                        photoHeight:    Config.Instance.TG_STARS_PAYMENT_INVOICE_PHOTO_HEIGHT
             );
 
             if (message == null)

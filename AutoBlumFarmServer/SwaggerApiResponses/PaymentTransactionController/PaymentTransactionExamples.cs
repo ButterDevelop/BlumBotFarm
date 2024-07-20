@@ -2,7 +2,7 @@
 using BlumBotFarm.Translation;
 using Swashbuckle.AspNetCore.Filters;
 
-namespace AutoBlumFarmServer.ApiResponses.TelegramAuthController
+namespace AutoBlumFarmServer.SwaggerApiResponses.TelegramAuthController
 {
     public class StarsPaymentTransactionOkExample : IMultipleExamplesProvider<ApiMessageResponse>
     {
@@ -20,6 +20,11 @@ namespace AutoBlumFarmServer.ApiResponses.TelegramAuthController
     {
         public IEnumerable<SwaggerExample<ApiMessageResponse>> GetExamples()
         {
+            yield return SwaggerExample.Create("Wrong price USD", new ApiMessageResponse
+            {
+                ok      = false,
+                message = TranslationHelper.Instance.Translate(TranslationHelper.DEFAULT_LANG_CODE, "#%MESSAGE_THE_PRICE_USD_IS_WRONG%#")
+            });
             yield return SwaggerExample.Create("Error with DB somewhere", new ApiMessageResponse()
             {
                 ok      = false,

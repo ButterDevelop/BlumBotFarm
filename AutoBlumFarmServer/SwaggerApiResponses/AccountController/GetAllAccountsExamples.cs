@@ -1,7 +1,7 @@
 ﻿using AutoBlumFarmServer.DTO;
 using Swashbuckle.AspNetCore.Filters;
 
-namespace AutoBlumFarmServer.ApiResponses.AccountController
+namespace AutoBlumFarmServer.SwaggerApiResponses.AccountController
 {
     public class GetAllAccountsOkExample : IMultipleExamplesProvider<ApiObjectResponse<List<AccountDTO>>>
     {

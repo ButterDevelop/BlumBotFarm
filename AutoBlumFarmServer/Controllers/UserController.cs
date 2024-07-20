@@ -1,5 +1,5 @@
-﻿using AutoBlumFarmServer.ApiResponses;
-using AutoBlumFarmServer.ApiResponses.UserController;
+﻿using AutoBlumFarmServer.SwaggerApiResponses;
+using AutoBlumFarmServer.SwaggerApiResponses.UserController;
 using AutoBlumFarmServer.DTO;
 using AutoBlumFarmServer.Helpers;
 using AutoBlumFarmServer.Model;

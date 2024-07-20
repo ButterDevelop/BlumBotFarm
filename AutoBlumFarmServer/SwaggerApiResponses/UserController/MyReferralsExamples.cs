@@ -1,7 +1,7 @@
 ﻿using AutoBlumFarmServer.Model;
 using Swashbuckle.AspNetCore.Filters;
 
-namespace AutoBlumFarmServer.ApiResponses.UserController
+namespace AutoBlumFarmServer.SwaggerApiResponses.UserController
 {
     public class MyReferralsOkExample : IMultipleExamplesProvider<ApiObjectResponse<List<ReferralsOutputModel>>>
     {

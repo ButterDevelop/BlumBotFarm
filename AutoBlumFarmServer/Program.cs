@@ -1,9 +1,9 @@
 using AutoBlumFarmServer;
-using AutoBlumFarmServer.ApiResponses;
-using AutoBlumFarmServer.ApiResponses.AccountController;
-using AutoBlumFarmServer.ApiResponses.PurchaseController;
-using AutoBlumFarmServer.ApiResponses.TelegramAuthController;
-using AutoBlumFarmServer.ApiResponses.UserController;
+using AutoBlumFarmServer.SwaggerApiResponses;
+using AutoBlumFarmServer.SwaggerApiResponses.AccountController;
+using AutoBlumFarmServer.SwaggerApiResponses.PurchaseController;
+using AutoBlumFarmServer.SwaggerApiResponses.TelegramAuthController;
+using AutoBlumFarmServer.SwaggerApiResponses.UserController;
 using AutoBlumFarmServer.Helpers;
 using BlumBotFarm.Core;
 using BlumBotFarm.Database;
@@ -42,7 +42,8 @@ if (botToken != null && adminUsernames != null && adminChatIds != null)
                                            Config.Instance.REFERRAL_BALANCE_BONUS_PERCENT,
                                            Config.Instance.SERVER_DOMAIN,
                                            Config.Instance.TELEGRAM_PUBLIC_BOT_NAME,
-                                           Config.Instance.TELEGRAM_TECH_SUPPORT_GROUP_CHAT_ID);
+                                           Config.Instance.TELEGRAM_TECH_SUPPORT_GROUP_CHAT_ID,
+                                           Config.Instance.TELEGRAM_CHANNEL_NAME);
     adminTelegramBot.Start();
 
     Log.Information("Started Telegram bot.");
@@ -105,8 +106,11 @@ builder.Services.AddSwaggerExamplesFromAssemblyOf<BuyAccountsSlotsBadExample>();
 builder.Services.AddSwaggerExamplesFromAssemblyOf<PreBuyAccountsSlotsOkExample>();
 builder.Services.AddSwaggerExamplesFromAssemblyOf<PreBuyAccountsSlotsBadExample>();
 builder.Services.AddSwaggerExamplesFromAssemblyOf<AllGeoOkExample>();
-builder.Services.AddSwaggerExamplesFromAssemblyOf<TranslationOkExample>();
-builder.Services.AddSwaggerExamplesFromAssemblyOf<TranslationBadExample>();
+builder.Services.AddSwaggerExamplesFromAssemblyOf<GetTranslationsOkExample>();
+builder.Services.AddSwaggerExamplesFromAssemblyOf<GetTranslationsBadExample>();
+builder.Services.AddSwaggerExamplesFromAssemblyOf<GetAvailableLanguagesOkExample>();
+builder.Services.AddSwaggerExamplesFromAssemblyOf<ChangeLanguageOkExample>();
+builder.Services.AddSwaggerExamplesFromAssemblyOf<ChangeLanguageBadExample>();
 
 // I don't will joy for this, but I have no time actually to do some patterns like Strategy
 Database.Initialize();
