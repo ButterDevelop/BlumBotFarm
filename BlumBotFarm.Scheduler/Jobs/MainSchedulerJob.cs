@@ -46,6 +46,8 @@ namespace BlumBotFarm.Scheduler.Jobs
             List<string> logLines = [];
             foreach (var account in accounts)
             {
+                if (string.IsNullOrEmpty(account.ProviderToken)) continue;
+
                 // Восстановление задачи из базы данных
                 var tasksForAccount = tasks.Where(t => t.AccountId == account.Id);
                 if (!tasksForAccount.Any())

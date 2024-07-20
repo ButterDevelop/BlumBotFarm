@@ -1,5 +1,4 @@
-﻿using BlumBotFarm.Core.Models;
-using BlumBotFarm.Database.Interfaces;
+﻿using BlumBotFarm.Database.Interfaces;
 using Dapper;
 using System.Data;
 using Task = BlumBotFarm.Core.Models.Task;

@@ -253,7 +253,7 @@ namespace BlumBotFarm.TelegramBot
                         }
                     }
 
-                    int doneCount = dailyRewardsToday.Count(), wholeCount = accountsTodayResults.Count();
+                    int doneCount = dailyRewardsToday.Count(), wholeCount = accountsTodayResults.Count(acc => !string.IsNullOrEmpty(acc.ProviderToken));
                     StringBuilder messageToSendTodayResults = new("Taken daily rewards today: " +
                                                                   $"<b>{doneCount}/{wholeCount}</b>\n" +
                                                                   (doneCount >= wholeCount ? "<b>Work for today is done.</b>" : "") + 
@@ -789,8 +789,8 @@ namespace BlumBotFarm.TelegramBot
             var todayDateTime = DateTime.Today;
 
             var dailyRewardsToday = dailyRewardRepository.GetAll().Where(dr => dr.CreatedAt >= todayDateTime).DistinctBy(dr => dr.AccountId);
-            int doneCount         = dailyRewardsToday.Count(), 
-                wholeCount        = accounts.Count();
+            int doneCount         = dailyRewardsToday.Count(),
+                wholeCount        = accounts.Count(acc => !string.IsNullOrEmpty(acc.ProviderToken));
 
             var todayEarnings    = earningRepository.GetAll().Where(earning => earning.Created > todayDateTime);
             var todayEarningsSum = todayEarnings.Select(earning => earning.Total).DefaultIfEmpty(0).Sum();

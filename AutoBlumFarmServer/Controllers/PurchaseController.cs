@@ -8,7 +8,6 @@ using BlumBotFarm.Database.Repositories;
 using BlumBotFarm.Translation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Quartz.Impl.Triggers;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
 

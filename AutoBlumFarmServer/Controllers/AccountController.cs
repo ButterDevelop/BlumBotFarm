@@ -307,9 +307,6 @@ namespace AutoBlumFarmServer.Controllers
                     ok      = false,
                     message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_USERNAME_IS_OCCUPIED%#")
                 });
-
-                account.CustomUsername = model.CustomUsername;
-                _accountRepository.Update(account);
             }
 
             if (account.ProviderToken != model.BlumTelegramAuth)
@@ -333,9 +330,6 @@ namespace AutoBlumFarmServer.Controllers
                         message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_BLUM_TELEGRAM_AUTH_VALIDATION_FAILED%#")
                     });
                 }
-
-                account.ProviderToken = model.BlumTelegramAuth;
-                _accountRepository.Update(account);
             }
 
             if (account.CountryCode != model.CountryCode)
@@ -386,8 +380,11 @@ namespace AutoBlumFarmServer.Controllers
 
                 account.Proxy       = "http://" + content;
                 account.CountryCode = model.CountryCode;
-                _accountRepository.Update(account);
             }
+
+            account.CustomUsername = model.CustomUsername;
+            account.ProviderToken  = model.BlumTelegramAuth;
+            _accountRepository.Update(account);
 
             return Ok(new ApiMessageResponse
             {

@@ -56,7 +56,7 @@ namespace AutoBlumFarmServer.ApiResponses.AccountController
                         BlumAuthData    = "",
                         EarnedToday     = 0,
                         TookDailyReward = false,
-                        NearestWorkIn   = "Unknown",
+                        NearestWorkIn   = "-",
                         CountryCode     = "CZ",
                         LastStatus      = ""
                     }

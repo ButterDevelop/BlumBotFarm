@@ -56,7 +56,7 @@ namespace BlumBotFarm.AutoAccountStarter
             {
                 if (!_workingAccounts.Contains(account.Id))
                 {
-                    if (!string.IsNullOrEmpty(account.ProviderToken) && !string.IsNullOrEmpty(account.RefreshToken))
+                    if (!string.IsNullOrEmpty(account.ProviderToken))
                     {
                         var task = tasks.FirstOrDefault(t => t.AccountId == account.Id && t.TaskType == "DailyCheckJob");
                         if (task == null) continue;

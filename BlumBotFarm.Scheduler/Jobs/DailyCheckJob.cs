@@ -52,7 +52,7 @@ namespace BlumBotFarm.Scheduler.Jobs
                 return;
             }
 
-            if (string.IsNullOrEmpty(account.ProviderToken) && string.IsNullOrEmpty(account.RefreshToken))
+            if (string.IsNullOrEmpty(account.ProviderToken))
             {
                 Log.Warning($"Exiting Daily Check Job because of an account (Id: {account.Id}, CustomUsername: {account.CustomUsername}, " +
                             $"BlumUsername: {account.BlumUsername}) has no auth at all.");
