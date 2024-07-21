@@ -1,7 +1,6 @@
 ﻿using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Repositories;
 using Serilog;
-using System.Threading.Tasks;
 
 namespace BlumBotFarm.GameClient
 {
@@ -9,12 +8,12 @@ namespace BlumBotFarm.GameClient
     {
         private static readonly Random bombRandom = new();
 
-        private const int MIN_GAME_POINTS               = 180,
-                          MAX_GAME_POINTS               = 220,
-                          BOMB_MINUS_ABS_AMOUNT         = 100,
-                          BOMB_CLICK_CHANCE_PERCENT     = 1,
-                          MIN_AMOUNT_OF_SECONDS_TO_WAIT = 35,
-                          MAX_AMOUNT_OF_SECONDS_TO_WAIT = 50;
+        private const int MIN_GAME_POINTS                            = 180,
+                          MAX_GAME_POINTS                            = 220,
+                          BOMB_MINUS_ABS_AMOUNT                      = 100,
+                          BOMB_CLICK_CHANCE_PERCENT                  = 1,
+                          MIN_AMOUNT_OF_SECONDS_TO_WAIT_IN_DROP_GAME = 35,
+                          MAX_AMOUNT_OF_SECONDS_TO_WAIT_IN_DROP_GAME = 50;
 
         public static ApiResponse AuthCheck(Account account, AccountRepository accountRepository, GameApiClient gameApiClient)
         {
@@ -92,7 +91,7 @@ namespace BlumBotFarm.GameClient
                     Log.Information($"GameApiUtilsService PlayGamesForAllTickets: successfully started a game with id {gameId} " +
                                     $"for an account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}");
 
-                    int secondsToSleep = random.Next(MIN_AMOUNT_OF_SECONDS_TO_WAIT, MAX_AMOUNT_OF_SECONDS_TO_WAIT);
+                    int secondsToSleep = random.Next(MIN_AMOUNT_OF_SECONDS_TO_WAIT_IN_DROP_GAME, MAX_AMOUNT_OF_SECONDS_TO_WAIT_IN_DROP_GAME + 1);
                     Thread.Sleep(secondsToSleep * 1000);
 
                     int points = random.Next(MIN_GAME_POINTS, MAX_GAME_POINTS + 1);
@@ -135,7 +134,7 @@ namespace BlumBotFarm.GameClient
                                       $"attempts: {attempts}, tickets: {account.Tickets}");
                         }
 
-                        Thread.Sleep(1000 + random.Next(-100, 100));
+                        Thread.Sleep(2000 + random.Next(-1000, 1000));
                     }
                     else
                     {
@@ -200,7 +199,7 @@ namespace BlumBotFarm.GameClient
             }
             else
             {
-                Thread.Sleep(3000 + random.Next(300, 600));
+                Thread.Sleep(10000 + random.Next(100, 1000));
 
                 (response, tasks) = gameApiClient.GetTasks(account);
                 ++wholeCount;

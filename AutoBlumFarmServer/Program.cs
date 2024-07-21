@@ -17,6 +17,7 @@ using Serilog;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
 using Telegram.Bot;
+using AutoBlumFarmServer.CacheServices;
 
 Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo("en-US");
 Thread.CurrentThread.CurrentCulture   = System.Globalization.CultureInfo.GetCultureInfo("en-US");
@@ -112,9 +113,11 @@ builder.Services.AddSwaggerExamplesFromAssemblyOf<GetAvailableLanguagesOkExample
 builder.Services.AddSwaggerExamplesFromAssemblyOf<ChangeLanguageOkExample>();
 builder.Services.AddSwaggerExamplesFromAssemblyOf<ChangeLanguageBadExample>();
 
+builder.Services.AddMemoryCache();
+
 // I don't will joy for this, but I have no time actually to do some patterns like Strategy
 Database.Initialize();
-var databaseConnection = Database.GetConnection();
+var databaseConnection = Database.ConnectionString;
 builder.Services.AddScoped(provider => new AccountRepository(databaseConnection));
 builder.Services.AddScoped(provider => new UserRepository(databaseConnection));
 builder.Services.AddScoped(provider => new ReferralRepository(databaseConnection));
@@ -125,6 +128,7 @@ builder.Services.AddScoped(provider => new TaskRepository(databaseConnection));
 builder.Services.AddScoped(provider => new TelegramBotClient(Config.Instance.TELEGRAM_BOT_TOKEN));
 builder.Services.AddScoped(provider => new ProxySellerAPIHelper(Config.Instance.PROXY_SELLER_API_KEY));
 builder.Services.AddScoped(provider => new TranslationHelper());
+builder.Services.AddScoped<IUserCacheService, UserCacheService>();
 
 // Настройка аутентификации JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

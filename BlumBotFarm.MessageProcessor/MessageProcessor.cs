@@ -23,10 +23,7 @@ namespace BlumBotFarm.MessageProcessor
             _adminUsernames         = adminUsernames;
             _adminChatIds           = adminChatIds;
             _cancellationToken      = cancellationToken;
-            using (var db = Database.Database.GetConnection())
-            {
-                _messageRepository = new MessageRepository(db);
-            }
+            _messageRepository      = new MessageRepository(Database.Database.ConnectionString);
         }
 
         public void SendMessageToUserInQueue(long chatId, string text, bool isSilent)

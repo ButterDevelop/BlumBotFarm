@@ -15,13 +15,11 @@ namespace BlumBotFarm.AutoAccountStarter
         public AutoAccountStarter()
         {
             _cancellationToken = new CancellationToken();
-            using (var db = Database.Database.GetConnection())
-            {
-                _accountRepository = new AccountRepository(db);
-                _taskRepository    = new TaskRepository(db);
-            }
-            _taskScheduler   = new();
-            _workingAccounts = [];
+            var db             = Database.Database.ConnectionString;
+            _accountRepository = new AccountRepository(db);
+            _taskRepository    = new TaskRepository(db);
+            _taskScheduler     = new();
+            _workingAccounts   = [];
         }
 
         public AutoAccountStarter(CancellationToken cancellationToken) : this()

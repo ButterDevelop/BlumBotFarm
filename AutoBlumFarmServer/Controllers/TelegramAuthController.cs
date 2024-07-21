@@ -1,7 +1,6 @@
-﻿using AutoBlumFarmServer.SwaggerApiResponses;
+﻿using AutoBlumFarmServer.Model;
+using AutoBlumFarmServer.SwaggerApiResponses;
 using AutoBlumFarmServer.SwaggerApiResponses.TelegramAuthController;
-using AutoBlumFarmServer.Helpers;
-using AutoBlumFarmServer.Model;
 using BlumBotFarm.Database.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;

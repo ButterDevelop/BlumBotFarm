@@ -28,16 +28,16 @@ namespace BlumBotFarm.TelegramBot
 
         public AdminTelegramBot(TelegramBotClient botClient, string[] adminUsernames, long[] adminChatIds)
         {
-            this.botClient      = botClient;
-            this.adminUsernames = adminUsernames;
-            this.adminChatIds   = adminChatIds;
-            var db = Database.Database.GetConnection();
+            this.botClient        = botClient;
+            this.adminUsernames   = adminUsernames;
+            this.adminChatIds     = adminChatIds;
+            var db                = Database.Database.ConnectionString;
             accountRepository     = new AccountRepository(db);
             taskRepository        = new TaskRepository(db);
             earningRepository     = new EarningRepository(db);
             dailyRewardRepository = new DailyRewardRepository(db);
             userRepository        = new UserRepository(db);
-            taskScheduler = new TaskScheduler();
+            taskScheduler         = new TaskScheduler();
         }
 
         public void Start()
@@ -252,9 +252,9 @@ namespace BlumBotFarm.TelegramBot
                     }
 
                     int doneCount = dailyRewardsToday.Count(), wholeCount = accountsTodayResults.Count(acc => !string.IsNullOrEmpty(acc.ProviderToken));
-                    StringBuilder messageToSendTodayResults = new("Taken daily rewards today: " +
+                    StringBuilder messageToSendTodayResults = new((doneCount >= wholeCount ? "<b>Work for today is done.</b>\n" : "") + 
+                                                                  "Taken daily rewards today: " +
                                                                   $"<b>{doneCount}/{wholeCount}</b>\n" +
-                                                                  (doneCount >= wholeCount ? "<b>Work for today is done.</b>" : "") + 
                                                                   "Those who didn't take daily reward:" + 
                                                                   (todayResultsLines.Count == 0 ? " <b>no</b>" : "\n"));
                     foreach (var line in todayResultsLines.OrderBy(info => info.dailyInTicks).Select(info => info.line))

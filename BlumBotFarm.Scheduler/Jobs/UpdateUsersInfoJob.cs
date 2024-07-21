@@ -1,4 +1,5 @@
-﻿using BlumBotFarm.Database.Repositories;
+﻿using BlumBotFarm.Core.Models;
+using BlumBotFarm.Database.Repositories;
 using BlumBotFarm.GameClient;
 using Quartz;
 using Serilog;
@@ -19,10 +20,10 @@ namespace BlumBotFarm.Scheduler.Jobs
 
         public UpdateUsersInfoJob()
         {
-            var db = Database.Database.GetConnection();
+            var db            = Database.Database.ConnectionString;
             accountRepository = new AccountRepository(db);
             taskRepository    = new TaskRepository(db);
-            taskScheduler = new TaskScheduler();
+            taskScheduler     = new TaskScheduler();
         }
 
         public async Task Execute(IJobExecutionContext context)
@@ -41,12 +42,17 @@ namespace BlumBotFarm.Scheduler.Jobs
                 {
                     Log.Error($"Update Users Info Job, GameApiUtilsService.AuthCheck: UNABLE TO REAUTH! Account with Id: {accountForeach.Id}, " +
                               $"CustomUsername: {accountForeach.CustomUsername}, BlumUsername: {accountForeach.BlumUsername}.");
-                    MessageProcessor.MessageProcessor.Instance?.SendMessageToAdminsInQueue("<b>UNABLE TO REAUTH!</b>\nUpdate Users Info Job!\n" +
-                                                                                          $"Account with Id: <code>{accountForeach.Id}</code>, " +
-                                                                                          $"Custom Username: <code>{accountForeach.CustomUsername}</code>, " +
-                                                                                          $"Blum Username: <code>{accountForeach.BlumUsername}</code>" +
-                                                                                          (authCheckResult == ApiResponse.Error ? "\nIt is probably because of proxy." : ""),
-                                                                                          isSilent: authCheckResult == ApiResponse.Error);
+                    
+                    if (authCheckResult == ApiResponse.Unauthorized)
+                    {
+                        MessageProcessor.MessageProcessor.Instance?.SendMessageToAdminsInQueue(
+                            "<b>UNABLE TO REAUTH!</b>\nUpdate Users Info Job!\n" +
+                            $"Account with Id: <code>{accountForeach.Id}</code>, " +
+                            $"Custom Username: <code>{accountForeach.CustomUsername}</code>, " +
+                            $"Blum Username: <code>{accountForeach.BlumUsername}</code>",
+                            isSilent: false
+                        );
+                    }
                 }
                 else
                 {

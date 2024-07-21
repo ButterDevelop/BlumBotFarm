@@ -1,62 +1,87 @@
 ﻿using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Interfaces;
 using Dapper;
-using System.Data;
+using Microsoft.Data.Sqlite;
 
 namespace BlumBotFarm.Database.Repositories
 {
     public class UserRepository : IRepository<User>
     {
-        private readonly IDbConnection _db;
+        private static readonly object _lock = new();
+        private readonly string _connectionString;
 
-        public UserRepository(IDbConnection db)
+        public UserRepository(string connectionString)
         {
-            _db = db;
+            _connectionString = connectionString;
         }
 
         public IEnumerable<User> GetAll()
         {
-            lock (_db)
+            lock (_lock)
             {
-                return _db.Query<User>("SELECT * FROM Users").ToList();
+                using (var db = Database.CreateConnection(_connectionString))
+                {
+                    return db.Query<User>("SELECT * FROM Users").ToList();
+                }
             }
         }
 
         public User? GetById(int id)
         {
-            lock (_db)
+            lock (_lock)
             {
-                return _db.QuerySingleOrDefault<User>("SELECT * FROM Users WHERE Id = @Id", new { Id = id });
+                using (var db = Database.CreateConnection(_connectionString))
+                {
+                    return db.QuerySingleOrDefault<User>("SELECT * FROM Users WHERE Id = @Id", new { Id = id });
+                }
             }
         }
 
         public int Add(User user)
         {
-            lock (_db)
+            lock (_lock)
             {
-                var sql = "INSERT INTO Users " +
-                            "(TelegramUserId, FirstName, LastName, BalanceUSD, IsBanned, LanguageCode, OwnReferralCode, CreatedAt) VALUES " +
-                            "(@TelegramUserId, @FirstName, @LastName, @BalanceUSD, @IsBanned, @LanguageCode, @OwnReferralCode, @CreatedAt); " +
-                          "SELECT last_insert_rowid();";
-                return _db.ExecuteScalar<int>(sql, user);
+                using (var db = Database.CreateConnection(_connectionString))
+                {
+                    var sql = @"INSERT INTO Users 
+                                (TelegramUserId, FirstName, LastName, BalanceUSD, IsBanned, LanguageCode, OwnReferralCode, CreatedAt) VALUES 
+                                (@TelegramUserId, @FirstName, @LastName, @BalanceUSD, @IsBanned, @LanguageCode, @OwnReferralCode, @CreatedAt); 
+                                SELECT last_insert_rowid();";
+                    return db.ExecuteScalar<int>(sql, user);
+                }
             }
         }
 
         public void Update(User user)
         {
-            lock (_db)
+            lock (_lock)
             {
-                var sql = "UPDATE Users SET TelegramUserId = @TelegramUserId, FirstName = @FirstName, LastName = @LastName, BalanceUSD = @BalanceUSD, IsBanned = @IsBanned, LanguageCode = @LanguageCode, OwnReferralCode = @OwnReferralCode, CreatedAt = @CreatedAt WHERE Id = @Id";
-                _db.Execute(sql, user);
+                using (var db = Database.CreateConnection(_connectionString))
+                {
+                    var sql = @"UPDATE Users SET 
+                                TelegramUserId = @TelegramUserId, 
+                                FirstName = @FirstName, 
+                                LastName = @LastName, 
+                                BalanceUSD = @BalanceUSD, 
+                                IsBanned = @IsBanned, 
+                                LanguageCode = @LanguageCode, 
+                                OwnReferralCode = @OwnReferralCode, 
+                                CreatedAt = @CreatedAt 
+                                WHERE Id = @Id";
+                    db.Execute(sql, user);
+                }
             }
         }
 
         public void Delete(int id)
         {
-            lock (_db)
+            lock (_lock)
             {
-                var sql = "DELETE FROM Users WHERE Id = @Id";
-                _db.Execute(sql, new { Id = id });
+                using (var db = Database.CreateConnection(_connectionString))
+                {
+                    var sql = "DELETE FROM Users WHERE Id = @Id";
+                    db.Execute(sql, new { Id = id });
+                }
             }
         }
     }

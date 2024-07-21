@@ -8,6 +8,8 @@ using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
 using AutoBlumFarmServer.Model;
+using AutoBlumFarmServer.CacheServices;
+using BlumBotFarm.Core.Models;
 
 namespace AutoBlumFarmServer.Controllers
 {
@@ -15,11 +17,13 @@ namespace AutoBlumFarmServer.Controllers
     [Route("api/[controller]")]
     public class TranslationController : Controller
     {
-        private readonly UserRepository _userRepository;
+        private readonly UserRepository    _userRepository;
+        private readonly IUserCacheService _userCacheService;
 
-        public TranslationController(UserRepository userRepository)
+        public TranslationController(UserRepository userRepository, IUserCacheService userCacheService)
         {
-            _userRepository = userRepository;
+            _userRepository   = userRepository;
+            _userCacheService = userCacheService;
         }
 
         // GET: api/Translation/ru
@@ -36,8 +40,7 @@ namespace AutoBlumFarmServer.Controllers
         public async Task<IActionResult> GetTranslations(string lang)
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
-            var invoker = _userRepository.GetById(userId);
-            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            if (!userAuthorized || !_userCacheService.TryGetFromCache(userId, out User invoker)) return Unauthorized(new ApiMessageResponse
             {
                 ok      = false,
                 message = "No auth."
@@ -73,8 +76,7 @@ namespace AutoBlumFarmServer.Controllers
         public IActionResult GetAvailableLanguages()
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
-            var invoker = _userRepository.GetById(userId);
-            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            if (!userAuthorized || !_userCacheService.TryGetFromCache(userId, out User invoker)) return Unauthorized(new ApiMessageResponse
             {
                 ok      = false,
                 message = "No auth."
@@ -101,8 +103,7 @@ namespace AutoBlumFarmServer.Controllers
         public IActionResult ChangeLanguage(ChangeLanguageInputModel model)
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
-            var invoker = _userRepository.GetById(userId);
-            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            if (!userAuthorized || !_userCacheService.TryGetFromCache(userId, out User invoker)) return Unauthorized(new ApiMessageResponse
             {
                 ok      = false,
                 message = "No auth."

@@ -12,6 +12,8 @@ using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text.RegularExpressions;
 using Telegram.Bot;
+using AutoBlumFarmServer.CacheServices;
+using BlumBotFarm.Core.Models;
 
 namespace AutoBlumFarmServer.Controllers
 {
@@ -25,15 +27,17 @@ namespace AutoBlumFarmServer.Controllers
         private readonly ReferralRepository     _referralRepository;
         private readonly StarsPaymentRepository _starsPaymentRepository;
         private readonly ITelegramBotClient     _botClient;
+        private readonly IUserCacheService      _userCacheService;
 
         public UserController(UserRepository userRepository, AccountRepository accountRepository, ReferralRepository referralRepository,
-                              StarsPaymentRepository starsPaymentRepository, TelegramBotClient botClient)
+                              StarsPaymentRepository starsPaymentRepository, TelegramBotClient botClient, IUserCacheService userCacheService)
         {
             _userRepository         = userRepository;
             _accountRepository      = accountRepository;
             _referralRepository     = referralRepository;
             _starsPaymentRepository = starsPaymentRepository;
             _botClient              = botClient;
+            _userCacheService       = userCacheService;
         }
 
         // GET: api/User/Me
@@ -47,8 +51,7 @@ namespace AutoBlumFarmServer.Controllers
         public IActionResult AboutMeUserInfo()
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
-            var invoker = _userRepository.GetById(userId);
-            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            if (!userAuthorized || !_userCacheService.TryGetFromCache(userId, out User invoker)) return Unauthorized(new ApiMessageResponse
             {
                 ok      = false,
                 message = "No auth."
@@ -88,8 +91,7 @@ namespace AutoBlumFarmServer.Controllers
         public IActionResult MyReferrals()
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
-            var invoker = _userRepository.GetById(userId);
-            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            if (!userAuthorized || !_userCacheService.TryGetFromCache(userId, out User invoker)) return Unauthorized(new ApiMessageResponse
             {
                 ok      = false,
                 message = "No auth."
@@ -138,8 +140,7 @@ namespace AutoBlumFarmServer.Controllers
         public IActionResult ChangeUsersReferralCode([FromBody] ChangeReferralCodeInputModel model)
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
-            var invoker = _userRepository.GetById(userId);
-            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            if (!userAuthorized || !_userCacheService.TryGetFromCache(userId, out User invoker)) return Unauthorized(new ApiMessageResponse
             {
                 ok      = false,
                 message = "No auth."
@@ -173,8 +174,7 @@ namespace AutoBlumFarmServer.Controllers
         [ProducesResponseType(typeof(MemoryStream), StatusCodes.Status200OK, "image/png")]
         public async Task<IActionResult> GetUserAvatar(int userId)
         {
-            var user = _userRepository.GetById(userId);
-            if (user == null) return NotFound();
+            if (!_userCacheService.TryGetFromCache(userId, out User user)) return NotFound();
 
             var usersPhoto = await _botClient.GetUserProfilePhotosAsync(user.TelegramUserId);
             if (usersPhoto.TotalCount > 0)

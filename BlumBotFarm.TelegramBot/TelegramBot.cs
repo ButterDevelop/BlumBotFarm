@@ -35,15 +35,15 @@ namespace BlumBotFarm.TelegramBot
         public TelegramBot(string token, string[] adminUsernames, long[] adminChatIds, double starPriceUsd, int referralBalanceBonusPercent,
                            string serverDomain, string publicBotName, long techSupportGroupChatId, string telegramChannelName)
         {
-            botClient           = new TelegramBotClient(token);
-            this.adminUsernames = adminUsernames;
-            this.adminChatIds   = adminChatIds;
-            this.starPriceUsd   = starPriceUsd;
-            var db = Database.Database.GetConnection();
-            userRepository            = new UserRepository(db);
-            starsPaymentRepository    = new StarsPaymentRepository(db);
-            referralRepository        = new ReferralRepository(db);
-            feedbackMessageRepository = new FeedbackMessageRepository(db);
+            botClient                        = new TelegramBotClient(token);
+            this.adminUsernames              = adminUsernames;
+            this.adminChatIds                = adminChatIds;
+            this.starPriceUsd                = starPriceUsd;
+            var db                           = Database.Database.ConnectionString;
+            userRepository                   = new UserRepository(db);
+            starsPaymentRepository           = new StarsPaymentRepository(db);
+            referralRepository               = new ReferralRepository(db);
+            feedbackMessageRepository        = new FeedbackMessageRepository(db);
             this.referralBalanceBonusPercent = referralBalanceBonusPercent;
             this.serverDomain                = serverDomain;
             this.publicBotName               = publicBotName;

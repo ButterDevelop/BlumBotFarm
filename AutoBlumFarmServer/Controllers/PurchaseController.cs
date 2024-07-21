@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
+using AutoBlumFarmServer.CacheServices;
 
 namespace AutoBlumFarmServer.Controllers
 {
@@ -21,13 +22,16 @@ namespace AutoBlumFarmServer.Controllers
         private readonly AccountRepository _accountRepository;
         private readonly TaskRepository    _taskRepository;
         private readonly UserRepository    _userRepository;
+        private readonly IUserCacheService _userCacheService;
 
-        public PurchaseController(AccountRepository accountRepository, TaskRepository taskRepository, UserRepository userRepository)
+        public PurchaseController(AccountRepository accountRepository, TaskRepository taskRepository, UserRepository userRepository,
+                                  IUserCacheService userCacheService)
         {
-            _accountRepository      = accountRepository;
-            _taskRepository         = taskRepository;
-            _userRepository         = userRepository;
-        }
+            _accountRepository = accountRepository;
+            _taskRepository    = taskRepository;
+            _userRepository    = userRepository;
+            _userCacheService  = userCacheService;
+    }
 
         private decimal GetNextSlotPriceByNumber(int currentSlotAmount)
         {
@@ -59,8 +63,7 @@ namespace AutoBlumFarmServer.Controllers
         public IActionResult PreBuyAccountsSlots([FromBody] BuyAccountsSlotsInputModel model)
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
-            var invoker = _userRepository.GetById(userId);
-            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            if (!userAuthorized || !_userCacheService.TryGetFromCache(userId, out User invoker)) return Unauthorized(new ApiMessageResponse
             {
                 ok      = false,
                 message = "No auth."
@@ -103,8 +106,7 @@ namespace AutoBlumFarmServer.Controllers
         public IActionResult BuyAccountsSlots([FromBody] BuyAccountsSlotsInputModel model)
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
-            var invoker = _userRepository.GetById(userId);
-            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            if (!userAuthorized || !_userCacheService.TryGetFromCache(userId, out User invoker)) return Unauthorized(new ApiMessageResponse
             {
                 ok      = false,
                 message = "No auth."

@@ -7,11 +7,15 @@ namespace BlumBotFarm.Database
 {
     public static class Database
     {
-        private static readonly string ConnectionString = AppConfig.DatabaseSettings.ConnectionString ?? "Data Source=blumbotfarmDefault.db";
+        public static readonly string ConnectionString = AppConfig.DatabaseSettings.ConnectionString ?? "Data Source=blumbotfarmDefault.db";
+
         private static readonly IDbConnection _connection = new SqliteConnection(ConnectionString);
 
         public static void Initialize()
         {
+            // Инициализация SQLite
+            SQLitePCL.Batteries_V2.Init();
+
             using (IDbConnection db = new SqliteConnection(ConnectionString))
             {
                 db.Execute(@"
@@ -138,6 +142,19 @@ namespace BlumBotFarm.Database
         {
             //return new SqliteConnection(ConnectionString);
             return _connection;
+        }
+
+        public static IDbConnection CreateConnection(string connectionString)
+        {
+            var connection = new SqliteConnection(connectionString);
+            connection.Open();
+            // Устанавливаем режим WAL
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = "PRAGMA journal_mode=WAL;";
+                command.ExecuteNonQuery();
+            }
+            return connection;
         }
     }
 }

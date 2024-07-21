@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
 using Telegram.Bot;
+using AutoBlumFarmServer.CacheServices;
 
 namespace AutoBlumFarmServer.Controllers
 {
@@ -22,16 +23,19 @@ namespace AutoBlumFarmServer.Controllers
         private readonly StarsPaymentRepository _starsPaymentRepository;
         private readonly ReferralRepository     _referralRepository;
         private readonly ITelegramBotClient     _telegramBotClient;
+        private readonly IUserCacheService      _userCacheService;
 
         public PaymentTransactionController(UserRepository         userRepository,
                                             StarsPaymentRepository starsPaymentRepository, 
                                             ReferralRepository     referralRepository,
-                                            TelegramBotClient      telegramBotClient)
+                                            TelegramBotClient      telegramBotClient,
+                                            IUserCacheService      userCacheService)
         {
             _userRepository         = userRepository;
             _starsPaymentRepository = starsPaymentRepository;
             _referralRepository     = referralRepository;
             _telegramBotClient      = telegramBotClient;
+            _userCacheService       = userCacheService;
         }
 
         // POST: api/PaymentTransaction/CreateOrder
@@ -47,8 +51,7 @@ namespace AutoBlumFarmServer.Controllers
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderInputModel model)
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
-            var invoker = _userRepository.GetById(userId);
-            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            if (!userAuthorized || !_userCacheService.TryGetFromCache(userId, out User invoker)) return Unauthorized(new ApiMessageResponse
             {
                 ok      = false,
                 message = "No auth."
@@ -138,8 +141,7 @@ namespace AutoBlumFarmServer.Controllers
         public IActionResult MyTransactions()
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
-            var invoker = _userRepository.GetById(userId);
-            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            if (!userAuthorized || !_userCacheService.TryGetFromCache(userId, out User invoker)) return Unauthorized(new ApiMessageResponse
             {
                 ok      = false,
                 message = "No auth."
@@ -181,8 +183,7 @@ namespace AutoBlumFarmServer.Controllers
         public IActionResult ConvertStarsToUSD([FromBody] ConvertStarsToUSDInputModel model)
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
-            var invoker = _userRepository.GetById(userId);
-            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            if (!userAuthorized || !_userCacheService.TryGetFromCache(userId, out User invoker)) return Unauthorized(new ApiMessageResponse
             {
                 ok      = false,
                 message = "No auth."
@@ -220,8 +221,7 @@ namespace AutoBlumFarmServer.Controllers
         public IActionResult ConvertUSDToStars([FromBody] ConvertUSDToStarsInputModel model)
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
-            var invoker = _userRepository.GetById(userId);
-            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            if (!userAuthorized || !_userCacheService.TryGetFromCache(userId, out User invoker)) return Unauthorized(new ApiMessageResponse
             {
                 ok      = false,
                 message = "No auth."

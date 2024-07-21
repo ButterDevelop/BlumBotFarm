@@ -1,60 +1,76 @@
 ﻿using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Interfaces;
 using Dapper;
-using System.Data;
+using Microsoft.Data.Sqlite;
 
 namespace BlumBotFarm.Database.Repositories
 {
     public class ReferralRepository : IRepository<Referral>
     {
-        private readonly IDbConnection _db;
+        private static readonly object _lock = new();
+        private readonly string _connectionString;
 
-        public ReferralRepository(IDbConnection db)
+        public ReferralRepository(string connectionString)
         {
-            _db = db;
+            _connectionString = connectionString;
         }
 
         public IEnumerable<Referral> GetAll()
         {
-            lock (_db)
+            lock (_lock)
             {
-                return _db.Query<Referral>("SELECT * FROM Referrals").ToList();
+                using (var db = Database.CreateConnection(_connectionString))
+                {
+                    return db.Query<Referral>("SELECT * FROM Referrals").ToList();
+                }
             }
         }
 
         public Referral? GetById(int id)
         {
-            lock (_db)
+            lock (_lock)
             {
-                return _db.QuerySingleOrDefault<Referral>("SELECT * FROM Referrals WHERE Id = @Id", new { Id = id });
+                using (var db = Database.CreateConnection(_connectionString))
+                {
+                    return db.QuerySingleOrDefault<Referral>("SELECT * FROM Referrals WHERE Id = @Id", new { Id = id });
+                }
             }
         }
 
         public int Add(Referral referral)
         {
-            lock (_db)
+            lock (_lock)
             {
-                var sql = "INSERT INTO Referrals (HostUserId, DependentUserId) VALUES (@HostUserId, @DependentUserId); " +
-                          "SELECT last_insert_rowid();";
-                return _db.ExecuteScalar<int>(sql, referral);
+                using (var db = Database.CreateConnection(_connectionString))
+                {
+                    var sql = "INSERT INTO Referrals (HostUserId, DependentUserId) VALUES (@HostUserId, @DependentUserId); " +
+                              "SELECT last_insert_rowid();";
+                    return db.ExecuteScalar<int>(sql, referral);
+                }
             }
         }
 
         public void Update(Referral referral)
         {
-            lock (_db)
+            lock (_lock)
             {
-                var sql = "UPDATE Referrals SET HostUserId = @HostUserId, DependentUserId = @DependentUserId WHERE Id = @Id";
-                _db.Execute(sql, referral);
+                using (var db = Database.CreateConnection(_connectionString))
+                {
+                    var sql = "UPDATE Referrals SET HostUserId = @HostUserId, DependentUserId = @DependentUserId WHERE Id = @Id";
+                    db.Execute(sql, referral);
+                }
             }
         }
 
         public void Delete(int id)
         {
-            lock (_db)
+            lock (_lock)
             {
-                var sql = "DELETE FROM Referrals WHERE Id = @Id";
-                _db.Execute(sql, new { Id = id });
+                using (var db = Database.CreateConnection(_connectionString))
+                {
+                    var sql = "DELETE FROM Referrals WHERE Id = @Id";
+                    db.Execute(sql, new { Id = id });
+                }
             }
         }
     }

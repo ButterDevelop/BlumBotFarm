@@ -23,7 +23,7 @@ namespace BlumBotFarm.Scheduler.Jobs
         public DailyCheckJob()
         {
             gameApiClient         = new GameApiClient();
-            var db                = Database.Database.GetConnection();
+            var db                = Database.Database.ConnectionString;
             accountRepository     = new AccountRepository(db);
             taskRepository        = new TaskRepository(db);
             messageRepository     = new MessageRepository(db);
@@ -90,16 +90,16 @@ namespace BlumBotFarm.Scheduler.Jobs
                 Log.Error($"Daily Check Job, GameApiUtilsService.AuthCheck: UNABLE TO REAUTH! Account with Id: {account.Id}, " +
                           $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
 
-                //MessageProcessor.MessageProcessor.Instance?.SendMessageToAdminsInQueue(
-                //    "<b>UNABLE TO REAUTH!</b>\nDaily Check Job!\n" +
-                //    $"Account with Id: <code>{account.Id}</code>, Custom Username: <code>{account.CustomUsername}</code>, " +
-                //    $"Blum Username: <code>{account.BlumUsername}</code>" +
-                //    (authCheckResult == ApiResponse.Error ? "\nIt is probably because of proxy." : ""),
-                //    isSilent: authCheckResult == ApiResponse.Error
-                //);
-
                 if (authCheckResult == ApiResponse.Unauthorized)
                 {
+                    MessageProcessor.MessageProcessor.Instance?.SendMessageToAdminsInQueue(
+                        "<b>UNABLE TO REAUTH!</b>\nDaily Check Job!\n" +
+                        $"Account with Id: <code>{account.Id}</code>, Custom Username: <code>{account.CustomUsername}</code>, " +
+                        $"Blum Username: <code>{account.BlumUsername}</code>" +
+                        (authCheckResult == ApiResponse.Error ? "\nIt is probably because of proxy." : ""),
+                        isSilent: false
+                    );
+
                     MessageProcessor.MessageProcessor.Instance?.SendMessageToUserInQueue(
                         user.TelegramUserId,
                         TranslationHelper.Instance.Translate(user.LanguageCode, "#%JOB_AUTH_LOST_PLEASE_LOGIN_AND_UPDATE_IT%#"),

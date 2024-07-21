@@ -11,6 +11,8 @@ using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text.RegularExpressions;
 using System.Web;
+using AutoBlumFarmServer.CacheServices;
+using BlumBotFarm.Core.Models;
 
 namespace AutoBlumFarmServer.Controllers
 {
@@ -25,10 +27,12 @@ namespace AutoBlumFarmServer.Controllers
         private readonly EarningRepository     _earningRepository;
         private readonly TaskRepository        _taskRepository;
         private readonly ProxySellerAPIHelper  _proxySellerAPIHelper;
+        private readonly IUserCacheService     _userCacheService;
 
         public AccountController(AccountRepository     accountRepository,     UserRepository       userRepository, 
                                  DailyRewardRepository dailyRewardRepository, EarningRepository    earningRepository,
-                                 TaskRepository        taskRepository,        ProxySellerAPIHelper proxySellerAPIHelper)
+                                 TaskRepository        taskRepository,        ProxySellerAPIHelper proxySellerAPIHelper,
+                                 IUserCacheService     userCacheService)
         {
             _accountRepository     = accountRepository;
             _userRepository        = userRepository;
@@ -36,6 +40,7 @@ namespace AutoBlumFarmServer.Controllers
             _earningRepository     = earningRepository;
             _taskRepository        = taskRepository;
             _proxySellerAPIHelper  = proxySellerAPIHelper;
+            _userCacheService      = userCacheService;
         }
 
         private bool ValidateUsername(string username)
@@ -55,8 +60,7 @@ namespace AutoBlumFarmServer.Controllers
         public IActionResult GetAllAccounts()
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
-            var invoker = _userRepository.GetById(userId);
-            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            if (!userAuthorized || !_userCacheService.TryGetFromCache(userId, out User invoker)) return Unauthorized(new ApiMessageResponse
             {
                 ok      = false,
                 message = "No auth."
@@ -123,8 +127,7 @@ namespace AutoBlumFarmServer.Controllers
         public IActionResult GetAccountById(int id)
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
-            var invoker = _userRepository.GetById(userId);
-            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            if (!userAuthorized || !_userCacheService.TryGetFromCache(userId, out User invoker)) return Unauthorized(new ApiMessageResponse
             {
                 ok      = false,
                 message = "No auth."
@@ -193,8 +196,7 @@ namespace AutoBlumFarmServer.Controllers
             string username = model.username;
 
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
-            var invoker = _userRepository.GetById(userId);
-            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            if (!userAuthorized || !_userCacheService.TryGetFromCache(userId, out User invoker)) return Unauthorized(new ApiMessageResponse
             {
                 ok      = false,
                 message = "No auth."
@@ -234,8 +236,7 @@ namespace AutoBlumFarmServer.Controllers
         public IActionResult AllGeo()
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
-            var invoker = _userRepository.GetById(userId);
-            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            if (!userAuthorized || !_userCacheService.TryGetFromCache(userId, out User invoker)) return Unauthorized(new ApiMessageResponse
             {
                 ok      = false,
                 message = "No auth."
@@ -276,8 +277,7 @@ namespace AutoBlumFarmServer.Controllers
         public IActionResult UpdateAccount(int id, [FromBody] UpdateAccountInputModel model)
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
-            var invoker = _userRepository.GetById(userId);
-            if (!userAuthorized || invoker == null || invoker.IsBanned) return Unauthorized(new ApiMessageResponse
+            if (!userAuthorized || !_userCacheService.TryGetFromCache(userId, out User invoker)) return Unauthorized(new ApiMessageResponse
             {
                 ok      = false,
                 message = "No auth."
