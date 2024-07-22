@@ -71,8 +71,8 @@ namespace AutoBlumFarmServer.Controllers
         [SwaggerResponse(401, "No auth from user.")]
         [SwaggerResponseExample(200, typeof(GetAvailableLanguagesOkExample))]
         [SwaggerResponseExample(401, typeof(BadAuthExample))]
-        [ProducesResponseType(typeof(ApiObjectResponse<List<string>>), StatusCodes.Status200OK,           "application/json")]
-        [ProducesResponseType(typeof(ApiMessageResponse),              StatusCodes.Status401Unauthorized, "application/json")]
+        [ProducesResponseType(typeof(ApiObjectResponse<Dictionary<string, string>>), StatusCodes.Status200OK,           "application/json")]
+        [ProducesResponseType(typeof(ApiMessageResponse),                            StatusCodes.Status401Unauthorized, "application/json")]
         public IActionResult GetAvailableLanguages()
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
@@ -82,10 +82,16 @@ namespace AutoBlumFarmServer.Controllers
                 message = "No auth."
             });
 
-            return Ok(new ApiObjectResponse<List<string>>
+            Dictionary<string, string> dict = [];
+            foreach (var key in TranslationHelper.Instance.AvailableLanguageCodes.Select(l => l.ToUpper()))
+            {
+                if (TranslationHelper.LanguageCodeToLanguageName.TryGetValue(key.ToLower(), out string? value)) dict.Add(key, value);
+            }
+
+            return Ok(new ApiObjectResponse<Dictionary<string, string>>
             {
                 ok   = true,
-                data = TranslationHelper.Instance.AvailableLanguageCodes
+                data = dict
             });
         }
 
@@ -109,7 +115,8 @@ namespace AutoBlumFarmServer.Controllers
                 message = "No auth."
             });
 
-            if (!TranslationHelper.Instance.AvailableLanguageCodes.Contains(model.LanguageCode))
+            if (!string.IsNullOrEmpty(model.LanguageCode) && 
+                !TranslationHelper.Instance.AvailableLanguageCodes.Contains(model.LanguageCode.ToLower()))
             {
                 return NotFound(new ApiMessageResponse
                 {
@@ -118,7 +125,7 @@ namespace AutoBlumFarmServer.Controllers
                 });
             }
 
-            invoker.LanguageCode = model.LanguageCode;
+            invoker.LanguageCode = model.LanguageCode.ToLower();
             _userRepository.Update(invoker);
 
             return Ok(new ApiMessageResponse

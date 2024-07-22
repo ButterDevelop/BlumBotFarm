@@ -11,7 +11,7 @@ namespace BlumBotFarm.GameClient
         private const int MIN_GAME_POINTS                            = 180,
                           MAX_GAME_POINTS                            = 220,
                           BOMB_MINUS_ABS_AMOUNT                      = 100,
-                          BOMB_CLICK_CHANCE_PERCENT                  = 1,
+                          BOMB_CLICK_CHANCE_PERCENT                  = 2,
                           MIN_AMOUNT_OF_SECONDS_TO_WAIT_IN_DROP_GAME = 35,
                           MAX_AMOUNT_OF_SECONDS_TO_WAIT_IN_DROP_GAME = 50;
 

@@ -35,14 +35,20 @@ namespace AutoBlumFarmServer.SwaggerApiResponses.UserController
         }
     }
 
-    public class GetAvailableLanguagesOkExample : IMultipleExamplesProvider<ApiObjectResponse<List<string>?>>
+    public class GetAvailableLanguagesOkExample : IMultipleExamplesProvider<ApiObjectResponse<Dictionary<string, string>?>>
     {
-        public IEnumerable<SwaggerExample<ApiObjectResponse<List<string>?>>> GetExamples()
+        public IEnumerable<SwaggerExample<ApiObjectResponse<Dictionary<string, string>?>>> GetExamples()
         {
-            yield return SwaggerExample.Create("Available languages", new ApiObjectResponse<List<string>?>
+            Dictionary<string, string> dict = [];
+            foreach (var key in TranslationHelper.Instance.AvailableLanguageCodes.Select(l => l.ToUpper()))
+            {
+                if (TranslationHelper.LanguageCodeToLanguageName.TryGetValue(key.ToLower(), out string? value)) dict.Add(key, value);
+            }
+
+            yield return SwaggerExample.Create("Available languages", new ApiObjectResponse<Dictionary<string, string>?>
             {
                 ok   = true,
-                data = TranslationHelper.Instance.AvailableLanguageCodes
+                data = dict
             });
         }
     }

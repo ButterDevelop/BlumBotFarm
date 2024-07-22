@@ -11,6 +11,13 @@ namespace BlumBotFarm.Translation
 
         private readonly Dictionary<string, Dictionary<string, string>> _translator;
 
+        public static readonly Dictionary<string, string> LanguageCodeToLanguageName = new()
+        {
+            {"en", "English"},     {"ru", "Русский"},    {"fa", "زبان فارسی"}, {"fr", "Français"},
+            {"be", "Беларуская"},  {"uk", "Українська"}, {"cs", "Čeština"},    {"pl", "Polszczyzna"},
+            {"uz", "Оʻzbek"},      {"de", "Deutsche"},   {"ar", "العَرَبِيَّة"},
+        };
+
         public TranslationHelper()
         {
             _translator = [];
