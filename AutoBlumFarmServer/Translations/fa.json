@@ -1,78 +1,78 @@
 [
   {
     "Mask": "#%LABEL_EMPTY_ACCOUNT_SCROLL_BOX_ITEM_ADD_YOUR_ACCOUNT%#",
-    "Text": "Добавить ваш аккаунт"
+    "Text": "حساب خود را اضافه کنید"
   },
   {
     "Mask": "#%LABEL_USD_SECTION_YOU_RECEIVE%#",
-    "Text": "Вы получите"
+    "Text": "شما دریافت می کنید"
   },
   {
     "Mask": "#%LABEL_STARS_SECTION_YOU_PAY%#",
-    "Text": "Вы платите"
+    "Text": "شما پرداخت می کنید"
   },
   {
     "Mask": "#%BUTTON_PAYMENT_PANEL_TOP_UP%#",
-    "Text": "Пополнить"
+    "Text": "شارژ کنید"
   },
   {
     "Mask": "#%LABEL_HEADER_PAYMENT_PANEL_WALLET%#",
-    "Text": "Кошелек"
+    "Text": "کیف پول"
   },
   {
     "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_INVITE_FRIENDS%#",
-    "Text": "Пригласить друзей!"
+    "Text": "دوستان را دعوت کنید!"
   },
   {
     "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_LIST_OF_FRIENDS%#",
-    "Text": "Список ваших друзей"
+    "Text": "لیست دوستان شما"
   },
   {
     "Mask": "#%BUTTON_INVITE_BUTTONS_INVITE_FRIEND%#",
-    "Text": "Пригласить друга"
+    "Text": "دعوت یک دوست"
   },
   {
     "Mask": "#%LABEL_BLUM_POINTS_PANEL_YOUR_ACCOUNTS%#",
-    "Text": "Ваши аккаунты:"
+    "Text": "حساب‌های شما:"
   },
   {
     "Mask": "#%BUTTON_ADD_ACCOUNT_BUTTON_BUY_NEW_SLOT%#",
-    "Text": "Купить новый слот"
+    "Text": "خرید اسلات جدید"
   },
   {
     "Mask": "#%LABEL_BUY_SLOTS_MODAL_PURCHASE_SLOTS%#",
-    "Text": "Покупка слотов"
+    "Text": "خرید اسلات‌ها"
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_CUSTOM_USERNAME%#",
-    "Text": "Пользовательское имя:"
+    "Text": "نام کاربری سفارشی:"
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_AUTH_TOKEN%#",
-    "Text": "Токен аутентификации:"
+    "Text": "توکن احراز هویت:"
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_REGION%#",
-    "Text": "Регион:"
+    "Text": "منطقه:"
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_COUNTRY%#",
-    "Text": "Страна"
+    "Text": "کشور"
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_BALANCE%#",
-    "Text": "Баланс"
+    "Text": "موجودی"
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_TODAY%#",
-    "Text": "Заработано сегодня"
+    "Text": "امروز کسب شده"
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_LINK%#",
-    "Text": "Реферальная ссылка"
+    "Text": "لینک معرف"
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_COUNT%#",
-    "Text": "Количество рефералов"
+    "Text": "تعداد معرف‌ها"
   }
 ]

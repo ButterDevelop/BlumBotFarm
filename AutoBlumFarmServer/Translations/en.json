@@ -1,14 +1,78 @@
 [
-  {
-    "Mask": "#%MESSAGE_NO_SUCH_ACCOUNT%#",
-    "Text": "No such account that belongs to our user."
-  },
-  {
-    "Mask": "#%MESSAGE_USERNAME_VALIDATION_FAILED%#",
-    "Text": "Validation failed. Use 6-10 alphanumeric symbols."
-  },
-  {
-    "Mask": "#%baza%#",
-    "Text": ""
-  }
-]
+    {
+      "Mask": "#%LABEL_EMPTY_ACCOUNT_SCROLL_BOX_ITEM_ADD_YOUR_ACCOUNT%#",
+      "Text": "Add your account"
+    },
+    {
+      "Mask": "#%LABEL_USD_SECTION_YOU_RECEIVE%#",
+      "Text": "You receive"
+    },
+    {
+      "Mask": "#%LABEL_STARS_SECTION_YOU_PAY%#",
+      "Text": "You pay"
+    },
+    {
+      "Mask": "#%BUTTON_PAYMENT_PANEL_TOP_UP%#",
+      "Text": "Top up"
+    },
+    {
+      "Mask": "#%LABEL_HEADER_PAYMENT_PANEL_WALLET%#",
+      "Text": "Wallet"
+    },
+    {
+      "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_INVITE_FRIENDS%#",
+      "Text": "Invite Friends!"
+    },
+    {
+      "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_LIST_OF_FRIENDS%#",
+      "Text": "List of your friends"
+    },
+    {
+      "Mask": "#%BUTTON_INVITE_BUTTONS_INVITE_FRIEND%#",
+      "Text": "Invite a friend"
+    },
+    {
+      "Mask": "#%LABEL_BLUM_POINTS_PANEL_YOUR_ACCOUNTS%#",
+      "Text": "Your accounts:"
+    },
+    {
+      "Mask": "#%BUTTON_ADD_ACCOUNT_BUTTON_BUY_NEW_SLOT%#",
+      "Text": "Buy a new slot"
+    },
+    {
+      "Mask": "#%LABEL_BUY_SLOTS_MODAL_PURCHASE_SLOTS%#",
+      "Text": "Purchase Slots"
+    },
+    {
+      "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_CUSTOM_USERNAME%#",
+      "Text": "Custom Username:"
+    },
+    {
+      "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_AUTH_TOKEN%#",
+      "Text": "Auth Token:"
+    },
+    {
+      "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_REGION%#",
+      "Text": "Region:"
+    },
+    {
+      "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_COUNTRY%#",
+      "Text": "Country"
+    },
+    {
+      "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_BALANCE%#",
+      "Text": "Balance"
+    },
+    {
+      "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_TODAY%#",
+      "Text": "Earned Today"
+    },
+    {
+      "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_LINK%#",
+      "Text": "Referral Link"
+    },
+    {
+      "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_COUNT%#",
+      "Text": "Referrals count"
+    }
+  ]

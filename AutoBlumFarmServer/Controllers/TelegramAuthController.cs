@@ -1,6 +1,7 @@
 ﻿using AutoBlumFarmServer.Model;
 using AutoBlumFarmServer.SwaggerApiResponses;
 using AutoBlumFarmServer.SwaggerApiResponses.TelegramAuthController;
+using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -54,12 +55,12 @@ namespace AutoBlumFarmServer.Controllers
                 if (parameters.ContainsKey("user"))
                 {
                     long userTelegramId = -1;
-                    string languageCode = "en", firstName = "", lastName = "";
+                    string firstName = "", lastName = "";
                     try
                     {
                         dynamic json   = JObject.Parse(parameters["user"].Replace("'", "\\'").Replace("\"", "'"));
                         userTelegramId = json.id;
-                        languageCode   = json.language_code;
+                        //languageCode   = json.language_code;
                         firstName      = json.first_name;
                         lastName       = json.last_name;
                     }
@@ -67,7 +68,7 @@ namespace AutoBlumFarmServer.Controllers
 
                     if (userTelegramId > 0)
                     {
-                        (string? token, DateTime expires) = GenerateJwtToken(userTelegramId, languageCode, firstName, lastName);
+                        (string? token, DateTime expires, User invoker) = GenerateJwtToken(userTelegramId, firstName, lastName);
 
                         if (token != null)
                         {
@@ -78,7 +79,7 @@ namespace AutoBlumFarmServer.Controllers
                                 {
                                     token        = token,
                                     expires      = expires,
-                                    languageCode = languageCode
+                                    languageCode = invoker.LanguageCode
                                 }
                             });
                         }
@@ -131,16 +132,15 @@ namespace AutoBlumFarmServer.Controllers
             return actualHash.SequenceEqual(generatedHash);
         }
 
-        private (string? token, DateTime expired) GenerateJwtToken(long telegramUserId, string languageCode, string firstName, string lastName)
+        private (string? token, DateTime expired, User user) GenerateJwtToken(long telegramUserId, string firstName, string lastName)
         {
             var users = _userRepository.GetAll();
 
             var user = users.FirstOrDefault(acc => acc.TelegramUserId == telegramUserId);
-            if (user == null) return (null, DateTime.UtcNow);
+            if (user == null) return (null, DateTime.UtcNow, new());
 
             user.FirstName    = firstName;
             user.LastName     = lastName;
-            user.LanguageCode = languageCode;
             _userRepository.Update(user);
 
             var claims = new List<Claim>
@@ -159,7 +159,7 @@ namespace AutoBlumFarmServer.Controllers
                                              expires: expires,
                                              signingCredentials: creds);
 
-            return (new JwtSecurityTokenHandler().WriteToken(token), expires);
+            return (new JwtSecurityTokenHandler().WriteToken(token), expires, user);
         }
     }
 }

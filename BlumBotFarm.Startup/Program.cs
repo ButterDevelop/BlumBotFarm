@@ -35,17 +35,16 @@ namespace BlumBotFarm.Startup
             // Настройка Telegram-бота через конфигурацию
             var userBotToken   = AppConfig.BotSettings.BotToken;
             var adminBotToken  = AppConfig.BotSettings.AdminBotToken;
-            var adminUsernames = AppConfig.BotSettings.AdminUsernames;
             var adminChatIds   = AppConfig.BotSettings.AdminChatIds;
-            if (adminBotToken != null && userBotToken != null && adminUsernames != null && adminChatIds != null)
+            if (adminBotToken != null && userBotToken != null && adminChatIds != null)
             {
                 var adminBotClient = new TelegramBotClient(adminBotToken);
                 var userBotClient  = new TelegramBotClient(userBotToken);
 
-                var adminTelegramBot = new TelegramBot.AdminTelegramBot(adminBotClient, adminUsernames, adminChatIds);
+                var adminTelegramBot = new TelegramBot.AdminTelegramBot(adminBotClient, adminChatIds);
                 adminTelegramBot.Start();
 
-                var messageProcessor = new MessageProcessor.MessageProcessor(adminBotClient, userBotClient, adminUsernames, adminChatIds, new CancellationToken());
+                var messageProcessor = new MessageProcessor.MessageProcessor(adminBotClient, userBotClient, adminChatIds, new CancellationToken());
                 MessageProcessor.MessageProcessor.Instance = messageProcessor;
                 await Task.Factory.StartNew(messageProcessor.StartAsync);
 

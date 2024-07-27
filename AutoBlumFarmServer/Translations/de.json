@@ -1,78 +1,78 @@
 [
   {
     "Mask": "#%LABEL_EMPTY_ACCOUNT_SCROLL_BOX_ITEM_ADD_YOUR_ACCOUNT%#",
-    "Text": "Добавить ваш аккаунт"
+    "Text": "Ihr Konto hinzufügen"
   },
   {
     "Mask": "#%LABEL_USD_SECTION_YOU_RECEIVE%#",
-    "Text": "Вы получите"
+    "Text": "Sie erhalten"
   },
   {
     "Mask": "#%LABEL_STARS_SECTION_YOU_PAY%#",
-    "Text": "Вы платите"
+    "Text": "Sie zahlen"
   },
   {
     "Mask": "#%BUTTON_PAYMENT_PANEL_TOP_UP%#",
-    "Text": "Пополнить"
+    "Text": "Aufladen"
   },
   {
     "Mask": "#%LABEL_HEADER_PAYMENT_PANEL_WALLET%#",
-    "Text": "Кошелек"
+    "Text": "Brieftasche"
   },
   {
     "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_INVITE_FRIENDS%#",
-    "Text": "Пригласить друзей!"
+    "Text": "Freunde einladen!"
   },
   {
     "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_LIST_OF_FRIENDS%#",
-    "Text": "Список ваших друзей"
+    "Text": "Liste Ihrer Freunde"
   },
   {
     "Mask": "#%BUTTON_INVITE_BUTTONS_INVITE_FRIEND%#",
-    "Text": "Пригласить друга"
+    "Text": "Einen Freund einladen"
   },
   {
     "Mask": "#%LABEL_BLUM_POINTS_PANEL_YOUR_ACCOUNTS%#",
-    "Text": "Ваши аккаунты:"
+    "Text": "Ihre Konten:"
   },
   {
     "Mask": "#%BUTTON_ADD_ACCOUNT_BUTTON_BUY_NEW_SLOT%#",
-    "Text": "Купить новый слот"
+    "Text": "Einen neuen Slot kaufen"
   },
   {
     "Mask": "#%LABEL_BUY_SLOTS_MODAL_PURCHASE_SLOTS%#",
-    "Text": "Покупка слотов"
+    "Text": "Slots kaufen"
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_CUSTOM_USERNAME%#",
-    "Text": "Пользовательское имя:"
+    "Text": "Benutzerdefinierter Benutzername:"
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_AUTH_TOKEN%#",
-    "Text": "Токен аутентификации:"
+    "Text": "Auth-Token:"
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_REGION%#",
-    "Text": "Регион:"
+    "Text": "Region:"
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_COUNTRY%#",
-    "Text": "Страна"
+    "Text": "Land"
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_BALANCE%#",
-    "Text": "Баланс"
+    "Text": "Kontostand"
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_TODAY%#",
-    "Text": "Заработано сегодня"
+    "Text": "Heute verdient"
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_LINK%#",
-    "Text": "Реферальная ссылка"
+    "Text": "Referral-Link"
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_COUNT%#",
-    "Text": "Количество рефералов"
+    "Text": "Anzahl der Referrals"
   }
 ]

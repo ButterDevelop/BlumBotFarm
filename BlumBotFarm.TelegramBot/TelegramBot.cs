@@ -19,7 +19,6 @@ namespace BlumBotFarm.TelegramBot
         private const string ALPHABET_NUMERIC_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
         private readonly ITelegramBotClient        botClient;
-        private readonly string[]                  adminUsernames;
         private readonly long[]                    adminChatIds;
         private readonly double                    starPriceUsd;
         private readonly int                       referralBalanceBonusPercent;
@@ -32,11 +31,10 @@ namespace BlumBotFarm.TelegramBot
         private readonly long                      techSupportGroupChatId;
         private readonly string                    telegramChannelName;
 
-        public TelegramBot(string token, string[] adminUsernames, long[] adminChatIds, double starPriceUsd, int referralBalanceBonusPercent,
+        public TelegramBot(string token, long[] adminChatIds, double starPriceUsd, int referralBalanceBonusPercent,
                            string serverDomain, string publicBotName, long techSupportGroupChatId, string telegramChannelName)
         {
             botClient                        = new TelegramBotClient(token);
-            this.adminUsernames              = adminUsernames;
             this.adminChatIds                = adminChatIds;
             this.starPriceUsd                = starPriceUsd;
             var db                           = Database.Database.ConnectionString;

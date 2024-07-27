@@ -176,6 +176,8 @@ namespace AutoBlumFarmServer.Controllers
         {
             if (!_userCacheService.TryGetFromCache(userId, out User user)) return NotFound();
 
+            Response.Headers.Append("Cache-Control", "public, max-age=86400"); // 86400 seconds = 24 hours
+
             var usersPhoto = await _botClient.GetUserProfilePhotosAsync(user.TelegramUserId);
             if (usersPhoto.TotalCount > 0)
             {
@@ -189,7 +191,6 @@ namespace AutoBlumFarmServer.Controllers
                     var stream     = new MemoryStream(photoBytes);
 
                     // Установка заголовков для кэширования
-                    Response.Headers.Append("Cache-Control", "public, max-age=86400"); // 86400 seconds = 24 hours
                     return File(stream, "image/png");
                 }
             }

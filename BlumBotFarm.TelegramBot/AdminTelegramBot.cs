@@ -17,7 +17,6 @@ namespace BlumBotFarm.TelegramBot
     public class AdminTelegramBot
     {
         private readonly ITelegramBotClient botClient;
-        private readonly string[] adminUsernames;
         private readonly long[]   adminChatIds;
         private readonly AccountRepository     accountRepository;
         private readonly TaskRepository        taskRepository;
@@ -26,10 +25,9 @@ namespace BlumBotFarm.TelegramBot
         private readonly UserRepository        userRepository;
         private readonly TaskScheduler         taskScheduler;
 
-        public AdminTelegramBot(TelegramBotClient botClient, string[] adminUsernames, long[] adminChatIds)
+        public AdminTelegramBot(TelegramBotClient botClient, long[] adminChatIds)
         {
             this.botClient        = botClient;
-            this.adminUsernames   = adminUsernames;
             this.adminChatIds     = adminChatIds;
             var db                = Database.Database.ConnectionString;
             accountRepository     = new AccountRepository(db);
@@ -67,7 +65,7 @@ namespace BlumBotFarm.TelegramBot
                 if (message.From is null) return;
                 var username = message.From.Username;
 
-                if (Array.Exists(adminUsernames, user => user.Equals(username, StringComparison.OrdinalIgnoreCase)))
+                if (Array.Exists(adminChatIds, userId => userId == message.From.Id))
                 {
                     await HandleAdminMessage(message);
                 }

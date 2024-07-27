@@ -1,78 +1,78 @@
 [
   {
     "Mask": "#%LABEL_EMPTY_ACCOUNT_SCROLL_BOX_ITEM_ADD_YOUR_ACCOUNT%#",
-    "Text": "Добавить ваш аккаунт"
+    "Text": "Přidat svůj účet"
   },
   {
     "Mask": "#%LABEL_USD_SECTION_YOU_RECEIVE%#",
-    "Text": "Вы получите"
+    "Text": "Obdržíte"
   },
   {
     "Mask": "#%LABEL_STARS_SECTION_YOU_PAY%#",
-    "Text": "Вы платите"
+    "Text": "Platíte"
   },
   {
     "Mask": "#%BUTTON_PAYMENT_PANEL_TOP_UP%#",
-    "Text": "Пополнить"
+    "Text": "Dobít"
   },
   {
     "Mask": "#%LABEL_HEADER_PAYMENT_PANEL_WALLET%#",
-    "Text": "Кошелек"
+    "Text": "Peněženka"
   },
   {
     "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_INVITE_FRIENDS%#",
-    "Text": "Пригласить друзей!"
+    "Text": "Pozvat přátele!"
   },
   {
     "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_LIST_OF_FRIENDS%#",
-    "Text": "Список ваших друзей"
+    "Text": "Seznam vašich přátel"
   },
   {
     "Mask": "#%BUTTON_INVITE_BUTTONS_INVITE_FRIEND%#",
-    "Text": "Пригласить друга"
+    "Text": "Pozvat přítele"
   },
   {
     "Mask": "#%LABEL_BLUM_POINTS_PANEL_YOUR_ACCOUNTS%#",
-    "Text": "Ваши аккаунты:"
+    "Text": "Vaše účty:"
   },
   {
     "Mask": "#%BUTTON_ADD_ACCOUNT_BUTTON_BUY_NEW_SLOT%#",
-    "Text": "Купить новый слот"
+    "Text": "Koupit nový slot"
   },
   {
     "Mask": "#%LABEL_BUY_SLOTS_MODAL_PURCHASE_SLOTS%#",
-    "Text": "Покупка слотов"
+    "Text": "Koupit sloty"
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_CUSTOM_USERNAME%#",
-    "Text": "Пользовательское имя:"
+    "Text": "Vlastní uživatelské jméno:"
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_AUTH_TOKEN%#",
-    "Text": "Токен аутентификации:"
+    "Text": "Autorizační token:"
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_REGION%#",
-    "Text": "Регион:"
+    "Text": "Region:"
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_COUNTRY%#",
-    "Text": "Страна"
+    "Text": "Země"
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_BALANCE%#",
-    "Text": "Баланс"
+    "Text": "Zůstatek"
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_TODAY%#",
-    "Text": "Заработано сегодня"
+    "Text": "Dnes vyděláno"
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_LINK%#",
-    "Text": "Реферальная ссылка"
+    "Text": "Odkaz na doporučení"
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_COUNT%#",
-    "Text": "Количество рефералов"
+    "Text": "Počet doporučení"
   }
 ]

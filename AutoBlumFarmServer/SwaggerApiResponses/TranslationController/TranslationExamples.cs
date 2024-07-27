@@ -40,7 +40,7 @@ namespace AutoBlumFarmServer.SwaggerApiResponses.UserController
         public IEnumerable<SwaggerExample<ApiObjectResponse<Dictionary<string, string>?>>> GetExamples()
         {
             Dictionary<string, string> dict = [];
-            foreach (var key in TranslationHelper.Instance.AvailableLanguageCodes.Select(l => l.ToUpper()))
+            foreach (var key in TranslationHelper.Instance.AvailableLanguageCodes)
             {
                 if (TranslationHelper.LanguageCodeToLanguageName.TryGetValue(key.ToLower(), out string? value)) dict.Add(key, value);
             }

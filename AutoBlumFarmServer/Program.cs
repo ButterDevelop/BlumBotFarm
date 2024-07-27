@@ -34,11 +34,10 @@ Log.Logger = new LoggerConfiguration()
 
 // Настройка Telegram-бота через конфигурацию
 var botToken       = Config.Instance.TELEGRAM_BOT_TOKEN;
-var adminUsernames = AppConfig.BotSettings.AdminUsernames;
 var adminChatIds   = AppConfig.BotSettings.AdminChatIds;
-if (botToken != null && adminUsernames != null && adminChatIds != null)
+if (botToken != null && adminChatIds != null)
 {
-    var adminTelegramBot = new TelegramBot(botToken, adminUsernames, adminChatIds,
+    var adminTelegramBot = new TelegramBot(botToken, adminChatIds,
                                            Config.Instance.TG_STARS_PAYMENT_STAR_USD_PRICE,
                                            Config.Instance.REFERRAL_BALANCE_BONUS_PERCENT,
                                            Config.Instance.SERVER_DOMAIN,

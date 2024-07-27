@@ -19,7 +19,6 @@ namespace BlumBotFarm.Core
             public static string?   BotToken       => Configuration["BotSettings:BotToken"];
             public static string?   AdminBotToken  => Configuration["BotSettings:AdminBotToken"];
             public static string?   PublicBotName  => Configuration["BotSettings:PublicBotName"];
-            public static string[]? AdminUsernames => Configuration.GetSection("BotSettings:AdminUsernames").Get<string[]>();
             public static long[]?   AdminChatIds   => Configuration.GetSection("BotSettings:AdminChatIds").Get<long[]>();
         }
 

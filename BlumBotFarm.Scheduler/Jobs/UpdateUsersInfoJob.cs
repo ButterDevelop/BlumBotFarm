@@ -1,5 +1,4 @@
-﻿using BlumBotFarm.Core.Models;
-using BlumBotFarm.Database.Repositories;
+﻿using BlumBotFarm.Database.Repositories;
 using BlumBotFarm.GameClient;
 using Quartz;
 using Serilog;

@@ -10,11 +10,13 @@ using Swashbuckle.AspNetCore.Filters;
 using AutoBlumFarmServer.Model;
 using AutoBlumFarmServer.CacheServices;
 using BlumBotFarm.Core.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AutoBlumFarmServer.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class TranslationController : Controller
     {
         private readonly UserRepository    _userRepository;
@@ -83,9 +85,9 @@ namespace AutoBlumFarmServer.Controllers
             });
 
             Dictionary<string, string> dict = [];
-            foreach (var key in TranslationHelper.Instance.AvailableLanguageCodes.Select(l => l.ToUpper()))
+            foreach (var key in TranslationHelper.Instance.AvailableLanguageCodes)
             {
-                if (TranslationHelper.LanguageCodeToLanguageName.TryGetValue(key.ToLower(), out string? value)) dict.Add(key, value);
+                if (TranslationHelper.LanguageCodeToLanguageName.TryGetValue(key, out string? value)) dict.Add(key, value);
             }
 
             return Ok(new ApiObjectResponse<Dictionary<string, string>>
@@ -125,8 +127,12 @@ namespace AutoBlumFarmServer.Controllers
                 });
             }
 
+            // Update user in DB
             invoker.LanguageCode = model.LanguageCode.ToLower();
             _userRepository.Update(invoker);
+
+            // Update changes to cache
+            _userCacheService.SetInCache(invoker);
 
             return Ok(new ApiMessageResponse
             {

@@ -10,17 +10,15 @@ namespace BlumBotFarm.MessageProcessor
 
         private readonly ITelegramBotClient _adminTelegramBotClient;
         private readonly ITelegramBotClient _userTelegramBotClient;
-        private readonly string[]          _adminUsernames;
-        private readonly long[]            _adminChatIds;
-        private readonly CancellationToken _cancellationToken;
-        private readonly MessageRepository _messageRepository;
+        private readonly long[]             _adminChatIds;
+        private readonly CancellationToken  _cancellationToken;
+        private readonly MessageRepository  _messageRepository;
 
-        public MessageProcessor(TelegramBotClient adminTelegramBotClient, TelegramBotClient userTelegramBotClient, string[] adminUsernames, 
+        public MessageProcessor(TelegramBotClient adminTelegramBotClient, TelegramBotClient userTelegramBotClient, 
                                 long[] adminChatIds, CancellationToken cancellationToken)
         {
             _adminTelegramBotClient = adminTelegramBotClient;
             _userTelegramBotClient  = userTelegramBotClient;
-            _adminUsernames         = adminUsernames;
             _adminChatIds           = adminChatIds;
             _cancellationToken      = cancellationToken;
             _messageRepository      = new MessageRepository(Database.Database.ConnectionString);
