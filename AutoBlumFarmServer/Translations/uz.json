@@ -1,78 +1,195 @@
 [
-  {
-    "Mask": "#%LABEL_EMPTY_ACCOUNT_SCROLL_BOX_ITEM_ADD_YOUR_ACCOUNT%#",
-    "Text": "Hisobingizni qo'shing"
-  },
-  {
-    "Mask": "#%LABEL_USD_SECTION_YOU_RECEIVE%#",
-    "Text": "Siz olasiz"
-  },
-  {
-    "Mask": "#%LABEL_STARS_SECTION_YOU_PAY%#",
-    "Text": "Siz to'laysiz"
-  },
-  {
-    "Mask": "#%BUTTON_PAYMENT_PANEL_TOP_UP%#",
-    "Text": "To'ldirish"
-  },
-  {
-    "Mask": "#%LABEL_HEADER_PAYMENT_PANEL_WALLET%#",
-    "Text": "Hamyon"
-  },
-  {
-    "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_INVITE_FRIENDS%#",
-    "Text": "Do'stlarni taklif qiling!"
-  },
-  {
-    "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_LIST_OF_FRIENDS%#",
-    "Text": "Sizning do'stlaringiz ro'yxati"
-  },
-  {
-    "Mask": "#%BUTTON_INVITE_BUTTONS_INVITE_FRIEND%#",
-    "Text": "Do'stni taklif qiling"
-  },
-  {
-    "Mask": "#%LABEL_BLUM_POINTS_PANEL_YOUR_ACCOUNTS%#",
-    "Text": "Sizning hisoblaringiz:"
-  },
-  {
-    "Mask": "#%BUTTON_ADD_ACCOUNT_BUTTON_BUY_NEW_SLOT%#",
-    "Text": "Yangi slot sotib olish"
-  },
-  {
-    "Mask": "#%LABEL_BUY_SLOTS_MODAL_PURCHASE_SLOTS%#",
-    "Text": "Slotlarni sotib olish"
-  },
-  {
-    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_CUSTOM_USERNAME%#",
-    "Text": "Maxsus foydalanuvchi nomi:"
-  },
-  {
-    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_AUTH_TOKEN%#",
-    "Text": "Tasdiqlash tokeni:"
-  },
-  {
-    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_REGION%#",
-    "Text": "Hudud:"
-  },
-  {
-    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_COUNTRY%#",
-    "Text": "Mamlakat"
-  },
-  {
-    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_BALANCE%#",
-    "Text": "Balans"
-  },
-  {
-    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_TODAY%#",
-    "Text": "Bugun ishlab topilgan"
-  },
-  {
-    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_LINK%#",
-    "Text": "Referal havolasi"
-  },
-  {
-    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_COUNT%#",
-    "Text": "Referal soni"
-  }
+    {
+      "Mask": "#%LABEL_EMPTY_ACCOUNT_SCROLL_BOX_ITEM_ADD_YOUR_ACCOUNT%#",
+      "Text": "Hisobingizni qo'shing"
+    },
+    {
+      "Mask": "#%LABEL_USD_SECTION_YOU_RECEIVE%#",
+      "Text": "Siz olasiz"
+    },
+    {
+      "Mask": "#%LABEL_STARS_SECTION_YOU_PAY%#",
+      "Text": "Siz to'laysiz"
+    },
+    {
+      "Mask": "#%BUTTON_PAYMENT_PANEL_TOP_UP%#",
+      "Text": "To'ldirish"
+    },
+    {
+      "Mask": "#%BUTTON_PAYMENT_PANEL_TOPPING_UP%#",
+      "Text": "To'ldirilmoqda"
+    },
+    {
+      "Mask": "#%LABEL_HEADER_PAYMENT_PANEL_WALLET%#",
+      "Text": "Hamyon"
+    },
+    {
+      "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_INVITE_FRIENDS%#",
+      "Text": "Do'stlaringizni taklif qiling!"
+    },
+    {
+      "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_LIST_OF_FRIENDS%#",
+      "Text": "Do'stlaringiz ro'yxati"
+    },
+    {
+      "Mask": "#%BUTTON_INVITE_BUTTONS_INVITE_FRIEND%#",
+      "Text": "Do'stni taklif qilish"
+    },
+    {
+      "Mask": "#%LABEL_BLUM_POINTS_PANEL_YOUR_ACCOUNTS%#",
+      "Text": "Hisoblaringiz:"
+    },
+    {
+      "Mask": "#%BUTTON_ADD_ACCOUNT_BUTTON_BUY_NEW_SLOT%#",
+      "Text": "Yangi slot sotib olish"
+    },
+    {
+      "Mask": "#%LABEL_BUY_SLOTS_MODAL_PURCHASE_SLOTS%#",
+      "Text": "Slotlarni sotib olish"
+    },
+    {
+      "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_CUSTOM_USERNAME%#",
+      "Text": "Maxsus foydalanuvchi nomi:"
+    },
+    {
+      "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_AUTH_TOKEN%#",
+      "Text": "Autentifikatsiya tokeni:"
+    },
+    {
+      "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_REGION%#",
+      "Text": "Mintaqa:"
+    },
+    {
+      "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_COUNTRY%#",
+      "Text": "Mamlakat"
+    },
+    {
+      "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_BALANCE%#",
+      "Text": "Balans"
+    },
+    {
+      "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_TODAY%#",
+      "Text": "Bugun topilgan"
+    },
+    {
+      "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_LINK%#",
+      "Text": "Referal havola"
+    },
+    {
+      "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_COUNT%#",
+      "Text": "Referallar soni"
+    },
+    {
+      "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_EDIT_ACCOUNT%#",
+      "Text": "Hisobni tahrirlash"
+    },
+    {
+      "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADD_ACCOUNT%#",
+      "Text": "Hisob qo'shish"
+    },
+    {
+      "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_SAVE%#",
+      "Text": "Saqlash"
+    },
+    {
+      "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_SAVING%#",
+      "Text": "Saqlanmoqda"
+    },
+    {
+      "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADD%#",
+      "Text": "Qo'shish"
+    },
+    {
+      "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADDING%#",
+      "Text": "Qo'shilmoqda"
+    },
+    {
+      "Mask": "#%ALERT_ACCOUNT_INFO_MODAL_COPY_BLUM_REF%#",
+      "Text": "Blum referal havolasi buferga ko'chirildi!"
+    },
+    {
+      "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_UNKNOWN_COUNTRY%#",
+      "Text": "Noma'lum mamlakat"
+    },
+    {
+      "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_ACCOUNT_INFO_MODAL%#",
+      "Text": "Hisob haqida ma'lumot"
+    },
+    {
+      "Mask": "#%MESSAGE_INVITE_FRIENDS_PANEL_INVITE_MESSAGE%#",
+      "Text": "Auto Blum Farm-ga qo'shiling va men bilan BP o'stiring!"
+    },
+    {
+      "Mask": "#%ALERT_INVITE_BUTTONS_ALERT_MESSAGE%#",
+      "Text": "Sizning referal havolangiz buferga ko'chirildi!"
+    },
+    {
+      "Mask": "#%LABEL_BUY_SLOTS_MODAL_SLOTS%#",
+      "Text": "SLOTLAR"
+    },
+    {
+      "Mask": "#%LABEL_BUY_SLOTS_MODAL_SLOT%#",
+      "Text": "SLOT"
+    },
+    {
+      "Mask": "#%LABEL_BUY_SLOTS_MODAL_LOADING%#",
+      "Text": "Yuklanmoqda..."
+    },
+    {
+      "Mask": "#%LABEL_BUY_SLOTS_MODAL_ERROR%#",
+      "Text": "Xato:"
+    },
+    {
+      "Mask": "#%LABEL_BUY_SLOTS_MODAL_BUYING%#",
+      "Text": "Sotib olinmoqda..."
+    },
+    {
+      "Mask": "#%LABEL_BUY_SLOTS_MODAL_BUY%#",
+      "Text": "SOTIB OLISH"
+    },
+    {
+      "Mask": "#%LABEL_LOADING_SCREEN_LOADING%#",
+      "Text": "Yuklanmoqda..."
+    },
+    {
+      "Mask": "#%ERROR_PAYMENT_PANEL_USD_AMOUNT_ERROR%#",
+      "Text": "USD miqdori bo'sh bo'lishi mumkin emas"
+    },
+    {
+      "Mask": "#%ERROR_PAYMENT_PANEL_STARS_AMOUNT_ERROR%#",
+      "Text": "STARS miqdori bo'sh bo'lishi mumkin emas"
+    },
+    {
+      "Mask": "#%BUTTON_ACCOUNT_INFO_MODAL_COPY%#",
+      "Text": "Nusxalash"
+    },
+    {
+      "Mask": "#%BUTTON_BUY_SLOTS_MODAL_SLOT%#",
+      "Text": "slot"
+    },
+    {
+      "Mask": "#%BUTTON_BUY_SLOTS_MODAL_SLOTS%#",
+      "Text": "slotlar"
+    },
+    {
+        "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_USERNAME_IS_REQUIRED%#",
+        "Text": "Foydalanuvchi nomi talab qilinadi"
+      },
+      {
+        "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_AUTH_TOKEN_IS_REQUIRED%#",
+        "Text": "Autentifikatsiya tokeni talab qilinadi"
+      },
+      {
+        "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_COUNTRY_IS_REQUIRED%#",
+        "Text": "Mamlakat talab qilinadi"
+      },
+      {
+        "Mask": "#%Error%#",
+        "Text": "Xato"
+      },
+      {
+        "Mask": "#%Information%#",
+        "Text": "Ma'lumot"
+      }
+      
 ]

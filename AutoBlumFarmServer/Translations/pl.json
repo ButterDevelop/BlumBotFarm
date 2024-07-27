@@ -16,20 +16,24 @@
     "Text": "Doładuj"
   },
   {
+    "Mask": "#%BUTTON_PAYMENT_PANEL_TOPPING_UP%#",
+    "Text": "Doładowywanie"
+  },
+  {
     "Mask": "#%LABEL_HEADER_PAYMENT_PANEL_WALLET%#",
     "Text": "Portfel"
   },
   {
     "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_INVITE_FRIENDS%#",
-    "Text": "Zaproś znajomych!"
+    "Text": "Zaproś przyjaciół!"
   },
   {
     "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_LIST_OF_FRIENDS%#",
-    "Text": "Lista twoich znajomych"
+    "Text": "Lista twoich przyjaciół"
   },
   {
     "Mask": "#%BUTTON_INVITE_BUTTONS_INVITE_FRIEND%#",
-    "Text": "Zaproś znajomego"
+    "Text": "Zaproś przyjaciela"
   },
   {
     "Mask": "#%LABEL_BLUM_POINTS_PANEL_YOUR_ACCOUNTS%#",
@@ -49,7 +53,7 @@
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_AUTH_TOKEN%#",
-    "Text": "Token uwierzytelniający:"
+    "Text": "Token autoryzacji:"
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_REGION%#",
@@ -73,6 +77,118 @@
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_COUNT%#",
-    "Text": "Liczba poleconych"
-  }
+    "Text": "Liczba referencji"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_EDIT_ACCOUNT%#",
+    "Text": "Edytuj konto"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADD_ACCOUNT%#",
+    "Text": "Dodaj konto"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_SAVE%#",
+    "Text": "Zapisz"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_SAVING%#",
+    "Text": "Zapisywanie"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADD%#",
+    "Text": "Dodaj"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADDING%#",
+    "Text": "Dodawanie"
+  },
+  {
+    "Mask": "#%ALERT_ACCOUNT_INFO_MODAL_COPY_BLUM_REF%#",
+    "Text": "Link referencyjny Blum skopiowany do schowka!"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_UNKNOWN_COUNTRY%#",
+    "Text": "Nieznany kraj"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_ACCOUNT_INFO_MODAL%#",
+    "Text": "Informacje o koncie"
+  },
+  {
+    "Mask": "#%MESSAGE_INVITE_FRIENDS_PANEL_INVITE_MESSAGE%#",
+    "Text": "Dołącz do Auto Blum Farm i uprawiaj BP razem ze mną!"
+  },
+  {
+    "Mask": "#%ALERT_INVITE_BUTTONS_ALERT_MESSAGE%#",
+    "Text": "Twój link referencyjny został skopiowany do schowka!"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_SLOTS%#",
+    "Text": "SLOTY"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_SLOT%#",
+    "Text": "SLOT"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_LOADING%#",
+    "Text": "Ładowanie..."
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_ERROR%#",
+    "Text": "Błąd:"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_BUYING%#",
+    "Text": "Zakup..."
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_BUY%#",
+    "Text": "KUP"
+  },
+  {
+    "Mask": "#%LABEL_LOADING_SCREEN_LOADING%#",
+    "Text": "Ładowanie..."
+  },
+  {
+    "Mask": "#%ERROR_PAYMENT_PANEL_USD_AMOUNT_ERROR%#",
+    "Text": "Kwota w USD nie może być pusta"
+  },
+  {
+    "Mask": "#%ERROR_PAYMENT_PANEL_STARS_AMOUNT_ERROR%#",
+    "Text": "Kwota w STARS nie może być pusta"
+  },
+  {
+    "Mask": "#%BUTTON_ACCOUNT_INFO_MODAL_COPY%#",
+    "Text": "Kopiuj"
+  },
+  {
+    "Mask": "#%BUTTON_BUY_SLOTS_MODAL_SLOT%#",
+    "Text": "slot"
+  },
+  {
+    "Mask": "#%BUTTON_BUY_SLOTS_MODAL_SLOTS%#",
+    "Text": "sloty"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_USERNAME_IS_REQUIRED%#",
+    "Text": "Wymagana nazwa użytkownika"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_AUTH_TOKEN_IS_REQUIRED%#",
+    "Text": "Wymagany token autoryzacyjny"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_COUNTRY_IS_REQUIRED%#",
+    "Text": "Wymagany kraj"
+  },
+  {
+    "Mask": "#%Error%#",
+    "Text": "Błąd"
+  },
+  {
+    "Mask": "#%Information%#",
+    "Text": "Informacja"
+  }  
 ]

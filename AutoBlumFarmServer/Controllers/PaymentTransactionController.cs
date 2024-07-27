@@ -58,7 +58,7 @@ namespace AutoBlumFarmServer.Controllers
             });
 
             decimal priceUsd = model.priceUsd;
-            if (priceUsd <= 0 || priceUsd > 1000)
+            if (priceUsd < (decimal)Config.Instance.TG_STARS_PAYMENT_STAR_USD_PRICE || priceUsd > 1000)
             {
                 return BadRequest(new ApiMessageResponse
                 {

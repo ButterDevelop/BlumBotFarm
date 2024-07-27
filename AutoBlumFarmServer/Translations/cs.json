@@ -1,7 +1,7 @@
 [
   {
     "Mask": "#%LABEL_EMPTY_ACCOUNT_SCROLL_BOX_ITEM_ADD_YOUR_ACCOUNT%#",
-    "Text": "Přidat svůj účet"
+    "Text": "Přidat váš účet"
   },
   {
     "Mask": "#%LABEL_USD_SECTION_YOU_RECEIVE%#",
@@ -16,12 +16,16 @@
     "Text": "Dobít"
   },
   {
+    "Mask": "#%BUTTON_PAYMENT_PANEL_TOPPING_UP%#",
+    "Text": "Dobíjení"
+  },
+  {
     "Mask": "#%LABEL_HEADER_PAYMENT_PANEL_WALLET%#",
     "Text": "Peněženka"
   },
   {
     "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_INVITE_FRIENDS%#",
-    "Text": "Pozvat přátele!"
+    "Text": "Pozvěte přátele!"
   },
   {
     "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_LIST_OF_FRIENDS%#",
@@ -41,7 +45,7 @@
   },
   {
     "Mask": "#%LABEL_BUY_SLOTS_MODAL_PURCHASE_SLOTS%#",
-    "Text": "Koupit sloty"
+    "Text": "Zakoupit sloty"
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_CUSTOM_USERNAME%#",
@@ -49,7 +53,7 @@
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_AUTH_TOKEN%#",
-    "Text": "Autorizační token:"
+    "Text": "Autentizační token:"
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_REGION%#",
@@ -69,10 +73,122 @@
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_LINK%#",
-    "Text": "Odkaz na doporučení"
+    "Text": "Referenční odkaz"
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_COUNT%#",
-    "Text": "Počet doporučení"
-  }
+    "Text": "Počet referencí"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_EDIT_ACCOUNT%#",
+    "Text": "Upravit účet"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADD_ACCOUNT%#",
+    "Text": "Přidat účet"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_SAVE%#",
+    "Text": "Uložit"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_SAVING%#",
+    "Text": "Ukládání"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADD%#",
+    "Text": "Přidat"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADDING%#",
+    "Text": "Přidávání"
+  },
+  {
+    "Mask": "#%ALERT_ACCOUNT_INFO_MODAL_COPY_BLUM_REF%#",
+    "Text": "Referenční odkaz Blum zkopírován do schránky!"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_UNKNOWN_COUNTRY%#",
+    "Text": "Neznámá země"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_ACCOUNT_INFO_MODAL%#",
+    "Text": "Informace o účtu"
+  },
+  {
+    "Mask": "#%MESSAGE_INVITE_FRIENDS_PANEL_INVITE_MESSAGE%#",
+    "Text": "Připojte se k Auto Blum Farm a pěstujte BP se mnou!"
+  },
+  {
+    "Mask": "#%ALERT_INVITE_BUTTONS_ALERT_MESSAGE%#",
+    "Text": "Váš referenční odkaz zkopírován do schránky!"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_SLOTS%#",
+    "Text": "SLOTY"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_SLOT%#",
+    "Text": "SLOT"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_LOADING%#",
+    "Text": "Načítání..."
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_ERROR%#",
+    "Text": "Chyba:"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_BUYING%#",
+    "Text": "Nákup..."
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_BUY%#",
+    "Text": "KOUPIT"
+  },
+  {
+    "Mask": "#%LABEL_LOADING_SCREEN_LOADING%#",
+    "Text": "Načítání..."
+  },
+  {
+    "Mask": "#%ERROR_PAYMENT_PANEL_USD_AMOUNT_ERROR%#",
+    "Text": "Částka USD nemůže být prázdná"
+  },
+  {
+    "Mask": "#%ERROR_PAYMENT_PANEL_STARS_AMOUNT_ERROR%#",
+    "Text": "Částka STARS nemůže být prázdná"
+  },
+  {
+    "Mask": "#%BUTTON_ACCOUNT_INFO_MODAL_COPY%#",
+    "Text": "Kopírovat"
+  },
+  {
+    "Mask": "#%BUTTON_BUY_SLOTS_MODAL_SLOT%#",
+    "Text": "slot"
+  },
+  {
+    "Mask": "#%BUTTON_BUY_SLOTS_MODAL_SLOTS%#",
+    "Text": "sloty"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_USERNAME_IS_REQUIRED%#",
+    "Text": "Uživatelské jméno je vyžadováno"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_AUTH_TOKEN_IS_REQUIRED%#",
+    "Text": "Autentizační token je vyžadován"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_COUNTRY_IS_REQUIRED%#",
+    "Text": "Země je vyžadována"
+  },
+  {
+    "Mask": "#%Error%#",
+    "Text": "Chyba"
+  },
+  {
+    "Mask": "#%Information%#",
+    "Text": "Informace"
+  }  
 ]

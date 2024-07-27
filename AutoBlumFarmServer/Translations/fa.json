@@ -5,15 +5,19 @@
   },
   {
     "Mask": "#%LABEL_USD_SECTION_YOU_RECEIVE%#",
-    "Text": "شما دریافت می کنید"
+    "Text": "دریافت می‌کنید"
   },
   {
     "Mask": "#%LABEL_STARS_SECTION_YOU_PAY%#",
-    "Text": "شما پرداخت می کنید"
+    "Text": "پرداخت می‌کنید"
   },
   {
     "Mask": "#%BUTTON_PAYMENT_PANEL_TOP_UP%#",
-    "Text": "شارژ کنید"
+    "Text": "شارژ کردن"
+  },
+  {
+    "Mask": "#%BUTTON_PAYMENT_PANEL_TOPPING_UP%#",
+    "Text": "در حال شارژ"
   },
   {
     "Mask": "#%LABEL_HEADER_PAYMENT_PANEL_WALLET%#",
@@ -21,15 +25,15 @@
   },
   {
     "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_INVITE_FRIENDS%#",
-    "Text": "دوستان را دعوت کنید!"
+    "Text": "دوستانتان را دعوت کنید!"
   },
   {
     "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_LIST_OF_FRIENDS%#",
-    "Text": "لیست دوستان شما"
+    "Text": "فهرست دوستان شما"
   },
   {
     "Mask": "#%BUTTON_INVITE_BUTTONS_INVITE_FRIEND%#",
-    "Text": "دعوت یک دوست"
+    "Text": "دعوت از یک دوست"
   },
   {
     "Mask": "#%LABEL_BLUM_POINTS_PANEL_YOUR_ACCOUNTS%#",
@@ -37,7 +41,7 @@
   },
   {
     "Mask": "#%BUTTON_ADD_ACCOUNT_BUTTON_BUY_NEW_SLOT%#",
-    "Text": "خرید اسلات جدید"
+    "Text": "خرید یک اسلات جدید"
   },
   {
     "Mask": "#%LABEL_BUY_SLOTS_MODAL_PURCHASE_SLOTS%#",
@@ -49,7 +53,7 @@
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_AUTH_TOKEN%#",
-    "Text": "توکن احراز هویت:"
+    "Text": "توکن تأیید:"
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_REGION%#",
@@ -69,10 +73,122 @@
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_LINK%#",
-    "Text": "لینک معرف"
+    "Text": "لینک ارجاعی"
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_COUNT%#",
-    "Text": "تعداد معرف‌ها"
-  }
+    "Text": "تعداد ارجاع‌ها"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_EDIT_ACCOUNT%#",
+    "Text": "ویرایش حساب"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADD_ACCOUNT%#",
+    "Text": "اضافه کردن حساب"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_SAVE%#",
+    "Text": "ذخیره"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_SAVING%#",
+    "Text": "در حال ذخیره"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADD%#",
+    "Text": "اضافه کردن"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADDING%#",
+    "Text": "در حال اضافه کردن"
+  },
+  {
+    "Mask": "#%ALERT_ACCOUNT_INFO_MODAL_COPY_BLUM_REF%#",
+    "Text": "لینک ارجاعی Blum به کلیپ‌بورد کپی شد!"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_UNKNOWN_COUNTRY%#",
+    "Text": "کشور نامعلوم"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_ACCOUNT_INFO_MODAL%#",
+    "Text": "اطلاعات حساب"
+  },
+  {
+    "Mask": "#%MESSAGE_INVITE_FRIENDS_PANEL_INVITE_MESSAGE%#",
+    "Text": "به Auto Blum Farm بپیوندید و BP را با من پرورش دهید!"
+  },
+  {
+    "Mask": "#%ALERT_INVITE_BUTTONS_ALERT_MESSAGE%#",
+    "Text": "لینک ارجاعی شما به کلیپ‌بورد کپی شد!"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_SLOTS%#",
+    "Text": "اسلات‌ها"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_SLOT%#",
+    "Text": "اسلات"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_LOADING%#",
+    "Text": "در حال بارگذاری..."
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_ERROR%#",
+    "Text": "خطا:"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_BUYING%#",
+    "Text": "در حال خرید..."
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_BUY%#",
+    "Text": "خرید"
+  },
+  {
+    "Mask": "#%LABEL_LOADING_SCREEN_LOADING%#",
+    "Text": "در حال بارگذاری..."
+  },
+  {
+    "Mask": "#%ERROR_PAYMENT_PANEL_USD_AMOUNT_ERROR%#",
+    "Text": "مبلغ USD نمی‌تواند خالی باشد"
+  },
+  {
+    "Mask": "#%ERROR_PAYMENT_PANEL_STARS_AMOUNT_ERROR%#",
+    "Text": "مبلغ STARS نمی‌تواند خالی باشد"
+  },
+  {
+    "Mask": "#%BUTTON_ACCOUNT_INFO_MODAL_COPY%#",
+    "Text": "کپی"
+  },
+  {
+    "Mask": "#%BUTTON_BUY_SLOTS_MODAL_SLOT%#",
+    "Text": "اسلات"
+  },
+  {
+    "Mask": "#%BUTTON_BUY_SLOTS_MODAL_SLOTS%#",
+    "Text": "اسلات‌ها"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_USERNAME_IS_REQUIRED%#",
+    "Text": "نام کاربری الزامی است"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_AUTH_TOKEN_IS_REQUIRED%#",
+    "Text": "توکن تأیید الزامی است"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_COUNTRY_IS_REQUIRED%#",
+    "Text": "کشور الزامی است"
+  },
+  {
+    "Mask": "#%Error%#",
+    "Text": "خطا"
+  },
+  {
+    "Mask": "#%Information%#",
+    "Text": "اطلاعات"
+  }  
 ]

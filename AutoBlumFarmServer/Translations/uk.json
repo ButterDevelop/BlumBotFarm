@@ -1,7 +1,7 @@
 [
   {
     "Mask": "#%LABEL_EMPTY_ACCOUNT_SCROLL_BOX_ITEM_ADD_YOUR_ACCOUNT%#",
-    "Text": "Додати ваш акаунт"
+    "Text": "Додати ваш обліковий запис"
   },
   {
     "Mask": "#%LABEL_USD_SECTION_YOU_RECEIVE%#",
@@ -16,12 +16,16 @@
     "Text": "Поповнити"
   },
   {
+    "Mask": "#%BUTTON_PAYMENT_PANEL_TOPPING_UP%#",
+    "Text": "Поповнення"
+  },
+  {
     "Mask": "#%LABEL_HEADER_PAYMENT_PANEL_WALLET%#",
     "Text": "Гаманець"
   },
   {
     "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_INVITE_FRIENDS%#",
-    "Text": "Запросити друзів!"
+    "Text": "Запросіть друзів!"
   },
   {
     "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_LIST_OF_FRIENDS%#",
@@ -33,7 +37,7 @@
   },
   {
     "Mask": "#%LABEL_BLUM_POINTS_PANEL_YOUR_ACCOUNTS%#",
-    "Text": "Ваші акаунти:"
+    "Text": "Ваші облікові записи:"
   },
   {
     "Mask": "#%BUTTON_ADD_ACCOUNT_BUTTON_BUY_NEW_SLOT%#",
@@ -41,15 +45,15 @@
   },
   {
     "Mask": "#%LABEL_BUY_SLOTS_MODAL_PURCHASE_SLOTS%#",
-    "Text": "Купівля слотів"
+    "Text": "Придбати слоти"
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_CUSTOM_USERNAME%#",
-    "Text": "Ім'я користувача:"
+    "Text": "Користувацьке ім'я:"
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_AUTH_TOKEN%#",
-    "Text": "Токен автентифікації:"
+    "Text": "Токен авторизації:"
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_REGION%#",
@@ -74,5 +78,117 @@
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_COUNT%#",
     "Text": "Кількість рефералів"
-  }
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_EDIT_ACCOUNT%#",
+    "Text": "Редагувати обліковий запис"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADD_ACCOUNT%#",
+    "Text": "Додати обліковий запис"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_SAVE%#",
+    "Text": "Зберегти"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_SAVING%#",
+    "Text": "Збереження"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADD%#",
+    "Text": "Додати"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADDING%#",
+    "Text": "Додавання"
+  },
+  {
+    "Mask": "#%ALERT_ACCOUNT_INFO_MODAL_COPY_BLUM_REF%#",
+    "Text": "Реферальне посилання Blum скопійовано до буфера обміну!"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_UNKNOWN_COUNTRY%#",
+    "Text": "Невідома країна"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_ACCOUNT_INFO_MODAL%#",
+    "Text": "Інформація про обліковий запис"
+  },
+  {
+    "Mask": "#%MESSAGE_INVITE_FRIENDS_PANEL_INVITE_MESSAGE%#",
+    "Text": "Приєднуйтесь до Auto Blum Farm та заробляйте BP разом зі мною!"
+  },
+  {
+    "Mask": "#%ALERT_INVITE_BUTTONS_ALERT_MESSAGE%#",
+    "Text": "Ваше реферальне посилання скопійовано до буфера обміну!"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_SLOTS%#",
+    "Text": "СЛОТИ"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_SLOT%#",
+    "Text": "СЛОТ"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_LOADING%#",
+    "Text": "Завантаження..."
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_ERROR%#",
+    "Text": "Помилка:"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_BUYING%#",
+    "Text": "Купівля..."
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_BUY%#",
+    "Text": "КУПИТИ"
+  },
+  {
+    "Mask": "#%LABEL_LOADING_SCREEN_LOADING%#",
+    "Text": "Завантаження..."
+  },
+  {
+    "Mask": "#%ERROR_PAYMENT_PANEL_USD_AMOUNT_ERROR%#",
+    "Text": "Сума в USD не може бути порожньою"
+  },
+  {
+    "Mask": "#%ERROR_PAYMENT_PANEL_STARS_AMOUNT_ERROR%#",
+    "Text": "Сума в STARS не може бути порожньою"
+  },
+  {
+    "Mask": "#%BUTTON_ACCOUNT_INFO_MODAL_COPY%#",
+    "Text": "Копіювати"
+  },
+  {
+    "Mask": "#%BUTTON_BUY_SLOTS_MODAL_SLOT%#",
+    "Text": "слот"
+  },
+  {
+    "Mask": "#%BUTTON_BUY_SLOTS_MODAL_SLOTS%#",
+    "Text": "слоти"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_USERNAME_IS_REQUIRED%#",
+    "Text": "Потрібно ім'я користувача"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_AUTH_TOKEN_IS_REQUIRED%#",
+    "Text": "Потрібен токен автентифікації"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_COUNTRY_IS_REQUIRED%#",
+    "Text": "Потрібна країна"
+  },
+  {
+    "Mask": "#%Error%#",
+    "Text": "Помилка"
+  },
+  {
+    "Mask": "#%Information%#",
+    "Text": "Інформація"
+  }  
 ]

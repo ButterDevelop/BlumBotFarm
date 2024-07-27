@@ -16,8 +16,12 @@
     "Text": "Aufladen"
   },
   {
+    "Mask": "#%BUTTON_PAYMENT_PANEL_TOPPING_UP%#",
+    "Text": "Wird aufgeladen"
+  },
+  {
     "Mask": "#%LABEL_HEADER_PAYMENT_PANEL_WALLET%#",
-    "Text": "Brieftasche"
+    "Text": "Geldbörse"
   },
   {
     "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_INVITE_FRIENDS%#",
@@ -37,7 +41,7 @@
   },
   {
     "Mask": "#%BUTTON_ADD_ACCOUNT_BUTTON_BUY_NEW_SLOT%#",
-    "Text": "Einen neuen Slot kaufen"
+    "Text": "Neuen Slot kaufen"
   },
   {
     "Mask": "#%LABEL_BUY_SLOTS_MODAL_PURCHASE_SLOTS%#",
@@ -49,7 +53,7 @@
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_AUTH_TOKEN%#",
-    "Text": "Auth-Token:"
+    "Text": "Authentifizierungstoken:"
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_REGION%#",
@@ -69,10 +73,123 @@
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_LINK%#",
-    "Text": "Referral-Link"
+    "Text": "Empfehlungslink"
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_COUNT%#",
-    "Text": "Anzahl der Referrals"
+    "Text": "Anzahl der Empfehlungen"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_EDIT_ACCOUNT%#",
+    "Text": "Konto bearbeiten"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADD_ACCOUNT%#",
+    "Text": "Konto hinzufügen"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_SAVE%#",
+    "Text": "Speichern"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_SAVING%#",
+    "Text": "Wird gespeichert"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADD%#",
+    "Text": "Hinzufügen"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADDING%#",
+    "Text": "Wird hinzugefügt"
+  },
+  {
+    "Mask": "#%ALERT_ACCOUNT_INFO_MODAL_COPY_BLUM_REF%#",
+    "Text": "Blum-Empfehlungslink in die Zwischenablage kopiert!"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_UNKNOWN_COUNTRY%#",
+    "Text": "Unbekanntes Land"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_ACCOUNT_INFO_MODAL%#",
+    "Text": "Kontoinformationen"
+  },
+  {
+    "Mask": "#%MESSAGE_INVITE_FRIENDS_PANEL_INVITE_MESSAGE%#",
+    "Text": "Treten Sie Auto Blum Farm bei und verdienen Sie BP mit mir!"
+  },
+  {
+    "Mask": "#%ALERT_INVITE_BUTTONS_ALERT_MESSAGE%#",
+    "Text": "Ihr Empfehlungslink wurde in die Zwischenablage kopiert!"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_SLOTS%#",
+    "Text": "SLOTS"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_SLOT%#",
+    "Text": "SLOT"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_LOADING%#",
+    "Text": "Laden..."
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_ERROR%#",
+    "Text": "Fehler:"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_BUYING%#",
+    "Text": "Wird gekauft..."
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_BUY%#",
+    "Text": "KAUFEN"
+  },
+  {
+    "Mask": "#%LABEL_LOADING_SCREEN_LOADING%#",
+    "Text": "Laden..."
+  },
+  {
+    "Mask": "#%ERROR_PAYMENT_PANEL_USD_AMOUNT_ERROR%#",
+    "Text": "USD-Betrag darf nicht leer sein"
+  },
+  {
+    "Mask": "#%ERROR_PAYMENT_PANEL_STARS_AMOUNT_ERROR%#",
+    "Text": "STARS-Betrag darf nicht leer sein"
+  },
+  {
+    "Mask": "#%BUTTON_ACCOUNT_INFO_MODAL_COPY%#",
+    "Text": "Kopieren"
+  },
+  {
+    "Mask": "#%BUTTON_BUY_SLOTS_MODAL_SLOT%#",
+    "Text": "Slot"
+  },
+  {
+    "Mask": "#%BUTTON_BUY_SLOTS_MODAL_SLOTS%#",
+    "Text": "Slots"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_USERNAME_IS_REQUIRED%#",
+    "Text": "Benutzername ist erforderlich"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_AUTH_TOKEN_IS_REQUIRED%#",
+    "Text": "Authentifizierungstoken ist erforderlich"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_COUNTRY_IS_REQUIRED%#",
+    "Text": "Land ist erforderlich"
+  },
+  {
+    "Mask": "#%Error%#",
+    "Text": "Fehler"
+  },
+  {
+    "Mask": "#%Information%#",
+    "Text": "Information"
   }
+  
 ]

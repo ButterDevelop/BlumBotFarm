@@ -13,7 +13,11 @@
   },
   {
     "Mask": "#%BUTTON_PAYMENT_PANEL_TOP_UP%#",
-    "Text": "اشحن"
+    "Text": "شحن"
+  },
+  {
+    "Mask": "#%BUTTON_PAYMENT_PANEL_TOPPING_UP%#",
+    "Text": "جارٍ الشحن"
   },
   {
     "Mask": "#%LABEL_HEADER_PAYMENT_PANEL_WALLET%#",
@@ -21,7 +25,7 @@
   },
   {
     "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_INVITE_FRIENDS%#",
-    "Text": "ادع أصدقاءك!"
+    "Text": "ادع أصدقائك!"
   },
   {
     "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_LIST_OF_FRIENDS%#",
@@ -29,7 +33,7 @@
   },
   {
     "Mask": "#%BUTTON_INVITE_BUTTONS_INVITE_FRIEND%#",
-    "Text": "ادعُ صديقًا"
+    "Text": "ادعُ صديق"
   },
   {
     "Mask": "#%LABEL_BLUM_POINTS_PANEL_YOUR_ACCOUNTS%#",
@@ -37,11 +41,11 @@
   },
   {
     "Mask": "#%BUTTON_ADD_ACCOUNT_BUTTON_BUY_NEW_SLOT%#",
-    "Text": "اشترِ فتحة جديدة"
+    "Text": "شراء مكان جديد"
   },
   {
     "Mask": "#%LABEL_BUY_SLOTS_MODAL_PURCHASE_SLOTS%#",
-    "Text": "شراء الفتحات"
+    "Text": "شراء الأماكن"
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_CUSTOM_USERNAME%#",
@@ -49,7 +53,7 @@
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_AUTH_TOKEN%#",
-    "Text": "رمز التوثيق:"
+    "Text": "رمز التحقق:"
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_REGION%#",
@@ -65,7 +69,7 @@
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_TODAY%#",
-    "Text": "ربح اليوم"
+    "Text": "الأرباح اليوم"
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_LINK%#",
@@ -74,5 +78,117 @@
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_COUNT%#",
     "Text": "عدد الإحالات"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_EDIT_ACCOUNT%#",
+    "Text": "تعديل الحساب"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADD_ACCOUNT%#",
+    "Text": "إضافة حساب"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_SAVE%#",
+    "Text": "حفظ"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_SAVING%#",
+    "Text": "جارٍ الحفظ"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADD%#",
+    "Text": "إضافة"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADDING%#",
+    "Text": "جارٍ الإضافة"
+  },
+  {
+    "Mask": "#%ALERT_ACCOUNT_INFO_MODAL_COPY_BLUM_REF%#",
+    "Text": "تم نسخ رابط الإحالة Blum إلى الحافظة!"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_UNKNOWN_COUNTRY%#",
+    "Text": "بلد غير معروف"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_ACCOUNT_INFO_MODAL%#",
+    "Text": "نافذة معلومات الحساب"
+  },
+  {
+    "Mask": "#%MESSAGE_INVITE_FRIENDS_PANEL_INVITE_MESSAGE%#",
+    "Text": "انضم إلى Auto Blum Farm وازرع BP معي!"
+  },
+  {
+    "Mask": "#%ALERT_INVITE_BUTTONS_ALERT_MESSAGE%#",
+    "Text": "تم نسخ رابط الإحالة إلى الحافظة!"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_SLOTS%#",
+    "Text": "الأماكن"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_SLOT%#",
+    "Text": "مكان"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_LOADING%#",
+    "Text": "جارٍ التحميل..."
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_ERROR%#",
+    "Text": "خطأ:"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_BUYING%#",
+    "Text": "جارٍ الشراء..."
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_BUY%#",
+    "Text": "شراء"
+  },
+  {
+    "Mask": "#%LABEL_LOADING_SCREEN_LOADING%#",
+    "Text": "جارٍ التحميل..."
+  },
+  {
+    "Mask": "#%ERROR_PAYMENT_PANEL_USD_AMOUNT_ERROR%#",
+    "Text": "مبلغ USD لا يمكن أن يكون فارغاً"
+  },
+  {
+    "Mask": "#%ERROR_PAYMENT_PANEL_STARS_AMOUNT_ERROR%#",
+    "Text": "مبلغ STARS لا يمكن أن يكون فارغاً"
+  },
+  {
+    "Mask": "#%BUTTON_ACCOUNT_INFO_MODAL_COPY%#",
+    "Text": "نسخ"
+  },
+  {
+    "Mask": "#%BUTTON_BUY_SLOTS_MODAL_SLOT%#",
+    "Text": "مكان"
+  },
+  {
+    "Mask": "#%BUTTON_BUY_SLOTS_MODAL_SLOTS%#",
+    "Text": "أماكن"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_USERNAME_IS_REQUIRED%#",
+    "Text": "اسم المستخدم مطلوب"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_AUTH_TOKEN_IS_REQUIRED%#",
+    "Text": "رمز التحقق مطلوب"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_COUNTRY_IS_REQUIRED%#",
+    "Text": "الدولة مطلوبة"
+  },
+  {
+    "Mask": "#%Error%#",
+    "Text": "خطأ"
+  },
+  {
+    "Mask": "#%Information%#",
+    "Text": "معلومات"
   }
 ]

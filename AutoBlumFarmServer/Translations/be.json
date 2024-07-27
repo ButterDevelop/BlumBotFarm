@@ -1,7 +1,7 @@
 [
   {
     "Mask": "#%LABEL_EMPTY_ACCOUNT_SCROLL_BOX_ITEM_ADD_YOUR_ACCOUNT%#",
-    "Text": "Дадаць ваш уліковы запіс"
+    "Text": "Дадаць ваш рахунак"
   },
   {
     "Mask": "#%LABEL_USD_SECTION_YOU_RECEIVE%#",
@@ -16,12 +16,16 @@
     "Text": "Папоўніць"
   },
   {
+    "Mask": "#%BUTTON_PAYMENT_PANEL_TOPPING_UP%#",
+    "Text": "Папаўненне"
+  },
+  {
     "Mask": "#%LABEL_HEADER_PAYMENT_PANEL_WALLET%#",
     "Text": "Гаманець"
   },
   {
     "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_INVITE_FRIENDS%#",
-    "Text": "Запрасіць сяброў!"
+    "Text": "Запрасіце сяброў!"
   },
   {
     "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_LIST_OF_FRIENDS%#",
@@ -33,15 +37,15 @@
   },
   {
     "Mask": "#%LABEL_BLUM_POINTS_PANEL_YOUR_ACCOUNTS%#",
-    "Text": "Вашы ўліковыя запісы:"
+    "Text": "Вашы рахункі:"
   },
   {
     "Mask": "#%BUTTON_ADD_ACCOUNT_BUTTON_BUY_NEW_SLOT%#",
-    "Text": "Купіць новы слот"
+    "Text": "Купіць новае месца"
   },
   {
     "Mask": "#%LABEL_BUY_SLOTS_MODAL_PURCHASE_SLOTS%#",
-    "Text": "Купля слотаў"
+    "Text": "Набыць месцы"
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_CUSTOM_USERNAME%#",
@@ -49,7 +53,7 @@
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_AUTH_TOKEN%#",
-    "Text": "Токен аўтэнтыфікацыі:"
+    "Text": "Аўтэнтыфікацыйны токен:"
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_REGION%#",
@@ -65,7 +69,7 @@
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_TODAY%#",
-    "Text": "Зарабіў сёння"
+    "Text": "Зарабілі сёння"
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_LINK%#",
@@ -74,5 +78,117 @@
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_COUNT%#",
     "Text": "Колькасць рэфералаў"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_EDIT_ACCOUNT%#",
+    "Text": "Рэдагаваць рахунак"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADD_ACCOUNT%#",
+    "Text": "Дадаць рахунак"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_SAVE%#",
+    "Text": "Захаваць"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_SAVING%#",
+    "Text": "Захаванне"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADD%#",
+    "Text": "Дадаць"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADDING%#",
+    "Text": "Даданне"
+  },
+  {
+    "Mask": "#%ALERT_ACCOUNT_INFO_MODAL_COPY_BLUM_REF%#",
+    "Text": "Рэферальная спасылка Blum скапіравана ў буфер абмену!"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_UNKNOWN_COUNTRY%#",
+    "Text": "Невядомая краіна"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_ACCOUNT_INFO_MODAL%#",
+    "Text": "Інфармацыя пра рахунак"
+  },
+  {
+    "Mask": "#%MESSAGE_INVITE_FRIENDS_PANEL_INVITE_MESSAGE%#",
+    "Text": "Далучайцеся да Auto Blum Farm і зарабляйце BP разам са мной!"
+  },
+  {
+    "Mask": "#%ALERT_INVITE_BUTTONS_ALERT_MESSAGE%#",
+    "Text": "Ваша рэферальная спасылка скапіравана ў буфер абмену!"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_SLOTS%#",
+    "Text": "МЕСЦЫ"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_SLOT%#",
+    "Text": "МЕСЦА"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_LOADING%#",
+    "Text": "Загрузка..."
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_ERROR%#",
+    "Text": "Памылка:"
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_BUYING%#",
+    "Text": "Пакупка..."
+  },
+  {
+    "Mask": "#%LABEL_BUY_SLOTS_MODAL_BUY%#",
+    "Text": "КУПІЦЬ"
+  },
+  {
+    "Mask": "#%LABEL_LOADING_SCREEN_LOADING%#",
+    "Text": "Загрузка..."
+  },
+  {
+    "Mask": "#%ERROR_PAYMENT_PANEL_USD_AMOUNT_ERROR%#",
+    "Text": "Сума USD не можа быць пустой"
+  },
+  {
+    "Mask": "#%ERROR_PAYMENT_PANEL_STARS_AMOUNT_ERROR%#",
+    "Text": "Сума STARS не можа быць пустой"
+  },
+  {
+    "Mask": "#%BUTTON_ACCOUNT_INFO_MODAL_COPY%#",
+    "Text": "Скапіраваць"
+  },
+  {
+    "Mask": "#%BUTTON_BUY_SLOTS_MODAL_SLOT%#",
+    "Text": "месца"
+  },
+  {
+    "Mask": "#%BUTTON_BUY_SLOTS_MODAL_SLOTS%#",
+    "Text": "месцы"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_USERNAME_IS_REQUIRED%#",
+    "Text": "Імя карыстальніка патрабуецца"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_AUTH_TOKEN_IS_REQUIRED%#",
+    "Text": "Аўтэнтыфікацыйны токен патрабуецца"
+  },
+  {
+    "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_COUNTRY_IS_REQUIRED%#",
+    "Text": "Краіна патрабуецца"
+  },
+  {
+    "Mask": "#%Error%#",
+    "Text": "Памылка"
+  },
+  {
+    "Mask": "#%Information%#",
+    "Text": "Інфармацыя"
   }
 ]

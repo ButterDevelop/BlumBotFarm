@@ -2,6 +2,8 @@
 using BlumBotFarm.Database.Interfaces;
 using Dapper;
 using Microsoft.Data.Sqlite;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace BlumBotFarm.Database.Repositories
 {
@@ -21,7 +23,8 @@ namespace BlumBotFarm.Database.Repositories
             {
                 using (var db = Database.CreateConnection(_connectionString))
                 {
-                    return db.Query<StarsPayment>("SELECT * FROM StarsPayments").ToList();
+                    var sql = "SELECT Id, UserId, CAST(AmountUsd AS REAL) AS AmountUsd, AmountStars, CreatedDateTime, IsCompleted, CompletedDateTime FROM StarsPayments";
+                    return db.Query<StarsPayment>(sql).ToList();
                 }
             }
         }
@@ -32,7 +35,8 @@ namespace BlumBotFarm.Database.Repositories
             {
                 using (var db = Database.CreateConnection(_connectionString))
                 {
-                    return db.QuerySingleOrDefault<StarsPayment>("SELECT * FROM StarsPayments WHERE Id = @Id", new { Id = id });
+                    var sql = "SELECT Id, UserId, CAST(AmountUsd AS REAL) AS AmountUsd, AmountStars, CreatedDateTime, IsCompleted, CompletedDateTime FROM StarsPayments WHERE Id = @Id";
+                    return db.QuerySingleOrDefault<StarsPayment>(sql, new { Id = id });
                 }
             }
         }

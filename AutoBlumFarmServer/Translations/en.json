@@ -16,6 +16,10 @@
       "Text": "Top up"
     },
     {
+      "Mask": "#%BUTTON_PAYMENT_PANEL_TOPPING_UP%#",
+      "Text": "Topping up"
+    },
+    {
       "Mask": "#%LABEL_HEADER_PAYMENT_PANEL_WALLET%#",
       "Text": "Wallet"
     },
@@ -74,5 +78,117 @@
     {
       "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_COUNT%#",
       "Text": "Referrals count"
+    },
+    {
+      "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_EDIT_ACCOUNT%#",
+      "Text": "Edit Account"
+    },
+    {
+      "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADD_ACCOUNT%#",
+      "Text": "Add Account"
+    },
+    {
+      "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_SAVE%#",
+      "Text": "Save"
+    },
+    {
+      "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_SAVING%#",
+      "Text": "Saving"
+    },
+    {
+      "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADD%#",
+      "Text": "Add"
+    },
+    {
+      "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_ADDING%#",
+      "Text": "Adding"
+    },
+    {
+      "Mask": "#%ALERT_ACCOUNT_INFO_MODAL_COPY_BLUM_REF%#",
+      "Text": "Blum referral link copied to clipboard!"
+    },
+    {
+      "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_UNKNOWN_COUNTRY%#",
+      "Text": "Unknown Country"
+    },
+    {
+      "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_ACCOUNT_INFO_MODAL%#",
+      "Text": "Account Info Modal"
+    },
+    {
+      "Mask": "#%MESSAGE_INVITE_FRIENDS_PANEL_INVITE_MESSAGE%#",
+      "Text": "Jouin Auto Blum Farm and farm BP with me!"
+    },
+    {
+      "Mask": "#%ALERT_INVITE_BUTTONS_ALERT_MESSAGE%#",
+      "Text": "Your account referral link copied to clipboard!"
+    },
+    {
+      "Mask": "#%LABEL_BUY_SLOTS_MODAL_SLOTS%#",
+      "Text": "SLOTS"
+    },
+    {
+      "Mask": "#%LABEL_BUY_SLOTS_MODAL_SLOT%#",
+      "Text": "SLOT"
+    },
+    {
+      "Mask": "#%LABEL_BUY_SLOTS_MODAL_LOADING%#",
+      "Text": "Loading..."
+    },
+    {
+      "Mask": "#%LABEL_BUY_SLOTS_MODAL_ERROR%#",
+      "Text": "Error:"
+    },
+    {
+      "Mask": "#%LABEL_BUY_SLOTS_MODAL_BUYING%#",
+      "Text": "Buying..."
+    },
+    {
+      "Mask": "#%LABEL_BUY_SLOTS_MODAL_BUY%#",
+      "Text": "BUY"
+    },
+    {
+      "Mask": "#%LABEL_LOADING_SCREEN_LOADING%#",
+      "Text": "Loading..."
+    },
+    {
+      "Mask": "#%ERROR_PAYMENT_PANEL_USD_AMOUNT_ERROR%#",
+      "Text": "USD amount cannot be empty"
+    },
+    {
+      "Mask": "#%ERROR_PAYMENT_PANEL_STARS_AMOUNT_ERROR%#",
+      "Text": "STARS amount cannot be empty"
+    },
+    {
+      "Mask": "#%BUTTON_ACCOUNT_INFO_MODAL_COPY%#",
+      "Text": "Copy"
+    },
+    {
+      "Mask": "#%BUTTON_BUY_SLOTS_MODAL_SLOT%#",
+      "Text": "slot"
+    },
+    {
+      "Mask": "#%BUTTON_BUY_SLOTS_MODAL_SLOTS%#",
+      "Text": "slots"
+    },
+    {
+      "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_USERNAME_IS_REQUIRED%#",
+      "Text": "Username is required"
+    },
+    {
+      "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_AUTH_TOKEN_IS_REQUIRED%#",
+      "Text": "Auth token is required"
+    },
+    {
+      "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_COUNTRY_IS_REQUIRED%#",
+      "Text": "Country is required"
+    },
+    {
+      "Mask": "#%Error%#",
+      "Text": "Error"
+    },
+    {
+      "Mask": "#%Information%#",
+      "Text": "Information"
     }
   ]
