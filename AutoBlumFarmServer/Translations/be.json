@@ -190,5 +190,13 @@
   {
     "Mask": "#%Information%#",
     "Text": "Інфармацыя"
+  },
+  {
+    "Mask": "#%Close%#",
+    "Text": "Закрыць"
+  },
+  {
+    "Mask": "#%Okay%#",
+    "Text": "Добра"
   }
 ]

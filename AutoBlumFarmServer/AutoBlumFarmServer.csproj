@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BlumBotFarm.CacheUpdater\BlumBotFarm.CacheUpdater.csproj" />
     <ProjectReference Include="..\BlumBotFarm.Core\BlumBotFarm.Core.csproj" />
     <ProjectReference Include="..\BlumBotFarm.Database\BlumBotFarm.Database.csproj" />
     <ProjectReference Include="..\BlumBotFarm.TelegramBot\BlumBotFarm.TelegramBot.csproj" />

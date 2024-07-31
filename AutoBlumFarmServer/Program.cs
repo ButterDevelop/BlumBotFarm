@@ -1,10 +1,12 @@
 using AutoBlumFarmServer;
+using AutoBlumFarmServer.Helpers;
 using AutoBlumFarmServer.SwaggerApiResponses;
 using AutoBlumFarmServer.SwaggerApiResponses.AccountController;
 using AutoBlumFarmServer.SwaggerApiResponses.PurchaseController;
 using AutoBlumFarmServer.SwaggerApiResponses.TelegramAuthController;
 using AutoBlumFarmServer.SwaggerApiResponses.UserController;
-using AutoBlumFarmServer.Helpers;
+using BlumBotFarm.CacheUpdater;
+using BlumBotFarm.CacheUpdater.CacheServices;
 using BlumBotFarm.Core;
 using BlumBotFarm.Database;
 using BlumBotFarm.Database.Repositories;
@@ -17,7 +19,6 @@ using Serilog;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
 using Telegram.Bot;
-using AutoBlumFarmServer.CacheServices;
 
 Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo("en-US");
 Thread.CurrentThread.CurrentCulture   = System.Globalization.CultureInfo.GetCultureInfo("en-US");
@@ -148,6 +149,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var userCacheService = scope.ServiceProvider.GetRequiredService<IUserCacheService>();
+    if (userCacheService != null)
+    {
+        // Starting Cache Updater
+        var cacheUpdater = new CacheUpdater(new CancellationToken(), userCacheService);
+        await Task.Factory.StartNew(cacheUpdater.StartAsync);
+        Log.Information("Started Auto Cache Updater.");
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

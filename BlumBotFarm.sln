@@ -23,7 +23,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoBlumFarmServer", "AutoB
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlumBotFarm.AutoAccountStarter", "BlumBotFarm.AutoAccountStarter\BlumBotFarm.AutoAccountStarter.csproj", "{89CEE631-3012-462C-B841-3958B266E2C5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlumBotFarm.Translation", "BlumBotFarm.Translation\BlumBotFarm.Translation.csproj", "{A925C2B0-AA9C-455D-9BBA-0EAE1C29AF7E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlumBotFarm.Translation", "BlumBotFarm.Translation\BlumBotFarm.Translation.csproj", "{A925C2B0-AA9C-455D-9BBA-0EAE1C29AF7E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlumBotFarm.CacheUpdater", "BlumBotFarm.CacheUpdater\BlumBotFarm.CacheUpdater.csproj", "{19381EF9-22A4-47E8-BF74-290317129274}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -75,6 +77,10 @@ Global
 		{A925C2B0-AA9C-455D-9BBA-0EAE1C29AF7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A925C2B0-AA9C-455D-9BBA-0EAE1C29AF7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A925C2B0-AA9C-455D-9BBA-0EAE1C29AF7E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{19381EF9-22A4-47E8-BF74-290317129274}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19381EF9-22A4-47E8-BF74-290317129274}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19381EF9-22A4-47E8-BF74-290317129274}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19381EF9-22A4-47E8-BF74-290317129274}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

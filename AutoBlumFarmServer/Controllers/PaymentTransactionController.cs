@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
 using Telegram.Bot;
-using AutoBlumFarmServer.CacheServices;
+using BlumBotFarm.CacheUpdater.CacheServices;
 
 namespace AutoBlumFarmServer.Controllers
 {
@@ -189,7 +189,7 @@ namespace AutoBlumFarmServer.Controllers
                 message = "No auth."
             });
 
-            if (model.stars <= 0)
+            if (model.stars <= 0 || model.stars > 100000)
             {
                 return BadRequest(new ApiMessageResponse
                 {
@@ -215,19 +215,19 @@ namespace AutoBlumFarmServer.Controllers
         [SwaggerResponseExample(200, typeof(ConvertUsdToStarsOkExample))]
         [SwaggerResponseExample(400, typeof(ConvertCurrenciesBadExample))]
         [SwaggerResponseExample(401, typeof(BadAuthExample))]
-        [ProducesResponseType(typeof(ApiObjectResponse<int>), StatusCodes.Status200OK,           "application/json")]
-        [ProducesResponseType(typeof(ApiMessageResponse),     StatusCodes.Status400BadRequest,   "application/json")]
-        [ProducesResponseType(typeof(ApiMessageResponse),     StatusCodes.Status401Unauthorized, "application/json")]
+        [ProducesResponseType(typeof(ApiObjectResponse<int>), StatusCodes.Status200OK, "application/json")]
+        [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status400BadRequest, "application/json")]
+        [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status401Unauthorized, "application/json")]
         public IActionResult ConvertUSDToStars([FromBody] ConvertUSDToStarsInputModel model)
         {
             int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
             if (!userAuthorized || !_userCacheService.TryGetFromCache(userId, out User invoker)) return Unauthorized(new ApiMessageResponse
             {
-                ok      = false,
+                ok = false,
                 message = "No auth."
             });
 
-            if (model.priceUsd <= 0)
+            if (model.priceUsd <= 0 || model.priceUsd > 1000)
             {
                 return BadRequest(new ApiMessageResponse
                 {

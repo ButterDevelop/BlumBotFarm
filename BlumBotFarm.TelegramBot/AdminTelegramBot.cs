@@ -145,13 +145,13 @@ namespace BlumBotFarm.TelegramBot
                         var refreshToken = parts[3];
                         var proxy        = parts.Length == 7 ? parts[6] : "";
 
-                        if (!int.TryParse(parts[5], out int timezoneOffset))
+                        if (!int.TryParse(parts[4], out int timezoneOffset))
                         {
                             await botClient.SendTextMessageAsync(message.Chat, "Something wrong with <b>Timezone Offset</b>.", null, ParseMode.Html);
                             return;
                         }
 
-                        if (!int.TryParse(parts[4], out int userId))
+                        if (!int.TryParse(parts[5], out int userId))
                         {
                             await botClient.SendTextMessageAsync(message.Chat, "Something wrong with <b>UserId</b>.", null, ParseMode.Html);
                             return;

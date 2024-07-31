@@ -12,7 +12,7 @@ using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text.RegularExpressions;
 using Telegram.Bot;
-using AutoBlumFarmServer.CacheServices;
+using BlumBotFarm.CacheUpdater.CacheServices;
 using BlumBotFarm.Core.Models;
 
 namespace AutoBlumFarmServer.Controllers
@@ -104,10 +104,14 @@ namespace AutoBlumFarmServer.Controllers
                 var referral = _userRepository.GetById(id);
                 if (referral != null)
                 {
-                    decimal hostEarningsUsd = _starsPaymentRepository.GetAll()
-                                                                     .Where(p => p.UserId == id && p.IsCompleted)
-                                                                     .Select(p => p.AmountUsd)
-                                                                     .DefaultIfEmpty(0).Sum();
+                    var referralPaymentsSums = _starsPaymentRepository.GetAll()
+                                                                      .Where(p => p.UserId == id && p.IsCompleted)
+                                                                      .Select(p => p.AmountUsd);
+
+                    decimal hostEarningsUsd = referralPaymentsSums
+                                                  .Select(s => Math.Round(s * (decimal)(Config.Instance.REFERRAL_BALANCE_BONUS_PERCENT / 100.0), 2))
+                                                  .DefaultIfEmpty(0)
+                                                  .Sum();
 
                     referrals.Add(new ReferralsOutputModel
                     {

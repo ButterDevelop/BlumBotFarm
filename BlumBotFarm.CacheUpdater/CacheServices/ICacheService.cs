@@ -1,4 +1,4 @@
-﻿namespace AutoBlumFarmServer.CacheServices
+﻿namespace BlumBotFarm.CacheUpdater.CacheServices
 {
     public interface ICacheService<T>
     {

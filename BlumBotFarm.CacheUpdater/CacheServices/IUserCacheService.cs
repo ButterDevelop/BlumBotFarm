@@ -1,6 +1,6 @@
 ﻿using BlumBotFarm.Core.Models;
 
-namespace AutoBlumFarmServer.CacheServices
+namespace BlumBotFarm.CacheUpdater.CacheServices
 {
     public interface IUserCacheService : ICacheService<User>
     {

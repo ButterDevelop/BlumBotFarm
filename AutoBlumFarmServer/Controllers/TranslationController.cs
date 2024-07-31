@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
 using AutoBlumFarmServer.Model;
-using AutoBlumFarmServer.CacheServices;
+using BlumBotFarm.CacheUpdater.CacheServices;
 using BlumBotFarm.Core.Models;
 using Microsoft.AspNetCore.Authorization;
 

@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
-using AutoBlumFarmServer.CacheServices;
+using BlumBotFarm.CacheUpdater.CacheServices;
 
 namespace AutoBlumFarmServer.Controllers
 {

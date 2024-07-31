@@ -11,7 +11,7 @@ using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text.RegularExpressions;
 using System.Web;
-using AutoBlumFarmServer.CacheServices;
+using BlumBotFarm.CacheUpdater.CacheServices;
 using BlumBotFarm.Core.Models;
 
 namespace AutoBlumFarmServer.Controllers

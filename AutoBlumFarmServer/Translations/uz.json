@@ -190,6 +190,14 @@
       {
         "Mask": "#%Information%#",
         "Text": "Ma'lumot"
+      },
+      {
+        "Mask": "#%Close%#",
+        "Text": "Yopish"
+      },
+      {
+        "Mask": "#%Okay%#",
+        "Text": "Yaxshi"
       }
       
 ]

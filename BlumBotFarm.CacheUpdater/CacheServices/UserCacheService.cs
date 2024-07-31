@@ -2,7 +2,7 @@
 using BlumBotFarm.Database.Repositories;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace AutoBlumFarmServer.CacheServices
+namespace BlumBotFarm.CacheUpdater.CacheServices
 {
     public class UserCacheService : IUserCacheService
     {

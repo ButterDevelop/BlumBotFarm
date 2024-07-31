@@ -190,5 +190,13 @@
   {
     "Mask": "#%Information%#",
     "Text": "معلومات"
+  },
+  {
+    "Mask": "#%Close%#",
+    "Text": "أغلق"
+  },
+  {
+    "Mask": "#%Okay%#",
+    "Text": "حسنا"
   }
 ]

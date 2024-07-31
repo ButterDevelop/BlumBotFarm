@@ -58,12 +58,9 @@ namespace BlumBotFarm.TelegramBot
             botClient.StartReceiving(HandleUpdateAsync, HandleErrorAsync, receiverOptions, cancellationToken: CancellationToken.None);
         }
 
-        public async Task SendMessageToAdmins(string message)
+        public async Task SendMessageToAdminsInGroup(string message)
         {
-            foreach (var adminChatId in adminChatIds)
-            {
-                await botClient.SendTextMessageAsync(adminChatId, message, null, ParseMode.Html);
-            }
+            await botClient.SendTextMessageAsync(techSupportGroupChatId, message, null, ParseMode.Html);
         }
 
         private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
@@ -161,7 +158,7 @@ namespace BlumBotFarm.TelegramBot
             }
 
             starsPaymentDb.CompletedDateTime = DateTime.Now;
-            starsPaymentDb.IsCompleted = true;
+            starsPaymentDb.IsCompleted       = true;
             starsPaymentRepository.Update(starsPaymentDb);
 
             int    amountStars = payment.TotalAmount;
@@ -197,18 +194,18 @@ namespace BlumBotFarm.TelegramBot
                     // Notify host user
                     await botClient.SendTextMessageAsync(hostUser.TelegramUserId,
                                                          string.Format(
-                                                             TranslationHelper.Instance.Translate(langCode, "#%TELEGRAM_MESSAGE_YOUR_BALANCE_WAS_INCREASED_BY_REFERRAL%#"),
+                                                             TranslationHelper.Instance.Translate(hostUser.LanguageCode, "#%TELEGRAM_MESSAGE_YOUR_BALANCE_WAS_INCREASED_BY_REFERRAL%#"),
                                                              increaseBy.ToString("N2"),
                                                              user.FirstName + " " + user.LastName
                                                          ),
                                                          null, ParseMode.Html);
 
                     messageToAdmins += "\nAlso referrals balance was toped up.\n" +
-                                       $"Referral's id: <b>{user.Id}</b>, chat id: <b>{user.TelegramUserId}</b>, " +
+                                       $"Referral's id: <b>{hostUser.Id}</b>, chat id: <b>{hostUser.TelegramUserId}</b>, " +
                                        $"increased by <b>{increaseBy:N2}</b>$ (bonus percent is <b>{referralBalanceBonusPercent}%</b>).";
 
                     Log.Information($"Also referrals balance was toped up. Chat Id: {message.Chat.Id}. " + 
-                                    $"Referral's id: {user.Id}, chat id: {user.TelegramUserId}, " +
+                                    $"Referral's id: {hostUser.Id}, chat id: {hostUser.TelegramUserId}, " +
                                     $"increased by {increaseBy:N2}$ (bonus percent is {referralBalanceBonusPercent}%).");
                 }
                 else
@@ -222,7 +219,7 @@ namespace BlumBotFarm.TelegramBot
             }
 
             // Notify admins
-            await SendMessageToAdmins(messageToAdmins);
+            await SendMessageToAdminsInGroup(messageToAdmins);
 
             // Logs
             Log.Information($"Successful payment received: {payment.TotalAmount} {payment.Currency}. Chat Id: {message.Chat.Id}");
