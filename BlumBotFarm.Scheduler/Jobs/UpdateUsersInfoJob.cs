@@ -41,17 +41,6 @@ namespace BlumBotFarm.Scheduler.Jobs
                 {
                     Log.Error($"Update Users Info Job, GameApiUtilsService.AuthCheck: UNABLE TO REAUTH! Account with Id: {accountForeach.Id}, " +
                               $"CustomUsername: {accountForeach.CustomUsername}, BlumUsername: {accountForeach.BlumUsername}.");
-                    
-                    if (authCheckResult == ApiResponse.Unauthorized)
-                    {
-                        MessageProcessor.MessageProcessor.Instance?.SendMessageToAdminsInQueue(
-                            "<b>UNABLE TO REAUTH!</b>\nUpdate Users Info Job!\n" +
-                            $"Account with Id: <code>{accountForeach.Id}</code>, " +
-                            $"Custom Username: <code>{accountForeach.CustomUsername}</code>, " +
-                            $"Blum Username: <code>{accountForeach.BlumUsername}</code>",
-                            isSilent: false
-                        );
-                    }
                 }
                 else
                 {

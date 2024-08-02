@@ -92,14 +92,6 @@ namespace BlumBotFarm.Scheduler.Jobs
 
                 if (authCheckResult == ApiResponse.Unauthorized)
                 {
-                    MessageProcessor.MessageProcessor.Instance?.SendMessageToAdminsInQueue(
-                        "<b>UNABLE TO REAUTH!</b>\nDaily Check Job!\n" +
-                        $"Account with Id: <code>{account.Id}</code>, Custom Username: <code>{account.CustomUsername}</code>, " +
-                        $"Blum Username: <code>{account.BlumUsername}</code>" +
-                        (authCheckResult == ApiResponse.Error ? "\nIt is probably because of proxy." : ""),
-                        isSilent: false
-                    );
-
                     MessageProcessor.MessageProcessor.Instance?.SendMessageToUserInQueue(
                         user.TelegramUserId,
                         TranslationHelper.Instance.Translate(user.LanguageCode, "#%JOB_AUTH_LOST_PLEASE_LOGIN_AND_UPDATE_IT%#"),

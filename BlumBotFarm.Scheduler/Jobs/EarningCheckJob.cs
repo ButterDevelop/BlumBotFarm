@@ -47,16 +47,6 @@ namespace BlumBotFarm.Scheduler.Jobs
             if ((authCheckResult = GameApiUtilsService.AuthCheck(account, accountRepository, gameApiClient)) != ApiResponse.Success)
             {
                 Log.Error($"Earning Check Job, GameApiUtilsService.AuthCheck: UNABLE TO REAUTH! Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
-                if (authCheckResult == ApiResponse.Unauthorized)
-                {
-                    MessageProcessor.MessageProcessor.Instance?.SendMessageToAdminsInQueue(
-                        "<b>UNABLE TO REAUTH!</b>\nEarning Check Job!\n" +
-                        $"Account with Id: <code>{account.Id}</code>, " +
-                        $"Custom Username: <code>{account.CustomUsername}</code>, " +
-                        $"Blum Username: <code>{account.BlumUsername}</code>",
-                        isSilent: false
-                    );
-                }
             }
             else
             {
