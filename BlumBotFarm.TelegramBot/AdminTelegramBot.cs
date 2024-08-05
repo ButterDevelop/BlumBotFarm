@@ -16,8 +16,8 @@ namespace BlumBotFarm.TelegramBot
 {
     public class AdminTelegramBot
     {
-        private readonly ITelegramBotClient botClient;
-        private readonly long[]   adminChatIds;
+        private readonly ITelegramBotClient    botClient;
+        private readonly long[]                adminChatIds;
         private readonly AccountRepository     accountRepository;
         private readonly TaskRepository        taskRepository;
         private readonly EarningRepository     earningRepository;
@@ -29,12 +29,15 @@ namespace BlumBotFarm.TelegramBot
         {
             this.botClient        = botClient;
             this.adminChatIds     = adminChatIds;
-            var db                = Database.Database.ConnectionString;
-            accountRepository     = new AccountRepository(db);
-            taskRepository        = new TaskRepository(db);
-            earningRepository     = new EarningRepository(db);
-            dailyRewardRepository = new DailyRewardRepository(db);
-            userRepository        = new UserRepository(db);
+
+            var dbConnectionString = AppConfig.DatabaseSettings.MONGO_CONNECTION_STRING;
+            var databaseName       = AppConfig.DatabaseSettings.MONGO_DATABASE_NAME;
+
+            accountRepository     = new AccountRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_ACCOUNT_PATH);
+            taskRepository        = new TaskRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_TASK_PATH);
+            earningRepository     = new EarningRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_EARNING_PATH);
+            dailyRewardRepository = new DailyRewardRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_DAILY_REWARDS_PATH);
+            userRepository        = new UserRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_USER_PATH);
             taskScheduler         = new TaskScheduler();
         }
 
@@ -125,7 +128,7 @@ namespace BlumBotFarm.TelegramBot
                             return;
                         }
 
-                        var account = accountRepository.GetAll().FirstOrDefault(user => user.CustomUsername == username);
+                        var account = accountRepository.GetAllFit(user => user.CustomUsername == username).FirstOrDefault();
                         if (account != null)
                         {
                             await botClient.SendTextMessageAsync(message.Chat, "The account with this username <b>already exists</b>.", null, ParseMode.Html);
@@ -169,7 +172,7 @@ namespace BlumBotFarm.TelegramBot
                         }
 
 
-                        var account = accountRepository.GetAll().FirstOrDefault(user => user.CustomUsername == username);
+                        var account = accountRepository.GetAllFit(user => user.CustomUsername == username).FirstOrDefault();
                         if (account != null)
                         {
                             await botClient.SendTextMessageAsync(message.Chat, "The account with this username <b>already exists</b>.", null, ParseMode.Html);
@@ -230,7 +233,7 @@ namespace BlumBotFarm.TelegramBot
                     var tasksTodayResults    = taskRepository.GetAll();
 
                     var today = DateTime.Today;
-                    var dailyRewardsToday = dailyRewardRepository.GetAll().Where(dr => dr.CreatedAt >= today).DistinctBy(dr => dr.AccountId);
+                    var dailyRewardsToday = dailyRewardRepository.GetAllFit(dr => dr.CreatedAt >= today).DistinctBy(dr => dr.AccountId);
 
                     List<(long dailyInTicks, string line)> todayResultsLines = [];
                     foreach (var account in accountsTodayResults)
@@ -290,19 +293,25 @@ namespace BlumBotFarm.TelegramBot
                             return;
                         }
 
-                        await botClient.SendTextMessageAsync(message.Chat, $"You called info.\n" +
-                                                                           $"Id: <b>{account.Id}</b>\n" + 
-                                                                           $"Custom username: <code>{account.CustomUsername}</code>\n" +
-                                                                           $"Blum username: <code>{account.BlumUsername}</code>\n" +
-                                                                           $"Balance: <b>{account.Balance}</b> ฿\n" + 
-                                                                           $"Tickets: <b>{account.Tickets}</b>\n" +
-                                                                           $"Referrals count: <b>{account.ReferralsCount}</b>\n" +
-                                                                           $"Referral link: <code>{account.ReferralLink}</code>\n" +
-                                                                           $"UserAgent: <code>{account.UserAgent}</code>\n" + 
-                                                                           $"Proxy: <code>{account.Proxy}</code>\n" +
-                                                                           $"Timezone offset: <b>{account.TimezoneOffset}</b>\n" +
-                                                                           $"Last status: <b>{account.LastStatus}</b>",
-                                                                           null, ParseMode.Html);
+                        var todayDateInfo = DateTime.Today;
+                        var dailyReward   = dailyRewardRepository.GetAllFit(dr => dr.AccountId == account.Id && dr.CreatedAt >= todayDateInfo)
+                                                                 .FirstOrDefault();
+
+                        await botClient.SendTextMessageAsync(message.Chat, 
+                                                                $"You called info.\n" +
+                                                                $"Id: <b>{account.Id}</b>\n" + 
+                                                                $"Custom username: <code>{account.CustomUsername}</code>\n" +
+                                                                $"Blum username: <code>{account.BlumUsername}</code>\n" +
+                                                                $"Balance: <b>{account.Balance}</b> ฿\n" + 
+                                                                $"Tickets: <b>{account.Tickets}</b>\n" +
+                                                                $"Referrals count: <b>{account.ReferralsCount}</b>\n" +
+                                                                $"Referral link: <code>{account.ReferralLink}</code>\n" +
+                                                                $"UserAgent: <code>{account.UserAgent}</code>\n" + 
+                                                                $"Proxy: <code>{account.Proxy}</code>\n" +
+                                                                $"Timezone offset: <b>{account.TimezoneOffset}</b>\n" +
+                                                                "Daily reward today: <b>" + (dailyReward == null ? "Not taken yet" : "Taken") + "</b>\n" +
+                                                                $"Last status: <b>{account.LastStatus}</b>",
+                                                             null, ParseMode.Html);
 
                         Log.Information($"{message.From.Username} called info for {username}.");
                     }
@@ -312,7 +321,7 @@ namespace BlumBotFarm.TelegramBot
                     }
                     break;
                 case "/unspenttickets":
-                    var accountsWithTicketsNotZero = accountRepository.GetAll().Where(acc => acc.Tickets > 0);
+                    var accountsWithTicketsNotZero = accountRepository.GetAllFit(acc => acc.Tickets > 0);
                     var totalTickets = accountsWithTicketsNotZero.Select(acc => acc.Tickets).DefaultIfEmpty(0).Sum();
 
                     var tasks = taskRepository.GetAll();
@@ -472,7 +481,7 @@ namespace BlumBotFarm.TelegramBot
                     Log.Information($"{message.From.Username} forced Daily Check Job for accounts which has more than 0 tickets.");
                     await SendMessageToAdmins($"<b>{message.From.Username}</b> forced Daily Check Job for accounts which has more than 0 tickets.");
 
-                    var accountsWithTickets = accountRepository.GetAll().Where(acc => acc.Tickets > 0);
+                    var accountsWithTickets = accountRepository.GetAllFit(acc => acc.Tickets > 0);
                     int counterWithTickets  = 0;
                     foreach (var account in accountsWithTickets)
                     {
@@ -637,7 +646,7 @@ namespace BlumBotFarm.TelegramBot
                             return;
                         }
 
-                        var user = userRepository.GetAll().FirstOrDefault(u => u.TelegramUserId == tgUserId);
+                        var user = userRepository.GetAllFit(u => u.TelegramUserId == tgUserId).FirstOrDefault();
                         if (user == null)
                         {
                             await botClient.SendTextMessageAsync(message.Chat, "The user with this TG ID <b>does not exist</b>.", null, ParseMode.Html);
@@ -763,7 +772,7 @@ namespace BlumBotFarm.TelegramBot
 
             // Получаем только что добавленную задачу с присвоенным ID
             taskRepository.Add(taskDailyCheckJob);
-            taskDailyCheckJob = taskRepository.GetAll().FirstOrDefault(t => t.AccountId == account.Id && t.TaskType == "DailyCheckJob");
+            taskDailyCheckJob = taskRepository.GetAllFit(t => t.AccountId == account.Id && t.TaskType == "DailyCheckJob").FirstOrDefault();
             if (taskDailyCheckJob == null)
             {
                 Log.Error("TelegramBot AddAccount: task Daily Check Job is NULL after getting it from the DB!");
@@ -784,11 +793,11 @@ namespace BlumBotFarm.TelegramBot
 
             var todayDateTime = DateTime.Today;
 
-            var dailyRewardsToday = dailyRewardRepository.GetAll().Where(dr => dr.CreatedAt >= todayDateTime).DistinctBy(dr => dr.AccountId);
+            var dailyRewardsToday = dailyRewardRepository.GetAllFit(dr => dr.CreatedAt >= todayDateTime).DistinctBy(dr => dr.AccountId);
             int doneCount         = dailyRewardsToday.Count(),
                 wholeCount        = accounts.Count(acc => !string.IsNullOrEmpty(acc.ProviderToken));
 
-            var todayEarnings    = earningRepository.GetAll().Where(earning => earning.Created > todayDateTime);
+            var todayEarnings    = earningRepository.GetAllFit(earning => earning.Created > todayDateTime);
             var todayEarningsSum = todayEarnings.Select(earning => earning.Total).DefaultIfEmpty(0).Sum();
 
             return $"<b>CZ time:</b> <code>{DateTime.UtcNow.AddHours(2):dd.MM.yyyy HH:mm:ss}</code>\n" +

@@ -35,7 +35,7 @@ namespace AutoBlumFarmServer.Controllers
 
         private decimal GetNextSlotPriceByNumber(int currentSlotAmount)
         {
-            decimal supposedPrice = Config.Instance.MAX_SLOT_PRICE - ((currentSlotAmount + 1) * Config.Instance.STEP_SLOT_PRICE);
+            decimal supposedPrice = Config.Instance.MAX_SLOT_PRICE - (currentSlotAmount * Config.Instance.STEP_SLOT_PRICE);
             return supposedPrice >= Config.Instance.MIN_SLOT_PRICE ? supposedPrice : Config.Instance.MIN_SLOT_PRICE;
         }
 
@@ -78,7 +78,7 @@ namespace AutoBlumFarmServer.Controllers
                 });
             }
 
-            var currentSlotsAmount = _accountRepository.GetAll().Where(a => a.UserId == invoker.Id).Count();
+            var currentSlotsAmount = _accountRepository.GetAllFit(a => a.UserId == invoker.Id).Count();
             decimal priceUsd = GetNextSeveralSlotsPrice(currentSlotsAmount, model.amount);
 
             return Ok(new ApiObjectResponse<PreBuyAccountsSlotsOutputModel>
@@ -121,7 +121,7 @@ namespace AutoBlumFarmServer.Controllers
                 });
             }
 
-            var currentSlotsAmount = _accountRepository.GetAll().Where(a => a.UserId == invoker.Id).Count();
+            var currentSlotsAmount = _accountRepository.GetAllFit(a => a.UserId == invoker.Id).Count();
             decimal priceUsd = GetNextSeveralSlotsPrice(currentSlotsAmount, model.amount);
 
             if (invoker.BalanceUSD - priceUsd < 0)

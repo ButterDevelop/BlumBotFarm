@@ -1,4 +1,5 @@
-﻿using BlumBotFarm.Database.Repositories;
+﻿using BlumBotFarm.Core;
+using BlumBotFarm.Database.Repositories;
 using Telegram.Bot;
 using Task = System.Threading.Tasks.Task;
 
@@ -21,7 +22,10 @@ namespace BlumBotFarm.MessageProcessor
             _userTelegramBotClient  = userTelegramBotClient;
             _adminChatIds           = adminChatIds;
             _cancellationToken      = cancellationToken;
-            _messageRepository      = new MessageRepository(Database.Database.ConnectionString);
+
+            var dbConnectionString  = AppConfig.DatabaseSettings.MONGO_CONNECTION_STRING;
+            var databaseName        = AppConfig.DatabaseSettings.MONGO_DATABASE_NAME;
+            _messageRepository      = new MessageRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_MESSAGE_PATH);
         }
 
         public void SendMessageToUserInQueue(long chatId, string text, bool isSilent)

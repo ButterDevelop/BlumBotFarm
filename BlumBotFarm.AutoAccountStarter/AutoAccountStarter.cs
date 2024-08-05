@@ -1,4 +1,5 @@
-﻿using BlumBotFarm.Database.Repositories;
+﻿using BlumBotFarm.Core;
+using BlumBotFarm.Database.Repositories;
 using Serilog;
 using TaskScheduler = BlumBotFarm.Scheduler.TaskScheduler;
 
@@ -15,9 +16,12 @@ namespace BlumBotFarm.AutoAccountStarter
         public AutoAccountStarter()
         {
             _cancellationToken = new CancellationToken();
-            var db             = Database.Database.ConnectionString;
-            _accountRepository = new AccountRepository(db);
-            _taskRepository    = new TaskRepository(db);
+
+            var dbConnectionString = AppConfig.DatabaseSettings.MONGO_CONNECTION_STRING;
+            var databaseName       = AppConfig.DatabaseSettings.MONGO_DATABASE_NAME;
+
+            _accountRepository = new AccountRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_ACCOUNT_PATH);
+            _taskRepository    = new TaskRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_TASK_PATH);
             _taskScheduler     = new();
             _workingAccounts   = [];
         }
@@ -40,7 +44,7 @@ namespace BlumBotFarm.AutoAccountStarter
             while (!_cancellationToken.IsCancellationRequested)
             {
                 await ProcessAsync();
-                await Task.Delay(5000); // Ждем 5 секунд перед следующей проверкой
+                await Task.Delay(60000); // Ждем 60 секунд перед следующей проверкой
             }
         }
 

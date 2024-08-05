@@ -1,77 +1,62 @@
 ﻿using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Interfaces;
-using Dapper;
-using Microsoft.Data.Sqlite;
+using MongoDB.Driver;
+using System.Linq.Expressions;
 
 namespace BlumBotFarm.Database.Repositories
 {
     public class EarningRepository : IRepository<Earning>
     {
-        private static readonly object _lock = new();
-        private readonly string _connectionString;
+        private readonly IMongoDatabase            _database;
+        private readonly string                    _collectionName;
+        private readonly IMongoCollection<Earning> _earnings;
 
-        public EarningRepository(string connectionString)
+        public EarningRepository(string connectionString, string databaseName, string collectionName)
         {
-            _connectionString = connectionString;
+            var client      = new MongoClient(connectionString);
+            _database       = client.GetDatabase(databaseName);
+            _collectionName = collectionName;
+            _earnings       = _database.GetCollection<Earning>(_collectionName);
         }
 
         public IEnumerable<Earning> GetAll()
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    return db.Query<Earning>("SELECT * FROM Earnings").ToList();
-                }
-            }
+            return _earnings.Find(earning => true).ToList();
+        }
+
+        public IEnumerable<Earning> GetAllFit(Expression<Func<Earning, bool>> func)
+        {
+            return _earnings.Find(func).ToList();
         }
 
         public Earning? GetById(int id)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    return db.QuerySingleOrDefault<Earning>("SELECT * FROM Earnings WHERE Id = @Id", new { Id = id });
-                }
-            }
+            return _earnings.Find(earning => earning.Id == id).FirstOrDefault();
         }
 
         public int Add(Earning earning)
         {
-            lock (_lock)
+            if (earning.Id == 0)
             {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = "INSERT INTO Earnings (AccountId, Total, Created, Action) VALUES (@AccountId, @Total, @Created, @Action); " +
-                              "SELECT last_insert_rowid();";
-                    return db.ExecuteScalar<int>(sql, earning);
-                }
+                earning.Id = AutoIncrement.GetNextSequence(_database, _collectionName + "_id");
             }
+            else if (GetById(earning.Id) != null)
+            {
+                throw new Exception("ID is incorrect!");
+            }
+
+            _earnings.InsertOne(earning);
+            return earning.Id;
         }
 
         public void Update(Earning earning)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = "UPDATE Earnings SET AccountId = @AccountId, Total = @Total, Created = @Created, Action = @Action WHERE Id = @Id";
-                    db.Execute(sql, earning);
-                }
-            }
+            _earnings.ReplaceOne(existingEarning => existingEarning.Id == earning.Id, earning);
         }
 
         public void Delete(int id)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = "DELETE FROM Earnings WHERE Id = @Id";
-                    db.Execute(sql, new { Id = id });
-                }
-            }
+            _earnings.DeleteOne(earning => earning.Id == id);
         }
     }
 }

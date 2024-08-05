@@ -144,6 +144,14 @@
     "Text": "Problémy s proxy"
   },
   {
+    "Mask": "#%JOB_LAST_STATUS_WORKING_NOW%#",
+    "Text": "Pracuje se"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_IN_THE_QUEUE%#",
+    "Text": "Ve frontě"
+  },
+  {
     "Mask": "#%JOB_AUTH_LOST_PLEASE_LOGIN_AND_UPDATE_IT%#",
     "Text": "<b>Jeden z vašich účtů ztratil autorizaci.</b>\nProsím, použijte aplikaci a zkontrolujte, co se děje (a aktualizujte autorizaci)."
   },

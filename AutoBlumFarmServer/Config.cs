@@ -62,8 +62,23 @@ namespace AutoBlumFarmServer
         public double  TG_STARS_PAYMENT_STAR_USD_PRICE       => _configuration.GetValue("TelegramStarsPayment:StarUsdPrice", 2.24);
 
         // SQL PART                         
-        public string SQL_CONNECTION_STRING => _configuration["DatabaseSettings:ConnectionString"] ?? "Data Source=blumbotfarm.db";
+        public string SQL_CONNECTION_STRING => _configuration["DatabaseSettings:ConnectionStrings:SqlConnectionString"] ?? "Data Source=blumbotfarm.db";
 
+        // MONGO PART
+        public string MONGO_CONNECTION_STRING => _configuration["DatabaseSettings:ConnectionStrings:MongoConnectionString"] ?? "";
+        public string MONGO_DATABASE_NAME     => _configuration["DatabaseSettings:ConnectionStrings:MongoDatabaseName"] ?? "";
+
+        // MONGO TABLES
+        public string MONGO_ACCOUNT_PATH          => _configuration["DatabaseSettings:MongoTableNames:MONGO_ACCOUNT_PATH"] ?? "";
+        public string MONGO_TASK_PATH             => _configuration["DatabaseSettings:MongoTableNames:MONGO_TASK_PATH"] ?? "";
+        public string MONGO_MESSAGE_PATH          => _configuration["DatabaseSettings:MongoTableNames:MONGO_MESSAGE_PATH"] ?? "";
+        public string MONGO_EARNING_PATH          => _configuration["DatabaseSettings:MongoTableNames:MONGO_EARNING_PATH"] ?? "";
+        public string MONGO_REFERRAL_PATH         => _configuration["DatabaseSettings:MongoTableNames:MONGO_REFERRAL_PATH"] ?? "";
+        public string MONGO_USER_PATH             => _configuration["DatabaseSettings:MongoTableNames:MONGO_USER_PATH"] ?? "";
+        public string MONGO_WALLET_PAYMENT_PATH   => _configuration["DatabaseSettings:MongoTableNames:MONGO_WALLET_PAYMENT_PATH"] ?? "";
+        public string MONGO_DAILY_REWARDS_PATH    => _configuration["DatabaseSettings:MongoTableNames:MONGO_DAILY_REWARDS_PATH"] ?? "";
+        public string MONGO_STARS_PAYMENT_PATH    => _configuration["DatabaseSettings:MongoTableNames:MONGO_STARS_PAYMENT_PATH"] ?? "";
+        public string MONGO_FEEDBACK_MESSAGE_PATH => _configuration["DatabaseSettings:MongoTableNames:MONGO_FEEDBACK_MESSAGE_PATH"] ?? "";
 
         private void ParseProxySellerGeo()
         {

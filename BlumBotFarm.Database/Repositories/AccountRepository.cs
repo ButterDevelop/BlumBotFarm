@@ -1,101 +1,62 @@
 ﻿using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Interfaces;
-using Dapper;
-using Microsoft.Data.Sqlite;
+using MongoDB.Driver;
+using System.Linq.Expressions;
 
 namespace BlumBotFarm.Database.Repositories
 {
     public class AccountRepository : IRepository<Account>
     {
-        private static readonly object _lock = new();
-        private readonly string _connectionString;
+        private readonly IMongoDatabase            _database;
+        private readonly string                    _collectionName;
+        private readonly IMongoCollection<Account> _accounts;
 
-        public AccountRepository(string connectionString)
+        public AccountRepository(string connectionString, string databaseName, string collectionName)
         {
-            _connectionString = connectionString;
+            var client      = new MongoClient(connectionString);
+            _database       = client.GetDatabase(databaseName);
+            _collectionName = collectionName;
+            _accounts       = _database.GetCollection<Account>(_collectionName);
         }
 
         public IEnumerable<Account> GetAll()
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    return db.Query<Account>("SELECT * FROM Accounts").ToList();
-                }
-            }
+            return _accounts.Find(account => true).ToList();
+        }
+
+        public IEnumerable<Account> GetAllFit(Expression<Func<Account, bool>> func)
+        {
+            return _accounts.Find(func).ToList();
         }
 
         public Account? GetById(int id)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    return db.QuerySingleOrDefault<Account>("SELECT * FROM Accounts WHERE Id = @Id", new { Id = id });
-                }
-            }
+            return _accounts.Find(account => account.Id == id).FirstOrDefault();
         }
 
         public int Add(Account account)
         {
-            lock (_lock)
+            if (account.Id == 0)
             {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = @"INSERT INTO Accounts (
-                                    CustomUsername, BlumUsername, UserId, Balance, Tickets, ReferralsCount, ReferralLink,
-                                    AccessToken, RefreshToken, ProviderToken, UserAgent, Proxy, CountryCode, ProxySellerListId, TimezoneOffset,
-                                    LastStatus)
-                                VALUES (
-                                    @CustomUsername, @BlumUsername, @UserId, @Balance, @Tickets, @ReferralsCount, @ReferralLink,
-                                    @AccessToken, @RefreshToken, @ProviderToken, @UserAgent, @Proxy, @CountryCode, @ProxySellerListId, @TimezoneOffset, 
-                                    @LastStatus);
-                                SELECT last_insert_rowid();";
-                    return db.ExecuteScalar<int>(sql, account);
-                }
+                account.Id = AutoIncrement.GetNextSequence(_database, _collectionName + "_id");
             }
+            else if (GetById(account.Id) != null)
+            {
+                throw new Exception("ID is incorrect!");
+            }
+
+            _accounts.InsertOne(account);
+            return account.Id;
         }
 
         public void Update(Account account)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = @"UPDATE Accounts SET
-                                    CustomUsername = @CustomUsername,
-                                    BlumUsername = @BlumUsername,
-                                    UserId = @UserId,
-                                    Balance = @Balance,
-                                    Tickets = @Tickets,
-                                    ReferralsCount = @ReferralsCount,
-                                    ReferralLink = @ReferralLink,
-                                    AccessToken = @AccessToken,
-                                    RefreshToken = @RefreshToken,
-                                    ProviderToken = @ProviderToken,
-                                    UserAgent = @UserAgent,
-                                    Proxy = @Proxy,
-                                    CountryCode = @CountryCode,
-                                    ProxySellerListId = @ProxySellerListId,
-                                    TimezoneOffset = @TimezoneOffset,
-                                    LastStatus = @LastStatus
-                                WHERE Id = @Id";
-                    db.Execute(sql, account);
-                }
-            }
+            _accounts.ReplaceOne(existingAccount => existingAccount.Id == account.Id, account);
         }
 
         public void Delete(int id)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = "DELETE FROM Accounts WHERE Id = @Id";
-                    db.Execute(sql, new { Id = id });
-                }
-            }
+            _accounts.DeleteOne(account => account.Id == id);
         }
     }
 }

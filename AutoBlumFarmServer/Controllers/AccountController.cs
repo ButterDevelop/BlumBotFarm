@@ -66,11 +66,11 @@ namespace AutoBlumFarmServer.Controllers
                 message = "No auth."
             });
 
-            var invokersAccounts = _accountRepository.GetAll().Where(acc => acc.UserId == userId);
+            var invokersAccounts = _accountRepository.GetAllFit(acc => acc.UserId == userId);
 
             var  today = DateTime.Now.Date; // Not UTC, here we are not using it because of Quartz in the main project
-            var  dailyRewardsToday = _dailyRewardRepository.GetAll().Where(r => r.CreatedAt > today);
-            var  earningsToday     = _earningRepository.GetAll().Where(earning => earning.Created > today);
+            var  dailyRewardsToday = _dailyRewardRepository.GetAllFit(r => r.CreatedAt > today);
+            var  earningsToday     = _earningRepository.GetAllFit(earning => earning.Created > today);
             var  tasks             = _taskRepository.GetAll();
 
             List<AccountDTO> results = [];
@@ -142,14 +142,14 @@ namespace AutoBlumFarmServer.Controllers
 
             var  today = DateTime.Now.Date; // Not UTC, here we are not using it because of Quartz in the main project
 
-            bool tookDailyRewardToday = _dailyRewardRepository.GetAll().Any(r => r.CreatedAt > today && r.AccountId == account.Id);
+            bool tookDailyRewardToday = _dailyRewardRepository.GetAllFit(r => r.CreatedAt > today && r.AccountId == account.Id).Count() > 0;
             var  todayEarningsSum     = _earningRepository
                                             .GetAll()
                                             .Where(earning => earning.Created > today && earning.AccountId == account.Id)
                                             .Select(earning => earning.Total)
                                             .DefaultIfEmpty(0).Sum();
 
-            var dailyCheckJob    = _taskRepository.GetAll().FirstOrDefault(task => task.AccountId == account.Id && task.TaskType == "DailyCheckJob");
+            var dailyCheckJob    = _taskRepository.GetAllFit(task => task.AccountId == account.Id && task.TaskType == "DailyCheckJob").FirstOrDefault();
             string nearestWorkIn = "-";
             if (dailyCheckJob != null && !string.IsNullOrEmpty(account.ProviderToken) && !string.IsNullOrEmpty(account.RefreshToken))
             {
@@ -211,7 +211,7 @@ namespace AutoBlumFarmServer.Controllers
                 });
             }
 
-            var account = _accountRepository.GetAll().FirstOrDefault(acc => acc.CustomUsername == username);
+            var account = _accountRepository.GetAllFit(acc => acc.CustomUsername == username).FirstOrDefault();
             if (account != null) return BadRequest(new ApiMessageResponse
             {
                 ok      = false,
@@ -301,7 +301,7 @@ namespace AutoBlumFarmServer.Controllers
                     });
                 }
 
-                var accountCheckUsername = _accountRepository.GetAll().FirstOrDefault(acc => acc.CustomUsername == model.CustomUsername && acc.Id != account.Id);
+                var accountCheckUsername = _accountRepository.GetAllFit(acc => acc.CustomUsername == model.CustomUsername && acc.Id != account.Id).FirstOrDefault();
                 if (accountCheckUsername != null) return BadRequest(new ApiMessageResponse
                 {
                     ok      = false,
@@ -384,6 +384,11 @@ namespace AutoBlumFarmServer.Controllers
 
             account.CustomUsername = model.CustomUsername;
             account.ProviderToken  = model.BlumTelegramAuth;
+            if (string.IsNullOrEmpty(account.CustomUsername) && string.IsNullOrEmpty(account.ProviderToken))
+            {
+                // If this account is an empty slot, than telling the user about we took his account
+                account.LastStatus = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%JOB_LAST_STATUS_IN_THE_QUEUE%#");
+            }
             _accountRepository.Update(account);
 
             return Ok(new ApiMessageResponse

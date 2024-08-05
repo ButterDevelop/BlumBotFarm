@@ -116,15 +116,15 @@ builder.Services.AddSwaggerExamplesFromAssemblyOf<ChangeLanguageBadExample>();
 builder.Services.AddMemoryCache();
 
 // I don't will joy for this, but I have no time actually to do some patterns like Strategy
-Database.Initialize();
-var databaseConnection = Database.ConnectionString;
-builder.Services.AddScoped(provider => new AccountRepository(databaseConnection));
-builder.Services.AddScoped(provider => new UserRepository(databaseConnection));
-builder.Services.AddScoped(provider => new ReferralRepository(databaseConnection));
-builder.Services.AddScoped(provider => new StarsPaymentRepository(databaseConnection));
-builder.Services.AddScoped(provider => new DailyRewardRepository(databaseConnection));
-builder.Services.AddScoped(provider => new EarningRepository(databaseConnection));
-builder.Services.AddScoped(provider => new TaskRepository(databaseConnection));
+var databaseConnection = Config.Instance.MONGO_CONNECTION_STRING;
+var databaseName       = Config.Instance.MONGO_DATABASE_NAME;
+builder.Services.AddScoped(provider => new AccountRepository(databaseConnection, databaseName, Config.Instance.MONGO_ACCOUNT_PATH));
+builder.Services.AddScoped(provider => new UserRepository(databaseConnection, databaseName, Config.Instance.MONGO_USER_PATH));
+builder.Services.AddScoped(provider => new ReferralRepository(databaseConnection, databaseName, Config.Instance.MONGO_REFERRAL_PATH));
+builder.Services.AddScoped(provider => new StarsPaymentRepository(databaseConnection, databaseName, Config.Instance.MONGO_STARS_PAYMENT_PATH));
+builder.Services.AddScoped(provider => new DailyRewardRepository(databaseConnection, databaseName, Config.Instance.MONGO_DAILY_REWARDS_PATH));
+builder.Services.AddScoped(provider => new EarningRepository(databaseConnection, databaseName, Config.Instance.MONGO_EARNING_PATH));
+builder.Services.AddScoped(provider => new TaskRepository(databaseConnection, databaseName, Config.Instance.MONGO_TASK_PATH));
 builder.Services.AddScoped(provider => new TelegramBotClient(Config.Instance.TELEGRAM_BOT_TOKEN));
 builder.Services.AddScoped(provider => new ProxySellerAPIHelper(Config.Instance.PROXY_SELLER_API_KEY));
 builder.Services.AddScoped(provider => new TranslationHelper());

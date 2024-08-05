@@ -1,4 +1,5 @@
-﻿using BlumBotFarm.Database.Repositories;
+﻿using BlumBotFarm.Core;
+using BlumBotFarm.Database.Repositories;
 using BlumBotFarm.GameClient;
 using Quartz;
 using Serilog;
@@ -19,9 +20,11 @@ namespace BlumBotFarm.Scheduler.Jobs
 
         public UpdateUsersInfoJob()
         {
-            var db            = Database.Database.ConnectionString;
-            accountRepository = new AccountRepository(db);
-            taskRepository    = new TaskRepository(db);
+            var dbConnectionString = AppConfig.DatabaseSettings.MONGO_CONNECTION_STRING;
+            var databaseName       = AppConfig.DatabaseSettings.MONGO_DATABASE_NAME;
+
+            accountRepository = new AccountRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_ACCOUNT_PATH);
+            taskRepository    = new TaskRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_TASK_PATH);
             taskScheduler     = new TaskScheduler();
         }
 

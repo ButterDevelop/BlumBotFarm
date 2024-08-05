@@ -1,4 +1,5 @@
-﻿using BlumBotFarm.Core.Models;
+﻿using BlumBotFarm.Core;
+using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Repositories;
 using BlumBotFarm.Translation;
 using Serilog;
@@ -37,11 +38,14 @@ namespace BlumBotFarm.TelegramBot
             botClient                        = new TelegramBotClient(token);
             this.adminChatIds                = adminChatIds;
             this.starPriceUsd                = starPriceUsd;
-            var db                           = Database.Database.ConnectionString;
-            userRepository                   = new UserRepository(db);
-            starsPaymentRepository           = new StarsPaymentRepository(db);
-            referralRepository               = new ReferralRepository(db);
-            feedbackMessageRepository        = new FeedbackMessageRepository(db);
+
+            var dbConnectionString           = AppConfig.DatabaseSettings.MONGO_CONNECTION_STRING;
+            var databaseName                 = AppConfig.DatabaseSettings.MONGO_DATABASE_NAME;
+
+            userRepository                   = new UserRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_USER_PATH);
+            starsPaymentRepository           = new StarsPaymentRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_STARS_PAYMENT_PATH);
+            referralRepository               = new ReferralRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_REFERRAL_PATH);
+            feedbackMessageRepository        = new FeedbackMessageRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_FEEDBACK_MESSAGE_PATH);
             this.referralBalanceBonusPercent = referralBalanceBonusPercent;
             this.serverDomain                = serverDomain;
             this.publicBotName               = publicBotName;
@@ -66,7 +70,7 @@ namespace BlumBotFarm.TelegramBot
         private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
             var from        = update.Message == null ? update.PreCheckoutQuery?.From : update.Message.From;
-            var invoker     = from != null ? userRepository.GetAll().FirstOrDefault(u => u.TelegramUserId == from.Id) : null;
+            var invoker     = from != null ? userRepository.GetAllFit(u => u.TelegramUserId == from.Id).FirstOrDefault() : null;
             string langCode = invoker != null ? 
                                   invoker.LanguageCode : (from is null ? 
                                       TranslationHelper.DEFAULT_LANG_CODE : (from.LanguageCode ?? TranslationHelper.DEFAULT_LANG_CODE)
@@ -180,7 +184,7 @@ namespace BlumBotFarm.TelegramBot
                                      "</b> toped up their balance with " +
                                      $"<b>{amountStars}</b> stars (<b>~{amountUsd:N4}</b>$).";
 
-            var hostOfOurUserRef = referralRepository.GetAll().FirstOrDefault(r => r.DependentUserId == user.Id);
+            var hostOfOurUserRef = referralRepository.GetAllFit(r => r.DependentUserId == user.Id).FirstOrDefault();
             if (hostOfOurUserRef != null)
             {
                 var hostUser = userRepository.GetById(hostOfOurUserRef.HostUserId);
@@ -324,7 +328,7 @@ namespace BlumBotFarm.TelegramBot
                             };
                             userRepository.Add(user);
 
-                            user = userRepository.GetAll().FirstOrDefault(acc => acc.TelegramUserId == message.Chat.Id);
+                            user = userRepository.GetAllFit(acc => acc.TelegramUserId == message.Chat.Id).FirstOrDefault();
                             if (user == null)
                             {
                                 Log.Error($"Command /start, chat id {message.Chat.Id}: can't get user from the DB while creating.");
@@ -339,7 +343,7 @@ namespace BlumBotFarm.TelegramBot
                             var hostUser = users.FirstOrDefault(u => u.OwnReferralCode == hostReferralCode && u.Id != user.Id);
                             if (hostUser != null)
                             {
-                                var referralUser = referralRepository.GetAll().FirstOrDefault(u => u.DependentUserId == user.Id);
+                                var referralUser = referralRepository.GetAllFit(u => u.DependentUserId == user.Id).FirstOrDefault();
                                 if (referralUser == null)
                                 {
                                     var referral = new Referral
@@ -409,7 +413,7 @@ namespace BlumBotFarm.TelegramBot
                             UserFeedbackOriginalMessageId = message.MessageId,
                             SupportFeedbackMessageId      = sentMessageToSupport.MessageId,
                             IsReplied                     = false,
-                            SupportReplyMessageId         = null
+                            SupportReplyMessageId         = 0
                         });
 
                         await botClient.SendTextMessageAsync(message.Chat,

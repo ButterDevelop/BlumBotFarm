@@ -1,10 +1,15 @@
-﻿namespace BlumBotFarm.Core.Models
+﻿using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson;
+
+namespace BlumBotFarm.Core.Models
 {
     public class WalletPayment
     {
         public int       Id                     { get; set; }
-        
+
+        [BsonRepresentation(BsonType.Decimal128)]
         public decimal   AmountUsd              { get; set; }
+
         public string    AutoConversionCurrency { get; set; } = "USDT";
         public string    Description            { get; set; } = "Top up your balance";
         public string    ReturnUrl              { get; set; } = "https://t.me/autoblumfarmbot";

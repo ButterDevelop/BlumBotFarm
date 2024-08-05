@@ -440,17 +440,20 @@ namespace BlumBotFarm.GameClient
 
                 var tasks = new List<(string id, string kind, string status)>();
 
-                foreach (var task in jsonArray)
+                foreach (var taskType in jsonArray)
                 {
-                    if (task["subTasks"] is null)
+                    foreach (var task in taskType.tasks)
                     {
-                        tasks.Add((task["id"].ToString(), task["kind"].ToString(), task["status"].ToString()));
-                    }
-                    else
-                    {
-                        foreach (var subTask in task["subTasks"])
+                        if (task["subTasks"] is null)
                         {
-                            tasks.Add((subTask["id"].ToString(), subTask["kind"].ToString(), subTask["status"].ToString()));
+                            tasks.Add((task["id"].ToString(), task["kind"].ToString(), task["status"].ToString()));
+                        }
+                        else
+                        {
+                            foreach (var subTask in task["subTasks"])
+                            {
+                                tasks.Add((subTask["id"].ToString(), subTask["kind"].ToString(), subTask["status"].ToString()));
+                            }
                         }
                     }
                 }

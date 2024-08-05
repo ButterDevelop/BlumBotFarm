@@ -1,101 +1,62 @@
 ﻿using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Interfaces;
-using Dapper;
-using Microsoft.Data.Sqlite;
-using System.Collections.Generic;
-using System.Linq;
+using MongoDB.Driver;
+using System.Linq.Expressions;
 
 namespace BlumBotFarm.Database.Repositories
 {
     public class StarsPaymentRepository : IRepository<StarsPayment>
     {
-        private static readonly object _lock = new();
-        private readonly string _connectionString;
+        private readonly IMongoDatabase                 _database;
+        private readonly string                         _collectionName;
+        private readonly IMongoCollection<StarsPayment> _starsPayments;
 
-        public StarsPaymentRepository(string connectionString)
+        public StarsPaymentRepository(string connectionString, string databaseName, string collectionName)
         {
-            _connectionString = connectionString;
+            var client      = new MongoClient(connectionString);
+            _database       = client.GetDatabase(databaseName);
+            _collectionName = collectionName;
+            _starsPayments  = _database.GetCollection<StarsPayment>(_collectionName);
         }
 
         public IEnumerable<StarsPayment> GetAll()
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = "SELECT Id, UserId, CAST(AmountUsd AS REAL) AS AmountUsd, AmountStars, CreatedDateTime, IsCompleted, CompletedDateTime FROM StarsPayments";
-                    return db.Query<StarsPayment>(sql).ToList();
-                }
-            }
+            return _starsPayments.Find(payment => true).ToList();
+        }
+
+        public IEnumerable<StarsPayment> GetAllFit(Expression<Func<StarsPayment, bool>> func)
+        {
+            return _starsPayments.Find(func).ToList();
         }
 
         public StarsPayment? GetById(int id)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = "SELECT Id, UserId, CAST(AmountUsd AS REAL) AS AmountUsd, AmountStars, CreatedDateTime, IsCompleted, CompletedDateTime FROM StarsPayments WHERE Id = @Id";
-                    return db.QuerySingleOrDefault<StarsPayment>(sql, new { Id = id });
-                }
-            }
+            return _starsPayments.Find(payment => payment.Id == id).FirstOrDefault();
         }
 
         public int Add(StarsPayment starsPayment)
         {
-            lock (_lock)
+            if (starsPayment.Id == 0)
             {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = @"INSERT INTO StarsPayments (
-                                    UserId,
-                                    AmountUsd,
-                                    AmountStars,
-                                    CreatedDateTime,
-                                    IsCompleted,
-                                    CompletedDateTime)
-                                VALUES (
-                                    @UserId,
-                                    @AmountUsd,
-                                    @AmountStars,
-                                    @CreatedDateTime,
-                                    @IsCompleted,
-                                    @CompletedDateTime);
-                                SELECT last_insert_rowid();";
-                    return db.ExecuteScalar<int>(sql, starsPayment);
-                }
+                starsPayment.Id = AutoIncrement.GetNextSequence(_database, _collectionName + "_id");
             }
+            else if (GetById(starsPayment.Id) != null)
+            {
+                throw new Exception("ID is incorrect!");
+            }
+
+            _starsPayments.InsertOne(starsPayment);
+            return starsPayment.Id;
         }
 
         public void Update(StarsPayment starsPayment)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = @"UPDATE StarsPayments SET
-                                    UserId = @UserId,
-                                    AmountUsd = @AmountUsd,
-                                    AmountStars = @AmountStars,
-                                    CreatedDateTime = @CreatedDateTime,
-                                    IsCompleted = @IsCompleted,
-                                    CompletedDateTime = @CompletedDateTime
-                                WHERE Id = @Id";
-                    db.Execute(sql, starsPayment);
-                }
-            }
+            _starsPayments.ReplaceOne(existingPayment => existingPayment.Id == starsPayment.Id, starsPayment);
         }
 
         public void Delete(int id)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = "DELETE FROM StarsPayments WHERE Id = @Id";
-                    db.Execute(sql, new { Id = id });
-                }
-            }
+            _starsPayments.DeleteOne(payment => payment.Id == id);
         }
     }
 }

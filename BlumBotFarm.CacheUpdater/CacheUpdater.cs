@@ -1,5 +1,7 @@
 ﻿using BlumBotFarm.CacheUpdater.CacheServices;
+using BlumBotFarm.Core;
 using BlumBotFarm.Database.Repositories;
+using Serilog;
 
 namespace BlumBotFarm.CacheUpdater
 {
@@ -12,9 +14,10 @@ namespace BlumBotFarm.CacheUpdater
 
         public CacheUpdater(CancellationToken cancellationToken, IUserCacheService userCacheService)
         {
-            var db                  = Database.Database.ConnectionString;
-            _userRepository         = new UserRepository(db);
-            _starsPaymentRepository = new StarsPaymentRepository(db);
+            var dbConnectionString  = AppConfig.DatabaseSettings.MONGO_CONNECTION_STRING;
+            var databaseName        = AppConfig.DatabaseSettings.MONGO_DATABASE_NAME;
+            _userRepository         = new UserRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_USER_PATH);
+            _starsPaymentRepository = new StarsPaymentRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_STARS_PAYMENT_PATH);
             _userCacheService       = userCacheService;
             _cancellationToken      = cancellationToken;
         }
@@ -24,14 +27,14 @@ namespace BlumBotFarm.CacheUpdater
             while (!_cancellationToken.IsCancellationRequested)
             {
                 Process();
-                await Task.Delay(5000); // Ждем 5 секунд перед следующей проверкой
+                await Task.Delay(60000); // Ждем 60 секунд перед следующей проверкой
             }
         }
 
         private void Process()
         {
-            var now       = DateTime.Now;
-            var payments  = _starsPaymentRepository.GetAll().Where(p => p.IsCompleted && (now - p.CompletedDateTime).TotalSeconds < 5);
+            var dateToCompare = DateTime.Now.AddSeconds(-65);
+            var payments      = _starsPaymentRepository.GetAllFit(p => p.IsCompleted && p.CompletedDateTime >= dateToCompare);
             Random random = new();
 
             foreach (var payment in payments)

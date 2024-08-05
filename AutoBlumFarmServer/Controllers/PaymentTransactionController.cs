@@ -70,7 +70,7 @@ namespace AutoBlumFarmServer.Controllers
             int tgStarsAmount = (int)Math.Round(priceUsd / (decimal)Config.Instance.TG_STARS_PAYMENT_STAR_USD_PRICE);
 
             var now = DateTime.UtcNow;
-            _starsPaymentRepository.Add(new StarsPayment
+            int paymentId = _starsPaymentRepository.Add(new StarsPayment
             {
                 UserId            = userId,
                 AmountUsd         = priceUsd,
@@ -79,12 +79,8 @@ namespace AutoBlumFarmServer.Controllers
                 IsCompleted       = false,
                 CompletedDateTime = DateTime.UtcNow.Date
             });
-            var payment = _starsPaymentRepository.GetAll().FirstOrDefault(p => p.UserId      == userId && 
-                                                                               p.AmountStars == tgStarsAmount &&
-                                                                               !p.IsCompleted &&
-                                                                               p.CreatedDateTime.Ticks == now.Ticks &&
-                                                                               p.AmountUsd == priceUsd);
 
+            var payment = _starsPaymentRepository.GetById(paymentId);
             if (payment == null)
             {
                 return BadRequest(new ApiMessageResponse()
@@ -147,7 +143,7 @@ namespace AutoBlumFarmServer.Controllers
                 message = "No auth."
             });
 
-            var payments = _starsPaymentRepository.GetAll().Where(p => p.UserId == invoker.Id);
+            var payments = _starsPaymentRepository.GetAllFit(p => p.UserId == invoker.Id);
 
             List<StarsPaymentDTO> results = [];
             foreach (var payment in payments)

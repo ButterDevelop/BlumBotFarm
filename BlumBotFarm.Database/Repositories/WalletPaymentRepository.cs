@@ -1,131 +1,62 @@
 ﻿using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Interfaces;
-using Dapper;
-using Microsoft.Data.Sqlite;
+using MongoDB.Driver;
+using System.Linq.Expressions;
 
 namespace BlumBotFarm.Database.Repositories
 {
     public class WalletPaymentRepository : IRepository<WalletPayment>
     {
-        private static readonly object _lock = new();
+        private readonly IMongoDatabase                  _database;
+        private readonly string                          _collectionName;
+        private readonly IMongoCollection<WalletPayment> _walletPayments;
 
-        private readonly string _connectionString;
-
-        public WalletPaymentRepository(string connectionString)
+        public WalletPaymentRepository(string connectionString, string databaseName, string collectionName)
         {
-            _connectionString = connectionString;
+            var client      = new MongoClient(connectionString);
+            _database       = client.GetDatabase(databaseName);
+            _collectionName = collectionName;
+            _walletPayments = _database.GetCollection<WalletPayment>(_collectionName);
         }
 
         public IEnumerable<WalletPayment> GetAll()
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    return db.Query<WalletPayment>("SELECT * FROM PaymentTransactions").ToList();
-                }
-            }
+            return _walletPayments.Find(payment => true).ToList();
+        }
+
+        public List<WalletPayment> GetAllFit(Expression<Func<WalletPayment, bool>> func)
+        {
+            return _walletPayments.Find(func).ToList();
         }
 
         public WalletPayment? GetById(int id)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    return db.QuerySingleOrDefault<WalletPayment>("SELECT * FROM PaymentTransactions WHERE Id = @Id", new { Id = id });
-                }
-            }
+            return _walletPayments.Find(payment => payment.Id == id).FirstOrDefault();
         }
 
         public int Add(WalletPayment paymentTransaction)
         {
-            lock (_lock)
+            if (paymentTransaction.Id == 0)
             {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = @"INSERT INTO PaymentTransactions (
-                                    AmountUsd,
-                                    AutoConversionCurrency,
-                                    Description,
-                                    ReturnUrl,
-                                    FailReturnUrl,
-                                    CustomData,
-                                    ExternalId,
-                                    TimeoutSeconds,
-                                    CustomerTelegramId,
-                                    WalletOrderId,
-                                    Status,
-                                    OrderNumber,
-                                    CreatedDateTime,
-                                    ExpirationDateTime,
-                                    CompletedDateTime,
-                                    PayLink,
-                                    DirectPayLink)
-                                VALUES (
-                                    @AmountUsd,
-                                    @AutoConversionCurrency,
-                                    @Description,
-                                    @ReturnUrl,
-                                    @FailReturnUrl,
-                                    @CustomData,
-                                    @ExternalId,
-                                    @TimeoutSeconds,
-                                    @CustomerTelegramId,
-                                    @WalletOrderId,
-                                    @Status,
-                                    @OrderNumber,
-                                    @CreatedDateTime,
-                                    @ExpirationDateTime,
-                                    @CompletedDateTime,
-                                    @PayLink,
-                                    @DirectPayLink);
-                                SELECT last_insert_rowid();";
-                    return db.ExecuteScalar<int>(sql, paymentTransaction);
-                }
+                paymentTransaction.Id = AutoIncrement.GetNextSequence(_database, _collectionName + "_id");
             }
+            else if (GetById(paymentTransaction.Id) != null)
+            {
+                throw new Exception("ID is incorrect!");
+            }
+
+            _walletPayments.InsertOne(paymentTransaction);
+            return paymentTransaction.Id;
         }
 
         public void Update(WalletPayment paymentTransaction)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = @"UPDATE PaymentTransactions SET
-                                    AmountUsd = @AmountUsd,
-                                    AutoConversionCurrency = @AutoConversionCurrency,
-                                    Description = @Description,
-                                    ReturnUrl = @ReturnUrl,
-                                    FailReturnUrl = @FailReturnUrl,
-                                    CustomData = @CustomData,
-                                    ExternalId = @ExternalId,
-                                    TimeoutSeconds = @TimeoutSeconds,
-                                    CustomerTelegramId = @CustomerTelegramId,
-                                    WalletOrderId = @WalletOrderId,
-                                    Status = @Status,
-                                    OrderNumber = @OrderNumber,
-                                    CreatedDateTime = @CreatedDateTime,
-                                    ExpirationDateTime = @ExpirationDateTime,
-                                    CompletedDateTime = @CompletedDateTime,
-                                    PayLink = @PayLink,
-                                    DirectPayLink = @DirectPayLink
-                                WHERE Id = @Id";
-                    db.Execute(sql, paymentTransaction);
-                }
-            }
+            _walletPayments.ReplaceOne(existingPayment => existingPayment.Id == paymentTransaction.Id, paymentTransaction);
         }
 
         public void Delete(int id)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = "DELETE FROM PaymentTransactions WHERE Id = @Id";
-                    db.Execute(sql, new { Id = id });
-                }
-            }
+            _walletPayments.DeleteOne(payment => payment.Id == id);
         }
     }
 }

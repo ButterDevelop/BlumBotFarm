@@ -1,85 +1,62 @@
 ﻿using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Interfaces;
-using Dapper;
-using Microsoft.Data.Sqlite;
+using MongoDB.Driver;
+using System.Linq.Expressions;
 
 namespace BlumBotFarm.Database.Repositories
 {
     public class DailyRewardRepository : IRepository<DailyReward>
     {
-        private static readonly object _lock = new();
-        private readonly string _connectionString;
+        private readonly IMongoDatabase                _database;
+        private readonly string                        _collectionName;
+        private readonly IMongoCollection<DailyReward> _dailyRewards;
 
-        public DailyRewardRepository(string connectionString)
+        public DailyRewardRepository(string connectionString, string databaseName, string collectionName)
         {
-            _connectionString = connectionString;
+            var client      = new MongoClient(connectionString);
+            _database       = client.GetDatabase(databaseName);
+            _collectionName = collectionName;
+            _dailyRewards   = _database.GetCollection<DailyReward>(_collectionName);
         }
 
         public IEnumerable<DailyReward> GetAll()
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    return db.Query<DailyReward>("SELECT * FROM DailyRewards").ToList();
-                }
-            }
+            return _dailyRewards.Find(reward => true).ToList();
+        }
+
+        public IEnumerable<DailyReward> GetAllFit(Expression<Func<DailyReward, bool>> func)
+        {
+            return _dailyRewards.Find(func).ToList();
         }
 
         public DailyReward? GetById(int id)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    return db.QuerySingleOrDefault<DailyReward>("SELECT * FROM DailyRewards WHERE Id = @Id", new { Id = id });
-                }
-            }
+            return _dailyRewards.Find(reward => reward.Id == id).FirstOrDefault();
         }
 
         public int Add(DailyReward dailyReward)
         {
-            lock (_lock)
+            if (dailyReward.Id == 0)
             {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = @"INSERT INTO DailyRewards (
-                                    AccountId,
-                                    CreatedAt)
-                                VALUES (
-                                    @AccountId,
-                                    @CreatedAt);
-                                SELECT last_insert_rowid();";
-                    return db.ExecuteScalar<int>(sql, dailyReward);
-                }
+                dailyReward.Id = AutoIncrement.GetNextSequence(_database, _collectionName + "_id");
             }
+            else if (GetById(dailyReward.Id) != null)
+            {
+                throw new Exception("ID is incorrect!");
+            }
+
+            _dailyRewards.InsertOne(dailyReward);
+            return dailyReward.Id;
         }
 
         public void Update(DailyReward dailyReward)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = @"UPDATE DailyRewards SET
-                                    AccountId = @AccountId,
-                                    CreatedAt = @CreatedAt
-                                WHERE Id = @Id";
-                    db.Execute(sql, dailyReward);
-                }
-            }
+            _dailyRewards.ReplaceOne(existingReward => existingReward.Id == dailyReward.Id, dailyReward);
         }
 
         public void Delete(int id)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = "DELETE FROM DailyRewards WHERE Id = @Id";
-                    db.Execute(sql, new { Id = id });
-                }
-            }
+            _dailyRewards.DeleteOne(reward => reward.Id == id);
         }
     }
 }

@@ -1,9 +1,7 @@
-﻿using BlumBotFarm.Core.Models;
-using BlumBotFarm.Scheduler.Jobs;
+﻿using BlumBotFarm.Scheduler.Jobs;
 using Quartz;
 using Quartz.Impl;
 using Quartz.Impl.Matchers;
-using System.Threading.Tasks;
 using Task = System.Threading.Tasks.Task;
 
 namespace BlumBotFarm.Scheduler

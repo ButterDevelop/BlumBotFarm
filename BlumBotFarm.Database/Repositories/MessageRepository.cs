@@ -1,77 +1,62 @@
 ﻿using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Interfaces;
-using Dapper;
-using Microsoft.Data.Sqlite;
+using MongoDB.Driver;
+using System.Linq.Expressions;
 
 namespace BlumBotFarm.Database.Repositories
 {
     public class MessageRepository : IRepository<Message>
     {
-        private static readonly object _lock = new();
-        private readonly string _connectionString;
+        private readonly IMongoDatabase            _database;
+        private readonly string                    _collectionName;
+        private readonly IMongoCollection<Message> _messages;
 
-        public MessageRepository(string connectionString)
+        public MessageRepository(string connectionString, string databaseName, string collectionName)
         {
-            _connectionString = connectionString;
+            var client      = new MongoClient(connectionString);
+            _database       = client.GetDatabase(databaseName);
+            _collectionName = collectionName;
+            _messages       = _database.GetCollection<Message>(_collectionName);
         }
 
         public IEnumerable<Message> GetAll()
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    return db.Query<Message>("SELECT * FROM Messages").ToList();
-                }
-            }
+            return _messages.Find(message => true).ToList();
+        }
+
+        public IEnumerable<Message> GetAllFit(Expression<Func<Message, bool>> func)
+        {
+            return _messages.Find(func).ToList();
         }
 
         public Message? GetById(int id)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    return db.QuerySingleOrDefault<Message>("SELECT * FROM Messages WHERE Id = @Id", new { Id = id });
-                }
-            }
+            return _messages.Find(message => message.Id == id).FirstOrDefault();
         }
 
         public int Add(Message message)
         {
-            lock (_lock)
+            if (message.Id == 0)
             {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = "INSERT INTO Messages (ChatId, MessageText, CreatedAt, IsSilent) VALUES (@ChatId, @MessageText, @CreatedAt, @IsSilent); " +
-                              "SELECT last_insert_rowid();";
-                    return db.ExecuteScalar<int>(sql, message);
-                }
+                message.Id = AutoIncrement.GetNextSequence(_database, _collectionName + "_id");
             }
+            else if (GetById(message.Id) != null)
+            {
+                throw new Exception("ID is incorrect!");
+            }
+
+            _messages.InsertOne(message);
+            return message.Id;
         }
 
         public void Update(Message message)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = "UPDATE Messages SET ChatId = @ChatId, MessageText = @MessageText, CreatedAt = @CreatedAt, IsSilent = @IsSilent WHERE Id = @Id";
-                    db.Execute(sql, message);
-                }
-            }
+            _messages.ReplaceOne(existingMessage => existingMessage.Id == message.Id, message);
         }
 
         public void Delete(int id)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = "DELETE FROM Messages WHERE Id = @Id";
-                    db.Execute(sql, new { Id = id });
-                }
-            }
+            _messages.DeleteOne(message => message.Id == id);
         }
     }
 }

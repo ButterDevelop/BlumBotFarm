@@ -1,94 +1,62 @@
 ﻿using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Interfaces;
-using Dapper;
-using Microsoft.Data.Sqlite;
+using MongoDB.Driver;
+using System.Linq.Expressions;
 
 namespace BlumBotFarm.Database.Repositories
 {
     public class FeedbackMessageRepository : IRepository<FeedbackMessage>
     {
-        private static readonly object _lock = new();
-        private readonly string _connectionString;
+        private readonly IMongoDatabase                    _database;
+        private readonly string                            _collectionName;
+        private readonly IMongoCollection<FeedbackMessage> _feedbackMessages;
 
-        public FeedbackMessageRepository(string connectionString)
+        public FeedbackMessageRepository(string connectionString, string databaseName, string collectionName)
         {
-            _connectionString = connectionString;
+            var client        = new MongoClient(connectionString);
+            _database         = client.GetDatabase(databaseName);
+            _collectionName   = collectionName;
+            _feedbackMessages = _database.GetCollection<FeedbackMessage>(_collectionName);
         }
 
         public IEnumerable<FeedbackMessage> GetAll()
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    return db.Query<FeedbackMessage>("SELECT * FROM FeedbackMessages").ToList();
-                }
-            }
+            return _feedbackMessages.Find(feedbackMessage => true).ToList();
+        }
+
+        public IEnumerable<FeedbackMessage> GetAllFit(Expression<Func<FeedbackMessage, bool>> func)
+        {
+            return _feedbackMessages.Find(func).ToList();
         }
 
         public FeedbackMessage? GetById(int id)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    return db.QuerySingleOrDefault<FeedbackMessage>("SELECT * FROM FeedbackMessages WHERE Id = @Id", new { Id = id });
-                }
-            }
+            return _feedbackMessages.Find(feedbackMessage => feedbackMessage.Id == id).FirstOrDefault();
         }
 
         public int Add(FeedbackMessage feedbackMessage)
         {
-            lock (_lock)
+            if (feedbackMessage.Id == 0)
             {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = @"INSERT INTO FeedbackMessages (
-                                    TelegramUserId,
-                                    UserFeedbackOriginalMessageId,
-                                    SupportFeedbackMessageId,
-                                    IsReplied,
-                                    SupportReplyMessageId)
-                                VALUES (
-                                    @TelegramUserId,
-                                    @UserFeedbackOriginalMessageId,
-                                    @SupportFeedbackMessageId,
-                                    @IsReplied,
-                                    @SupportReplyMessageId);
-                                SELECT last_insert_rowid();";
-                    return db.ExecuteScalar<int>(sql, feedbackMessage);
-                }
+                feedbackMessage.Id = AutoIncrement.GetNextSequence(_database, _collectionName + "_id");
             }
+            else if (GetById(feedbackMessage.Id) != null)
+            {
+                throw new Exception("ID is incorrect!");
+            }
+
+            _feedbackMessages.InsertOne(feedbackMessage);
+            return feedbackMessage.Id;
         }
 
         public void Update(FeedbackMessage feedbackMessage)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = @"UPDATE FeedbackMessages SET
-                                    TelegramUserId = @TelegramUserId,
-                                    UserFeedbackOriginalMessageId = @UserFeedbackOriginalMessageId,
-                                    SupportFeedbackMessageId = @SupportFeedbackMessageId,
-                                    IsReplied = @IsReplied,
-                                    SupportReplyMessageId = @SupportReplyMessageId
-                                WHERE Id = @Id";
-                    db.Execute(sql, feedbackMessage);
-                }
-            }
+            _feedbackMessages.ReplaceOne(existingFeedbackMessage => existingFeedbackMessage.Id == feedbackMessage.Id, feedbackMessage);
         }
 
         public void Delete(int id)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = "DELETE FROM FeedbackMessages WHERE Id = @Id";
-                    db.Execute(sql, new { Id = id });
-                }
-            }
+            _feedbackMessages.DeleteOne(feedbackMessage => feedbackMessage.Id == id);
         }
     }
 }

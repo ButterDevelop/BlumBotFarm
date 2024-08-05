@@ -1,4 +1,5 @@
-﻿using BlumBotFarm.Core.Models;
+﻿using BlumBotFarm.Core;
+using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Repositories;
 using BlumBotFarm.GameClient;
 using BlumBotFarm.Translation;
@@ -22,15 +23,18 @@ namespace BlumBotFarm.Scheduler.Jobs
 
         public DailyCheckJob()
         {
-            gameApiClient         = new GameApiClient();
-            var db                = Database.Database.ConnectionString;
-            accountRepository     = new AccountRepository(db);
-            taskRepository        = new TaskRepository(db);
-            messageRepository     = new MessageRepository(db);
-            earningRepository     = new EarningRepository(db);
-            dailyRewardRepository = new DailyRewardRepository(db);
-            userRepository        = new UserRepository(db);
-            taskScheduler         = new TaskScheduler();
+            gameApiClient          = new GameApiClient();
+
+            var dbConnectionString = AppConfig.DatabaseSettings.MONGO_CONNECTION_STRING;
+            var databaseName       = AppConfig.DatabaseSettings.MONGO_DATABASE_NAME;
+
+            accountRepository      = new AccountRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_ACCOUNT_PATH);
+            taskRepository         = new TaskRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_TASK_PATH);
+            messageRepository      = new MessageRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_MESSAGE_PATH);
+            earningRepository      = new EarningRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_EARNING_PATH);
+            dailyRewardRepository  = new DailyRewardRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_DAILY_REWARDS_PATH);
+            userRepository         = new UserRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_USER_PATH);
+            taskScheduler          = new TaskScheduler();
         }
 
         public async System.Threading.Tasks.Task Execute(IJobExecutionContext context)
@@ -50,13 +54,6 @@ namespace BlumBotFarm.Scheduler.Jobs
                 return;
             }
 
-            if (string.IsNullOrEmpty(account.ProviderToken))
-            {
-                Log.Warning($"Exiting Daily Check Job because of an account (Id: {account.Id}, CustomUsername: {account.CustomUsername}, " +
-                            $"BlumUsername: {account.BlumUsername}) has no auth at all.");
-                return;
-            }
-
             var user = userRepository.GetById(account.UserId);
             if (user == null)
             {
@@ -65,14 +62,20 @@ namespace BlumBotFarm.Scheduler.Jobs
                 return;
             }
 
+            if (string.IsNullOrEmpty(account.ProviderToken))
+            {
+                account.LastStatus = TranslationHelper.Instance.Translate(user.LanguageCode, "#%JOB_LAST_STATUS_UNAUTHORIZED%#");
+                accountRepository.Update(account);
+
+                Log.Warning($"Exiting Daily Check Job because of an account (Id: {account.Id}, CustomUsername: {account.CustomUsername}, " +
+                            $"BlumUsername: {account.BlumUsername}) has no auth at all.");
+                return;
+            }
+
             Log.Information($"Started Daily Check Job for an account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, " +
                             $"BlumUsername: {account.BlumUsername}");
 
             Random random = new();
-            //if (isPlanned)
-            //{
-            //    Thread.Sleep(random.Next(TaskScheduler.MIN_MS_AMOUNT_TO_WAIT_BEFORE_JOB, TaskScheduler.MAX_MS_AMOUNT_TO_WAIT_BEFORE_JOB + 1));
-            //}
 
             // Getting the frontend part
             //if (!gameApiClient.GetMainPageHTML(account))
@@ -121,6 +124,10 @@ namespace BlumBotFarm.Scheduler.Jobs
                     Log.Error("Daily Check Job, the Account is NULL from DB after reauth.");
                     return;
                 }
+
+                // Update account status to "doing work"
+                account.LastStatus = TranslationHelper.Instance.Translate(user.LanguageCode, "#%JOB_LAST_STATUS_WORKING_NOW%#");
+                accountRepository.Update(account);
 
                 // Doing Daily Reward Job
                 (dailyClaimResponse, bool sameDay) = gameApiClient.GetDailyReward(account);

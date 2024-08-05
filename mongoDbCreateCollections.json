@@ -1,0 +1,397 @@
+use AutoBlumFarm;
+
+// Создание коллекции FeedbackMessages с полями
+db.createCollection("FeedbackMessages", {
+    validator: {
+        $jsonSchema: {
+            bsonType: "object",
+            required: ["TelegramUserId", "UserFeedbackOriginalMessageId", "SupportFeedbackMessageId", "IsReplied"],
+            properties: {
+                TelegramUserId: {
+                    bsonType: "long",
+                    description: "must be an long and is required"
+                },
+                UserFeedbackOriginalMessageId: {
+                    bsonType: "int",
+                    description: "must be an integer and is required"
+                },
+                SupportFeedbackMessageId: {
+                    bsonType: "int",
+                    description: "must be an integer and is required"
+                },
+                IsReplied: {
+                    bsonType: "bool",
+                    description: "must be a boolean and is required"
+                },
+                SupportReplyMessageId: {
+                    bsonType: "int",
+                    description: "must be an integer if the field exists"
+                }
+            }
+        }
+    }
+});
+
+// Создание коллекции StarsPayments с полями
+db.createCollection("StarsPayments", {
+    validator: {
+        $jsonSchema: {
+            bsonType: "object",
+            required: ["UserId", "AmountUsd", "AmountStars", "CreatedDateTime", "IsCompleted", "CompletedDateTime"],
+            properties: {
+                UserId: {
+                    bsonType: "int",
+                    description: "must be an integer and is required"
+                },
+                AmountUsd: {
+                    bsonType: "decimal",
+                    description: "must be a decimal and is required"
+                },
+                AmountStars: {
+                    bsonType: "int",
+                    description: "must be an integer and is required"
+                },
+                CreatedDateTime: {
+                    bsonType: "date",
+                    description: "must be a date and is required"
+                },
+                IsCompleted: {
+                    bsonType: "bool",
+                    description: "must be a boolean and is required"
+                },
+                CompletedDateTime: {
+                    bsonType: "date",
+                    description: "must be a date and is required"
+                }
+            }
+        }
+    }
+});
+
+// Создание коллекции DailyRewards с полями
+db.createCollection("DailyRewards", {
+    validator: {
+        $jsonSchema: {
+            bsonType: "object",
+            required: ["AccountId", "CreatedAt"],
+            properties: {
+                AccountId: {
+                    bsonType: "int",
+                    description: "must be an integer and is required"
+                },
+                CreatedAt: {
+                    bsonType: "date",
+                    description: "must be a date and is required"
+                }
+            }
+        }
+    }
+});
+
+// Создание коллекции WalletPayments с полями
+db.createCollection("WalletPayments", {
+    validator: {
+        $jsonSchema: {
+            bsonType: "object",
+            required: ["AmountUsd", "AutoConversionCurrency", "Description", "ReturnUrl", "FailReturnUrl", "CustomData", "ExternalId", "TimeoutSeconds", "CustomerTelegramId"],
+            properties: {
+                AmountUsd: {
+                    bsonType: "decimal",
+                    description: "must be a decimal and is required"
+                },
+                AutoConversionCurrency: {
+                    bsonType: "string",
+                    description: "must be a string and is required"
+                },
+                Description: {
+                    bsonType: "string",
+                    description: "must be a string and is required"
+                },
+                ReturnUrl: {
+                    bsonType: "string",
+                    description: "must be a string and is required"
+                },
+                FailReturnUrl: {
+                    bsonType: "string",
+                    description: "must be a string and is required"
+                },
+                CustomData: {
+                    bsonType: "string",
+                    description: "must be a string and is required"
+                },
+                ExternalId: {
+                    bsonType: "string",
+                    description: "must be a string and is required"
+                },
+                TimeoutSeconds: {
+                    bsonType: "int",
+                    description: "must be an integer and is required"
+                },
+                CustomerTelegramId: {
+                    bsonType: "int",
+                    description: "must be an integer and is required"
+                },
+                WalletOrderId: {
+                    bsonType: "int",
+                    description: "must be an integer if the field exists"
+                },
+                Status: {
+                    bsonType: "string",
+                    description: "must be a string if the field exists"
+                },
+                OrderNumber: {
+                    bsonType: "string",
+                    description: "must be a string if the field exists"
+                },
+                CreatedDateTime: {
+                    bsonType: "date",
+                    description: "must be a date if the field exists"
+                },
+                ExpirationDateTime: {
+                    bsonType: "date",
+                    description: "must be a date if the field exists"
+                },
+                CompletedDateTime: {
+                    bsonType: "date",
+                    description: "must be a date if the field exists"
+                },
+                PayLink: {
+                    bsonType: "string",
+                    description: "must be a string if the field exists"
+                },
+                DirectPayLink: {
+                    bsonType: "string",
+                    description: "must be a string if the field exists"
+                }
+            }
+        }
+    }
+});
+
+// Создание коллекции Users с полями
+db.createCollection("Users", {
+    validator: {
+        $jsonSchema: {
+            bsonType: "object",
+            required: ["TelegramUserId", "BalanceUSD", "IsBanned"],
+            properties: {
+                TelegramUserId: {
+                    bsonType: "long",
+                    description: "must be an long and is required"
+                },
+                FirstName: {
+                    bsonType: "string",
+                    description: "must be a string if the field exists"
+                },
+                LastName: {
+                    bsonType: "string",
+                    description: "must be a string if the field exists"
+                },
+                BalanceUSD: {
+                    bsonType: "decimal",
+                    description: "must be a decimal and is required"
+                },
+                IsBanned: {
+                    bsonType: "bool",
+                    description: "must be a boolean and is required"
+                },
+                LanguageCode: {
+                    bsonType: "string",
+                    description: "must be a string if the field exists"
+                },
+                OwnReferralCode: {
+                    bsonType: "string",
+                    description: "must be a string if the field exists"
+                },
+                CreatedAt: {
+                    bsonType: "date",
+                    description: "must be a date if the field exists"
+                }
+            }
+        }
+    }
+});
+
+// Создание коллекции Referrals с полями
+db.createCollection("Referrals", {
+    validator: {
+        $jsonSchema: {
+            bsonType: "object",
+            required: ["HostUserId", "DependentUserId"],
+            properties: {
+                HostUserId: {
+                    bsonType: "int",
+                    description: "must be an integer and is required"
+                },
+                DependentUserId: {
+                    bsonType: "int",
+                    description: "must be an integer and is required"
+                }
+            }
+        }
+    }
+});
+
+// Создание коллекции Accounts с полями
+db.createCollection("Accounts", {
+    validator: {
+        $jsonSchema: {
+            bsonType: "object",
+            required: ["UserId", "CustomUsername", "BlumUsername", "Balance", "Tickets", "ReferralsCount", "ReferralLink", "AccessToken", "RefreshToken", "ProviderToken", "UserAgent", "Proxy", "CountryCode", "ProxySellerListId", "TimezoneOffset", "LastStatus"],
+            properties: {
+                UserId: {
+                    bsonType: "int",
+                    description: "must be an integer and is required"
+                },
+                CustomUsername: {
+                    bsonType: "string",
+                    description: "must be a string and is required"
+                },
+                BlumUsername: {
+                    bsonType: "string",
+                    description: "must be a string and is required"
+                },
+                Balance: {
+                    bsonType: "double",
+                    description: "must be a double and is required"
+                },
+                Tickets: {
+                    bsonType: "int",
+                    description: "must be an integer and is required"
+                },
+                ReferralsCount: {
+                    bsonType: "int",
+                    description: "must be an integer and is required"
+                },
+                ReferralLink: {
+                    bsonType: "string",
+                    description: "must be a string and is required"
+                },
+                AccessToken: {
+                    bsonType: "string",
+                    description: "must be a string and is required"
+                },
+                RefreshToken: {
+                    bsonType: "string",
+                    description: "must be a string and is required"
+                },
+                ProviderToken: {
+                    bsonType: "string",
+                    description: "must be a string and is required"
+                },
+                UserAgent: {
+                    bsonType: "string",
+                    description: "must be a string and is required"
+                },
+                Proxy: {
+                    bsonType: "string",
+                    description: "must be a string and is required"
+                },
+                CountryCode: {
+                    bsonType: "string",
+                    description: "must be a string and is required"
+                },
+                ProxySellerListId: {
+                    bsonType: "int",
+                    description: "must be an integer and is required"
+                },
+                TimezoneOffset: {
+                    bsonType: "int",
+                    description: "must be an integer and is required"
+                },
+                LastStatus: {
+                    bsonType: "string",
+                    description: "must be a string and is required"
+                }
+            }
+        }
+    }
+});
+
+// Создание коллекции Tasks с полями
+db.createCollection("Tasks", {
+    validator: {
+        $jsonSchema: {
+            bsonType: "object",
+            required: ["AccountId", "TaskType", "MinScheduleSeconds", "MaxScheduleSeconds", "NextRunTime"],
+            properties: {
+                AccountId: {
+                    bsonType: "int",
+                    description: "must be an integer and is required"
+                },
+                TaskType: {
+                    bsonType: "string",
+                    description: "must be a string and is required"
+                },
+                MinScheduleSeconds: {
+                    bsonType: "int",
+                    description: "must be an integer and is required"
+                },
+                MaxScheduleSeconds: {
+                    bsonType: "int",
+                    description: "must be an integer and is required"
+                },
+                NextRunTime: {
+                    bsonType: "date",
+                    description: "must be a date and is required"
+                }
+            }
+        }
+    }
+});
+
+// Создание коллекции Messages с полями
+db.createCollection("Messages", {
+    validator: {
+        $jsonSchema: {
+            bsonType: "object",
+            required: ["ChatId", "MessageText", "CreatedAt"],
+            properties: {
+                ChatId: {
+                    bsonType: "long",
+                    description: "must be a long integer and is required"
+                },
+                MessageText: {
+                    bsonType: "string",
+                    description: "must be a string and is required"
+                },
+                CreatedAt: {
+                    bsonType: "date",
+                    description: "must be a date and is required"
+                },
+                IsSilent: {
+                    bsonType: "bool",
+                    description: "must be a boolean and is required"
+                }
+            }
+        }
+    }
+});
+
+// Создание коллекции Earnings с полями
+db.createCollection("Earnings", {
+    validator: {
+        $jsonSchema: {
+            bsonType: "object",
+            required: ["AccountId", "Total", "Created"],
+            properties: {
+                AccountId: {
+                    bsonType: "int",
+                    description: "must be an integer and is required"
+                },
+                Total: {
+                    bsonType: "double",
+                    description: "must be a double and is required"
+                },
+                Created: {
+                    bsonType: "date",
+                    description: "must be a date and is required"
+                },
+                Action: {
+                    bsonType: "string",
+                    description: "must be a string if the field exists"
+                }
+            }
+        }
+    }
+});

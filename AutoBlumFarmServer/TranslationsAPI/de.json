@@ -144,6 +144,14 @@
     "Text": "Proxy-Probleme"
   },
   {
+    "Mask": "#%JOB_LAST_STATUS_WORKING_NOW%#",
+    "Text": "Wird jetzt bearbeitet"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_IN_THE_QUEUE%#",
+    "Text": "In der Warteschlange"
+  },
+  {
     "Mask": "#%JOB_AUTH_LOST_PLEASE_LOGIN_AND_UPDATE_IT%#",
     "Text": "<b>Einer Ihrer Konten hat die Authentifizierung verloren.</b>\nBitte verwenden Sie die App und überprüfen Sie, was los ist (und aktualisieren Sie die Authentifizierung)."
   },

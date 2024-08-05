@@ -97,7 +97,7 @@ namespace AutoBlumFarmServer.Controllers
                 message = "No auth."
             });
 
-            var ourReferralsIds = _referralRepository.GetAll().Where(r => r.HostUserId == invoker.Id).Select(r => r.DependentUserId);
+            var ourReferralsIds = _referralRepository.GetAllFit(r => r.HostUserId == invoker.Id).Select(r => r.DependentUserId);
             List<ReferralsOutputModel> referrals = [];
             foreach (var id in ourReferralsIds)
             {

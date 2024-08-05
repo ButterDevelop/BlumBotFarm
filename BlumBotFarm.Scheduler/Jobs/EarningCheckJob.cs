@@ -1,4 +1,5 @@
-﻿using BlumBotFarm.Core.Models;
+﻿using BlumBotFarm.Core;
+using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Repositories;
 using BlumBotFarm.GameClient;
 using Quartz;
@@ -18,10 +19,12 @@ namespace BlumBotFarm.Scheduler.Jobs
 
         public EarningCheckJob()
         {
-            var db = Database.Database.ConnectionString;
-            accountRepository = new AccountRepository(db);
-            taskRepository    = new TaskRepository(db);
-            earningRepository = new EarningRepository(db);
+            var dbConnectionString = AppConfig.DatabaseSettings.MONGO_CONNECTION_STRING;
+            var databaseName       = AppConfig.DatabaseSettings.MONGO_DATABASE_NAME;
+
+            accountRepository = new AccountRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_ACCOUNT_PATH);
+            taskRepository    = new TaskRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_TASK_PATH);
+            earningRepository = new EarningRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_EARNING_PATH);
             taskScheduler = new TaskScheduler();
         }
 
@@ -80,7 +83,7 @@ namespace BlumBotFarm.Scheduler.Jobs
                     {
                         Log.Information($"Earning Check Job, ticket's count is {tickets}, more than 0, for an account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}. Starting Daily Check Job again.");
 
-                        var task = taskRepository.GetAll().FirstOrDefault(t => t.AccountId == accountId && t.TaskType == "DailyCheckJob");
+                        var task = taskRepository.GetAllFit(t => t.AccountId == accountId && t.TaskType == "DailyCheckJob").FirstOrDefault();
                         if (task is null)
                         {
                             Log.Error($"Earning Check Job, can't get the DailyCheckJob task from DB for an account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");

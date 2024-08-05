@@ -1,79 +1,62 @@
 ﻿using BlumBotFarm.Database.Interfaces;
-using Dapper;
-using Microsoft.Data.Sqlite;
+using MongoDB.Driver;
+using System.Linq.Expressions;
 using Task = BlumBotFarm.Core.Models.Task;
 
 namespace BlumBotFarm.Database.Repositories
 {
     public class TaskRepository : IRepository<Task>
     {
-        private static readonly object _lock = new();
+        private readonly IMongoDatabase         _database;
+        private readonly string                 _collectionName;
+        private readonly IMongoCollection<Task> _tasks;
 
-        private readonly string _connectionString;
-
-        public TaskRepository(string connectionString)
+        public TaskRepository(string connectionString, string databaseName, string collectionName)
         {
-            _connectionString = connectionString;
+            var client      = new MongoClient(connectionString);
+            _database       = client.GetDatabase(databaseName);
+            _collectionName = collectionName;
+            _tasks          = _database.GetCollection<Task>(_collectionName);
         }
 
         public IEnumerable<Task> GetAll()
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    return db.Query<Task>("SELECT * FROM Tasks").ToList();
-                }
-            }
+            return _tasks.Find(task => true).ToList();
+        }
+
+        public IEnumerable<Task> GetAllFit(Expression<Func<Task, bool>> func)
+        {
+            return _tasks.Find(func).ToList();
         }
 
         public Task? GetById(int id)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    return db.QuerySingleOrDefault<Task>("SELECT * FROM Tasks WHERE Id = @Id", new { Id = id });
-                }
-            }
+            return _tasks.Find(task => task.Id == id).FirstOrDefault();
         }
 
         public int Add(Task task)
         {
-            lock (_lock)
+            if (task.Id == 0)
             {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = "INSERT INTO Tasks (AccountId, TaskType, MinScheduleSeconds, MaxScheduleSeconds, NextRunTime) VALUES " +
-                              "(@AccountId, @TaskType, @MinScheduleSeconds, @MaxScheduleSeconds, @NextRunTime); " +
-                              "SELECT last_insert_rowid();";
-                    return db.ExecuteScalar<int>(sql, task);
-                }
+                task.Id = AutoIncrement.GetNextSequence(_database, _collectionName + "_id");
             }
+            else if (GetById(task.Id) != null)
+            {
+                throw new Exception("ID is incorrect!");
+            }
+
+            _tasks.InsertOne(task);
+            return task.Id;
         }
 
         public void Update(Task task)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = "UPDATE Tasks SET AccountId = @AccountId, TaskType = @TaskType, MinScheduleSeconds = @MinScheduleSeconds, MaxScheduleSeconds = @MaxScheduleSeconds, NextRunTime = @NextRunTime WHERE Id = @Id";
-                    db.Execute(sql, task);
-                }
-            }
+            _tasks.ReplaceOne(existingTask => existingTask.Id == task.Id, task);
         }
 
         public void Delete(int id)
         {
-            lock (_lock)
-            {
-                using (var db = Database.CreateConnection(_connectionString))
-                {
-                    var sql = "DELETE FROM Tasks WHERE Id = @Id";
-                    db.Execute(sql, new { Id = id });
-                }
-            }
+            _tasks.DeleteOne(task => task.Id == id);
         }
     }
 }
