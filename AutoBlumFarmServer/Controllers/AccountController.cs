@@ -387,7 +387,7 @@ namespace AutoBlumFarmServer.Controllers
             if (string.IsNullOrEmpty(account.CustomUsername) && string.IsNullOrEmpty(account.ProviderToken))
             {
                 // If this account is an empty slot, than telling the user about we took his account
-                account.LastStatus = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%JOB_LAST_STATUS_IN_THE_QUEUE%#");
+                account.LastStatus = "#%JOB_LAST_STATUS_IN_THE_QUEUE%#";
             }
             _accountRepository.Update(account);
 

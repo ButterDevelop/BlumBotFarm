@@ -198,6 +198,37 @@
   {
     "Mask": "#%Okay%#",
     "Text": "Okay"
+  },
+  {
+    "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_INVITE_FRIEND%#",
+    "Text": "Lade deine Freunde ein und erhalte 15% von ihrer Einzahlung!"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_LAST_STATUS%#",
+    "Text": "Letzter Status"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_NEAREST_WORK_IN%#",
+    "Text": "Nächste Arbeit in"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_OK%#",
+    "Text": "Alles gut"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_UNAUTHORIZED%#",
+    "Text": "Falsche Authentifizierung"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_PROXY_PROBLEM%#",
+    "Text": "Proxy-Probleme"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_WORKING_NOW%#",
+    "Text": "Wird jetzt bearbeitet"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_IN_THE_QUEUE%#",
+    "Text": "In der Warteschlange"
   }
-  
 ]

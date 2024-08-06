@@ -132,26 +132,6 @@
     "Text": "Вашае паведамленне <b>пустае</b>!"
   },
   {
-    "Mask": "#%JOB_LAST_STATUS_OK%#",
-    "Text": "Усё добра"
-  },
-  {
-    "Mask": "#%JOB_LAST_STATUS_UNAUTHORIZED%#",
-    "Text": "Неправільная аўтэнтыфікацыя"
-  },
-  {
-    "Mask": "#%JOB_LAST_STATUS_PROXY_PROBLEM%#",
-    "Text": "Праблемы з проксі"
-  },
-  {
-    "Mask": "#%JOB_LAST_STATUS_WORKING_NOW%#",
-    "Text": "Зараз у працэсе"
-  },
-  {
-    "Mask": "#%JOB_LAST_STATUS_IN_THE_QUEUE%#",
-    "Text": "У чарзе"
-  },
-  {
     "Mask": "#%JOB_AUTH_LOST_PLEASE_LOGIN_AND_UPDATE_IT%#",
     "Text": "<b>Адзін з вашых рахункаў страціў аўтэнтыфікацыю.</b>\nКалі ласка, выкарыстоўвайце прыкладанне і праверце, што адбываецца (і абнавіце аўтэнтыфікацыю)."
   },

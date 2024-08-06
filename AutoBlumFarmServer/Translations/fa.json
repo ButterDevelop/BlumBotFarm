@@ -198,5 +198,37 @@
   {
     "Mask": "#%Okay%#",
     "Text": "خوب"
-  }  
+  },
+  {
+    "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_INVITE_FRIEND%#",
+    "Text": "دوستان خود را دعوت کنید و 15٪ از سپرده آنها را دریافت کنید!"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_LAST_STATUS%#",
+    "Text": "آخرین وضعیت"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_NEAREST_WORK_IN%#",
+    "Text": "نزدیکترین کار در"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_OK%#",
+    "Text": "همه چیز خوب است"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_UNAUTHORIZED%#",
+    "Text": "احراز هویت نادرست"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_PROXY_PROBLEM%#",
+    "Text": "مشکلات پروکسی"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_WORKING_NOW%#",
+    "Text": "در حال کار"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_IN_THE_QUEUE%#",
+    "Text": "در صف"
+  }
 ]

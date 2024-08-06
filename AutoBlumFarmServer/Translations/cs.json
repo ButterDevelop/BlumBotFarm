@@ -198,5 +198,37 @@
   {
     "Mask": "#%Okay%#",
     "Text": "Dobře"
-  }  
+  },
+  {
+    "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_INVITE_FRIEND%#",
+    "Text": "Pozvěte své přátele a získejte 15% z jejich vkladu!"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_LAST_STATUS%#",
+    "Text": "Poslední stav"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_NEAREST_WORK_IN%#",
+    "Text": "Nejbližší práce v"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_OK%#",
+    "Text": "Všechno v pořádku"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_UNAUTHORIZED%#",
+    "Text": "Špatná autorizace"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_PROXY_PROBLEM%#",
+    "Text": "Problémy s proxy"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_WORKING_NOW%#",
+    "Text": "Pracuje se"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_IN_THE_QUEUE%#",
+    "Text": "Ve frontě"
+  }
 ]

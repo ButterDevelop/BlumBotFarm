@@ -198,5 +198,37 @@
   {
     "Mask": "#%Okay%#",
     "Text": "Гаразд"
-  }  
+  },
+  {
+    "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_INVITE_FRIEND%#",
+    "Text": "Запросіть своїх друзів і отримайте 15% від їхнього депозиту!"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_LAST_STATUS%#",
+    "Text": "Останній статус"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_NEAREST_WORK_IN%#",
+    "Text": "Найближча робота в"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_OK%#",
+    "Text": "Усе добре"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_UNAUTHORIZED%#",
+    "Text": "Неправильна аутентифікація"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_PROXY_PROBLEM%#",
+    "Text": "Проблеми з проксі"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_WORKING_NOW%#",
+    "Text": "Працює зараз"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_IN_THE_QUEUE%#",
+    "Text": "У черзі"
+  }
 ]

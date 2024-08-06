@@ -37,7 +37,7 @@
   },
   {
     "Mask": "#%LABEL_BLUM_POINTS_PANEL_YOUR_ACCOUNTS%#",
-    "Text": "Vos comptes :"
+    "Text": "Vos comptes:"
   },
   {
     "Mask": "#%BUTTON_ADD_ACCOUNT_BUTTON_BUY_NEW_SLOT%#",
@@ -49,15 +49,15 @@
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_CUSTOM_USERNAME%#",
-    "Text": "Nom d'utilisateur personnalisé :"
+    "Text": "Nom d'utilisateur personnalisé:"
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_AUTH_TOKEN%#",
-    "Text": "Jeton d'authentification :"
+    "Text": "Jeton d'authentification:"
   },
   {
     "Mask": "#%LABEL_ADD_ACCOUNT_MODAL_REGION%#",
-    "Text": "Région :"
+    "Text": "Région:"
   },
   {
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_COUNTRY%#",
@@ -137,7 +137,7 @@
   },
   {
     "Mask": "#%LABEL_BUY_SLOTS_MODAL_ERROR%#",
-    "Text": "Erreur :"
+    "Text": "Erreur:"
   },
   {
     "Mask": "#%LABEL_BUY_SLOTS_MODAL_BUYING%#",
@@ -198,5 +198,37 @@
   {
     "Mask": "#%Okay%#",
     "Text": "D'accord"
-  }  
+  },
+  {
+    "Mask": "#%LABEL_INVITE_FRIENDS_PANEL_INVITE_FRIEND%#",
+    "Text": "Invitez vos amis et obtenez 15% de leur dépôt!"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_LAST_STATUS%#",
+    "Text": "Dernier statut"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_NEAREST_WORK_IN%#",
+    "Text": "Travail le plus proche dans"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_OK%#",
+    "Text": "Tout va bien"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_UNAUTHORIZED%#",
+    "Text": "Authentification incorrecte"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_PROXY_PROBLEM%#",
+    "Text": "Problèmes de proxy"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_WORKING_NOW%#",
+    "Text": "En cours"
+  },
+  {
+    "Mask": "#%JOB_LAST_STATUS_IN_THE_QUEUE%#",
+    "Text": "En attente"
+  }
 ]

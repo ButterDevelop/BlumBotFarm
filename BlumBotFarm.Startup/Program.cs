@@ -26,9 +26,6 @@ namespace BlumBotFarm.Startup
                          .WriteTo.File(LOG_FILE_PATH.Replace(MASK_DATE_LOG_FILE_PATH, ""), rollingInterval: RollingInterval.Hour)
                          .CreateLogger();
 
-            // Инициализация базы данных
-            Database.Database.Initialize();
-
             // Инициализация UserAgents
             HTTPController.Initialize(Properties.Resources.AndroidBoughtUserAgents);
 

@@ -132,26 +132,6 @@
     "Text": "رسالتك <b>فارغة</b>!"
   },
   {
-    "Mask": "#%JOB_LAST_STATUS_OK%#",
-    "Text": "كل شيء جيد"
-  },
-  {
-    "Mask": "#%JOB_LAST_STATUS_UNAUTHORIZED%#",
-    "Text": "مصادقة خاطئة"
-  },
-  {
-    "Mask": "#%JOB_LAST_STATUS_PROXY_PROBLEM%#",
-    "Text": "مشاكل البروكسي"
-  },
-  {
-    "Mask": "#%JOB_LAST_STATUS_WORKING_NOW%#",
-    "Text": "يعمل الآن"
-  },
-  {
-    "Mask": "#%JOB_LAST_STATUS_IN_THE_QUEUE%#",
-    "Text": "في قائمة الانتظار"
-  },
-  {
     "Mask": "#%JOB_AUTH_LOST_PLEASE_LOGIN_AND_UPDATE_IT%#",
     "Text": "<b>أحد حساباتك فقد المصادقة.</b>\nيرجى استخدام التطبيق والتحقق من الوضع (وتحديث المصادقة)."
   },

@@ -8,7 +8,6 @@ using AutoBlumFarmServer.SwaggerApiResponses.UserController;
 using BlumBotFarm.CacheUpdater;
 using BlumBotFarm.CacheUpdater.CacheServices;
 using BlumBotFarm.Core;
-using BlumBotFarm.Database;
 using BlumBotFarm.Database.Repositories;
 using BlumBotFarm.TelegramBot;
 using BlumBotFarm.Translation;
@@ -64,6 +63,12 @@ builder.Services.AddCors(options =>
             builder.AllowAnyOrigin()
                    .AllowAnyMethod()
                    .AllowAnyHeader();
+        });
+    options.AddPolicy("AllowNginxOnlyRelease",
+        builder =>
+        {
+            builder.WithOrigins("http://autoblumfarm.ru",
+                                "https://autoblumfarm.ru");
         });
 });
 

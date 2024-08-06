@@ -64,7 +64,7 @@ namespace BlumBotFarm.Scheduler.Jobs
 
             if (string.IsNullOrEmpty(account.ProviderToken))
             {
-                account.LastStatus = TranslationHelper.Instance.Translate(user.LanguageCode, "#%JOB_LAST_STATUS_UNAUTHORIZED%#");
+                account.LastStatus = "#%JOB_LAST_STATUS_UNAUTHORIZED%#";
                 accountRepository.Update(account);
 
                 Log.Warning($"Exiting Daily Check Job because of an account (Id: {account.Id}, CustomUsername: {account.CustomUsername}, " +
@@ -101,11 +101,11 @@ namespace BlumBotFarm.Scheduler.Jobs
                         isSilent: false
                     );
 
-                    account.LastStatus = TranslationHelper.Instance.Translate(user.LanguageCode, "#%JOB_LAST_STATUS_UNAUTHORIZED%#");
+                    account.LastStatus = "#%JOB_LAST_STATUS_UNAUTHORIZED%#";
                 }
                 else
                 {
-                    account.LastStatus = TranslationHelper.Instance.Translate(user.LanguageCode, "#%JOB_LAST_STATUS_PROXY_PROBLEM%#");
+                    account.LastStatus = "#%JOB_LAST_STATUS_PROXY_PROBLEM%#";
                 }
                 accountRepository.Update(account);
 
@@ -126,7 +126,7 @@ namespace BlumBotFarm.Scheduler.Jobs
                 }
 
                 // Update account status to "doing work"
-                account.LastStatus = TranslationHelper.Instance.Translate(user.LanguageCode, "#%JOB_LAST_STATUS_WORKING_NOW%#");
+                account.LastStatus = "#%JOB_LAST_STATUS_WORKING_NOW%#";
                 accountRepository.Update(account);
 
                 // Doing Daily Reward Job
@@ -251,7 +251,7 @@ namespace BlumBotFarm.Scheduler.Jobs
                     await TaskScheduler.ScheduleEarningJob(taskScheduler, accountId, gotBalance, "ClaimFarming", startDate);
                 }
 
-                account.LastStatus = TranslationHelper.Instance.Translate(user.LanguageCode, "#%JOB_LAST_STATUS_OK%#");
+                account.LastStatus = "#%JOB_LAST_STATUS_OK%#";
                 accountRepository.Update(account);
             }
 
