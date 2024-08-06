@@ -211,7 +211,7 @@
     "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_NEAREST_WORK_IN%#",
     "Text": "Nearest work in"
   },
-
+  {
     "Mask": "#%JOB_LAST_STATUS_OK%#",
     "Text": "All good"
   },
