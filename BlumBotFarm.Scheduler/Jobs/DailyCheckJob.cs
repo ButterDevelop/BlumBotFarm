@@ -72,6 +72,19 @@ namespace BlumBotFarm.Scheduler.Jobs
                 return;
             }
 
+            if (account.IsTrial && DateTime.UtcNow >= account.TrialExpires)
+            {
+                MessageProcessor.MessageProcessor.Instance?.SendMessageToUserInQueue(
+                        user.TelegramUserId,
+                        TranslationHelper.Instance.Translate(user.LanguageCode, "#%JOB_TRIAL_EXPIRED%#"),
+                        isSilent: false
+                    );
+
+                Log.Warning($"Exiting Daily Check Job because of an account (Id: {account.Id}, CustomUsername: {account.CustomUsername}, " +
+                            $"BlumUsername: {account.BlumUsername}) has no active trial (expired).");
+                return;
+            }
+
             Log.Information($"Started Daily Check Job for an account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, " +
                             $"BlumUsername: {account.BlumUsername}");
 
@@ -262,6 +275,9 @@ namespace BlumBotFarm.Scheduler.Jobs
 
                 DateTime nextRunTime;
                 int randomSecondsNext = random.Next(task.MinScheduleSeconds, task.MaxScheduleSeconds);
+
+                // If this is a trial than we will use it later (2 times in general)
+                if (account.IsTrial) randomSecondsNext *= 2;
 
                 // Determine the next run time based on the result
                 if (getUserInfoResult == ApiResponse.Success && 

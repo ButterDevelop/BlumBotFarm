@@ -10,6 +10,8 @@ namespace BlumBotFarm.GameClient
 
         private const int MIN_GAME_POINTS                            = 180,
                           MAX_GAME_POINTS                            = 220,
+                          MIN_GAME_POINTS_TRIAL                      = 10,
+                          MAX_GAME_POINTS_TRIAL                      = 30,
                           BOMB_MINUS_ABS_AMOUNT                      = 100,
                           BOMB_CLICK_CHANCE_PERCENT                  = 2,
                           MIN_AMOUNT_OF_SECONDS_TO_WAIT_IN_DROP_GAME = 35,
@@ -94,7 +96,8 @@ namespace BlumBotFarm.GameClient
                     int secondsToSleep = random.Next(MIN_AMOUNT_OF_SECONDS_TO_WAIT_IN_DROP_GAME, MAX_AMOUNT_OF_SECONDS_TO_WAIT_IN_DROP_GAME + 1);
                     Thread.Sleep(secondsToSleep * 1000);
 
-                    int points = random.Next(MIN_GAME_POINTS, MAX_GAME_POINTS + 1);
+                    int points = account.IsTrial ? random.Next(MIN_GAME_POINTS_TRIAL, MAX_GAME_POINTS_TRIAL + 1) : 
+                                                   random.Next(MIN_GAME_POINTS, MAX_GAME_POINTS + 1);
 
                     // With a 1% we are clicking on the bomb. Lock because Random is not thread safe
                     lock (bombRandom)
@@ -102,6 +105,7 @@ namespace BlumBotFarm.GameClient
                         if (bombRandom.Next(0, 100) < BOMB_CLICK_CHANCE_PERCENT)
                         {
                             points -= BOMB_MINUS_ABS_AMOUNT;
+                            if (points < 0) points = 0;
                             Log.Information($"GameApiUtilsService PlayGamesForAllTickets: Bomb worked with chance of {BOMB_CLICK_CHANCE_PERCENT}% for an " +
                                             $"account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}. " +
                                             $"Total points: {points}, bomb minus amount: {BOMB_MINUS_ABS_AMOUNT}");

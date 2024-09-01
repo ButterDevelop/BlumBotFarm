@@ -122,7 +122,7 @@ namespace AutoBlumFarmServer.Controllers
             }
 
             var currentSlotsAmount = _accountRepository.GetAllFit(a => a.UserId == invoker.Id).Count();
-            decimal priceUsd = GetNextSeveralSlotsPrice(currentSlotsAmount, model.amount);
+            decimal priceUsd       = GetNextSeveralSlotsPrice(currentSlotsAmount, model.amount);
 
             if (invoker.BalanceUSD - priceUsd < 0)
             {
@@ -133,11 +133,26 @@ namespace AutoBlumFarmServer.Controllers
                 });
             }
 
+            // Take that money from user. Them owe us
             invoker.BalanceUSD -= priceUsd;
             _userRepository.Update(invoker);
 
+            // Calculating the amount of goods
+            var trialAccounts = _accountRepository.GetAllFit(a => a.UserId == invoker.Id && a.IsTrial);
+            int trialCount    = Math.Min(model.amount, trialAccounts.Count());
+            int slotsAmount   = model.amount - trialCount;
+
+            // Make trial accounts to default
+            for (int i = 0; i < trialCount; i++)
+            {
+                var trialAccount = trialAccounts.ElementAt(i);
+                trialAccount.IsTrial = false;
+                _accountRepository.Update(trialAccount);
+            }
+
+            // Buy slots for remaining
             var startAt = DateTime.Now.AddDays(1);
-            for (int i = 0; i < model.amount; i++)
+            for (int i = 0; i < slotsAmount; i++)
             {
                 Account account = new()
                 {

@@ -14,6 +14,11 @@ namespace BlumBotFarm.Core
             Configuration = builder.Build();
         }
 
+        public static class CommonSettings
+        {
+            public static int TRIAL_DURATION_SECONDS = Configuration.GetSection("CommonSettings:TrialDurationSeconds").Get<int>();
+        }
+
         public static class BotSettings
         {
             public static string? BotToken      => Configuration["BotSettings:BotToken"];

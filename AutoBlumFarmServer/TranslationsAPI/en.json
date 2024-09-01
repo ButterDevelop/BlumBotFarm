@@ -164,6 +164,18 @@
     "Text": "The language you specified was not found!"
   },
   {
+    "Mask": "#%JOB_TRIAL_EXPIRED%#",
+    "Text": "Your trial has expired. Please, consider buying! <b>We have best prices, tech part, and service! Seriously!</b>"
+  },
+  {
+    "Mask": "#%MESSAGE_ALREADY_USED_TRIAL%#",
+    "Text": "You have already activated trial."
+  },
+  {
+    "Mask": "#%MESSAGE_ACTIVATED_TRIAL_SUCCESSFULLY%#",
+    "Text": "Your trial was activated successfully!"
+  },
+  {
     "Mask": "#%baza%#",
     "Text": ""
   }

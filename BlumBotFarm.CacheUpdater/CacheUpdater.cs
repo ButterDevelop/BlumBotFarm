@@ -9,6 +9,7 @@ namespace BlumBotFarm.CacheUpdater
     {
         private readonly UserRepository         _userRepository;
         private readonly StarsPaymentRepository _starsPaymentRepository;
+        private readonly AccountRepository      _accountRepository;
         private readonly IUserCacheService      _userCacheService;
         private readonly CancellationToken      _cancellationToken;
 
@@ -18,6 +19,7 @@ namespace BlumBotFarm.CacheUpdater
             var databaseName        = AppConfig.DatabaseSettings.MONGO_DATABASE_NAME;
             _userRepository         = new UserRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_USER_PATH);
             _starsPaymentRepository = new StarsPaymentRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_STARS_PAYMENT_PATH);
+            _accountRepository      = new AccountRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_ACCOUNT_PATH);
             _userCacheService       = userCacheService;
             _cancellationToken      = cancellationToken;
         }
@@ -33,13 +35,16 @@ namespace BlumBotFarm.CacheUpdater
 
         private void Process()
         {
-            var dateToCompare = DateTime.Now.AddSeconds(-65);
-            var payments      = _starsPaymentRepository.GetAllFit(p => p.IsCompleted && p.CompletedDateTime >= dateToCompare);
-            Random random = new();
+            var dateToCompare        = DateTime.Now.AddSeconds(-65);
+            var expiresDateToCompare = dateToCompare.AddSeconds(AppConfig.CommonSettings.TRIAL_DURATION_SECONDS);
+            var payments             = _starsPaymentRepository.GetAllFit(p => p.IsCompleted && p.CompletedDateTime >= dateToCompare);
+            var accountsWhoHasTrial  = _accountRepository.GetAllFit(u => u.IsTrial && u.TrialExpires >= expiresDateToCompare);
 
-            foreach (var payment in payments)
+            var userIds = payments.Select(p => p.UserId).Union(accountsWhoHasTrial.Select(a => a.UserId)).Distinct();
+
+            foreach (var userId in userIds)
             {
-                var user = _userRepository.GetById(payment.UserId);
+                var user = _userRepository.GetById(userId);
                 if (user == null) continue;
 
                 _userCacheService.SetInCache(user);

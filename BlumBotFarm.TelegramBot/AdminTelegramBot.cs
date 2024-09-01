@@ -23,6 +23,7 @@ namespace BlumBotFarm.TelegramBot
         private readonly EarningRepository     earningRepository;
         private readonly DailyRewardRepository dailyRewardRepository;
         private readonly UserRepository        userRepository;
+        private readonly ReferralRepository    referralRepository;
         private readonly TaskScheduler         taskScheduler;
 
         public AdminTelegramBot(TelegramBotClient botClient, long[] adminChatIds)
@@ -38,6 +39,7 @@ namespace BlumBotFarm.TelegramBot
             earningRepository     = new EarningRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_EARNING_PATH);
             dailyRewardRepository = new DailyRewardRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_DAILY_REWARDS_PATH);
             userRepository        = new UserRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_USER_PATH);
+            referralRepository    = new ReferralRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_REFERRAL_PATH);
             taskScheduler         = new TaskScheduler();
         }
 
@@ -418,12 +420,64 @@ namespace BlumBotFarm.TelegramBot
                     await botClient.SendTextMessageAsync(message.Chat, messageToSendAccounts.ToString(), null, ParseMode.Html);
 
                     break;
-                case "/usersinfo":
-                    var usersInfo         = userRepository.GetAll().OrderBy(acc => acc.Id);
-                    var accountsUsersInfo = accountRepository.GetAll();
+                case "/newsletter":
+                    if (parts.Length == 3)
+                    {
+                        // Working with channel name
+                        var telegramChannelName = parts[1];
+                        if (string.IsNullOrEmpty(telegramChannelName))
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, "Empty <b>TelegramChannelName</b>!", parseMode: ParseMode.Html);
+                            return;
+                        }
+                        if (!telegramChannelName.First().Equals('@')) telegramChannelName = '@' + telegramChannelName;
 
-                    await botClient.SendTextMessageAsync(message.Chat, $"Whole users: <b>{usersInfo.Count()}</b>\n" +
-                                                                       $"Whole accounts: <b>{accountsUsersInfo.Count()}</b>", null, ParseMode.Html);
+                        // Working with TelegramPostId
+                        if (!int.TryParse(parts[2], out int telegramPostId))
+                        {
+                            await botClient.SendTextMessageAsync(message.Chat, "Wrong <b>TelegramPostId</b>!", parseMode: ParseMode.Html);
+                            return;
+                        }
+
+                        // Doing newsletter
+                        var users             = userRepository.GetAll();
+                        int exceptionCount    = 0;
+                        List<string> arrExceptionsLogs = [];
+                        foreach (var user in users)
+                        {
+                            try
+                            {
+                                await botClient.ForwardMessageAsync(chatId:     user.TelegramUserId,
+                                                                    fromChatId: telegramChannelName,
+                                                                    messageId:  telegramPostId);
+                            }
+                            catch (Exception ex)
+                            {
+                                ++exceptionCount;
+                                arrExceptionsLogs.Add(ex.Message);
+                            }
+                        }
+
+                        // To avoid doubles
+                        string exceptionsLogs = string.Join("\n", arrExceptionsLogs.Distinct());
+
+                        // Sending answer to admin
+                        await botClient.SendTextMessageAsync(message.Chat, 
+                            $"<b>Sent newsletters.</b>\n" +
+                            $"Channel <b>{telegramChannelName}</b>, TelegramPostId: <code>{telegramPostId}.</code>\n" +
+                            $"<b>{exceptionCount}</b> exceptions out of <b>{users.Count()}</b> messages.\n" +
+                            $"Exceptions logs:\n<code>{exceptionsLogs}</code>.",
+                        parseMode: ParseMode.Html);
+
+                        // Logging
+                        Log.Information($"{message.From.Username} called newsletter with " +
+                                        $"TelegramChannelName={telegramChannelName}, TelegramPostId={telegramPostId}. " +
+                                        $"{exceptionCount} exceptions out of {users.Count()} messages. Exceptions logs: {exceptionsLogs}.");
+                    }
+                    else
+                    {
+                        await botClient.SendTextMessageAsync(message.Chat, "Usage: /newsletter @<TelegramChannelName> <TelegramPostId>");
+                    }
 
                     break;
                 case "/updateusersinfo":
@@ -800,13 +854,19 @@ namespace BlumBotFarm.TelegramBot
             var todayEarnings    = earningRepository.GetAllFit(earning => earning.Created > todayDateTime);
             var todayEarningsSum = todayEarnings.Select(earning => earning.Total).DefaultIfEmpty(0).Sum();
 
+            var usersInfo     = userRepository.GetAll().OrderBy(acc => acc.Id);
+            var referralsInfo = referralRepository.GetAll();
+
             return $"<b>CZ time:</b> <code>{DateTime.UtcNow.AddHours(2):dd.MM.yyyy HH:mm:ss}</code>\n" +
-                   $"<b>MSK time:</b> <code>{DateTime.UtcNow.AddHours(3):dd.MM.yyyy HH:mm:ss}</code>\n" +
+                   $"<b>MSK time:</b> <code>{DateTime.UtcNow.AddHours(3):dd.MM.yyyy HH:mm:ss}</code>\n\n" +
                    $"Total accounts: <b>{accounts.Count()}</b>\n" +
+                   $"Trial accounts: <b>{accounts.Where(a => a.IsTrial).Count()}</b>\n\n" +
                    $"Total balance: <b>{totalBalance:N2}</b> ฿\n" +
                    $"Total tickets: <b>{totalTickets}</b>\n" +
                    $"Daily rewards today: <b>{doneCount}</b>/<b>{wholeCount}</b>\n" +
-                   $"Today earnings: ≈<b>{todayEarningsSum:N2}</b> ฿";
+                   $"Today earnings: ≈<b>{todayEarningsSum:N2}</b> ฿\n\n" +
+                   $"Whole users: <b>{usersInfo.Count()}</b>\n" +
+                   $"Whole referrals: <b>{referralsInfo.Count()}</b>";
         }
 
         private Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)

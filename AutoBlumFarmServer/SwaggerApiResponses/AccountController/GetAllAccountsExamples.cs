@@ -26,7 +26,9 @@ namespace AutoBlumFarmServer.SwaggerApiResponses.AccountController
                         TookDailyReward = true,
                         NearestWorkIn   = "-00:03:45",
                         CountryCode     = "US",
-                        LastStatus      = "OK"
+                        LastStatus      = "OK",
+                        IsTrial         = false,
+                        TrialExpires    = DateTime.UtcNow
                     },
                     new()
                     {
@@ -42,7 +44,9 @@ namespace AutoBlumFarmServer.SwaggerApiResponses.AccountController
                         TookDailyReward = false,
                         NearestWorkIn   = "03:05:32",
                         CountryCode     = "BY",
-                        LastStatus      = "Can't authenticate"
+                        LastStatus      = "Can't authenticate",
+                        IsTrial         = true,
+                        TrialExpires    = DateTime.UtcNow.AddHours(24 * 6 + 18)
                     },
                     new()
                     {
@@ -58,7 +62,9 @@ namespace AutoBlumFarmServer.SwaggerApiResponses.AccountController
                         TookDailyReward = false,
                         NearestWorkIn   = "-",
                         CountryCode     = "CZ",
-                        LastStatus      = ""
+                        LastStatus      = "",
+                        IsTrial         = false,
+                        TrialExpires    = DateTime.UtcNow
                     }
                 ]
             });

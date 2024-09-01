@@ -102,7 +102,9 @@ namespace AutoBlumFarmServer.Controllers
                     TookDailyReward = tookDailyRewardToday,
                     NearestWorkIn   = nearestWorkIn,
                     CountryCode     = account.CountryCode,
-                    LastStatus      = account.LastStatus
+                    LastStatus      = account.LastStatus,
+                    IsTrial         = account.IsTrial,
+                    TrialExpires    = account.TrialExpires
                 });
             }
 
@@ -175,7 +177,9 @@ namespace AutoBlumFarmServer.Controllers
                     TookDailyReward = tookDailyRewardToday,
                     NearestWorkIn   = nearestWorkIn,
                     CountryCode     = account.CountryCode,
-                    LastStatus      = account.LastStatus
+                    LastStatus      = account.LastStatus,
+                    IsTrial         = account.IsTrial,
+                    TrialExpires    = account.TrialExpires
                 }
             });
         }

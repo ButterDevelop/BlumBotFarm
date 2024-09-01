@@ -14,6 +14,7 @@ using System.Text.RegularExpressions;
 using Telegram.Bot;
 using BlumBotFarm.CacheUpdater.CacheServices;
 using BlumBotFarm.Core.Models;
+using BlumBotFarm.Core;
 
 namespace AutoBlumFarmServer.Controllers
 {
@@ -24,16 +25,19 @@ namespace AutoBlumFarmServer.Controllers
     {
         private readonly UserRepository         _userRepository;
         private readonly AccountRepository      _accountRepository;
+        private readonly TaskRepository         _taskRepository;
         private readonly ReferralRepository     _referralRepository;
         private readonly StarsPaymentRepository _starsPaymentRepository;
         private readonly ITelegramBotClient     _botClient;
         private readonly IUserCacheService      _userCacheService;
 
-        public UserController(UserRepository userRepository, AccountRepository accountRepository, ReferralRepository referralRepository,
-                              StarsPaymentRepository starsPaymentRepository, TelegramBotClient botClient, IUserCacheService userCacheService)
+        public UserController(UserRepository userRepository, AccountRepository accountRepository, TaskRepository taskRepository,
+                              ReferralRepository referralRepository, StarsPaymentRepository starsPaymentRepository, TelegramBotClient botClient,
+                              IUserCacheService userCacheService)
         {
             _userRepository         = userRepository;
             _accountRepository      = accountRepository;
+            _taskRepository         = taskRepository;
             _referralRepository     = referralRepository;
             _starsPaymentRepository = starsPaymentRepository;
             _botClient              = botClient;
@@ -70,7 +74,8 @@ namespace AutoBlumFarmServer.Controllers
                 BalanceUSD          = invoker.BalanceUSD,
                 LanguageCode        = invoker.LanguageCode,
                 OwnReferralCode     = invoker.OwnReferralCode,
-                AccountsBalancesSum = accountsBalancesSum
+                AccountsBalancesSum = accountsBalancesSum,
+                HadTrial            = invoker.HadTrial
             };
 
             return Ok(new ApiObjectResponse<UserDTO>()
@@ -202,6 +207,65 @@ namespace AutoBlumFarmServer.Controllers
             var byteArray = Resources.defaultAvatar;
             MemoryStream memoryStream = new(byteArray);
             return File(memoryStream, "image/png"); // Если аватарка не найдена
+        }
+
+        // GET: api/User/ActivateTrial
+        [HttpGet("ActivateTrial")]
+        [SwaggerResponse(200, "Success. Activated trial mode.")]
+        [SwaggerResponse(400, "Trial was already activated.")]
+        [SwaggerResponse(401, "No auth from user.")]
+        [SwaggerResponseExample(200, typeof(ActivateTrialOkExample))]
+        [SwaggerResponseExample(400, typeof(ActivateTrialBadExample))]
+        [SwaggerResponseExample(401, typeof(BadAuthExample))]
+        [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status200OK,           "application/json")]
+        [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status400BadRequest,   "application/json")]
+        [ProducesResponseType(typeof(ApiMessageResponse), StatusCodes.Status401Unauthorized, "application/json")]
+        public IActionResult ActivateTrial()
+        {
+            int userId  = Utils.GetUserIdFromClaims(User.Claims, out bool userAuthorized);
+            if (!userAuthorized || !_userCacheService.TryGetFromCache(userId, out User invoker)) return Unauthorized(new ApiMessageResponse
+            {
+                ok      = false,
+                message = "No auth."
+            });
+
+            if (invoker.HadTrial) return BadRequest(new ApiMessageResponse
+            {
+                ok      = false,
+                message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_ALREADY_USED_TRIAL%#")
+            });
+
+            // Set trial mode to user
+            invoker.HadTrial = true;
+            _userRepository.Update(invoker);
+
+            // Adding account in trial mode
+            Account account = new()
+            {
+                UserId       = userId,
+                UserAgent    = HTTPController.GetRandomUserAgent(),
+                IsTrial      = true,
+                TrialExpires = DateTime.UtcNow.AddSeconds(AppConfig.CommonSettings.TRIAL_DURATION_SECONDS)
+            };
+            int accountId = _accountRepository.Add(account);
+
+            // Adding task for this account
+            var startAt = DateTime.Now.AddDays(1);
+            var taskDailyCheckJob = new BlumBotFarm.Core.Models.Task
+            {
+                AccountId          = accountId,
+                TaskType           = "DailyCheckJob",
+                MinScheduleSeconds = 6  * 3600, // 6 hours
+                MaxScheduleSeconds = 10 * 3600, // 10 hours
+                NextRunTime        = startAt
+            };
+            _taskRepository.Add(taskDailyCheckJob);
+
+            return Ok(new ApiMessageResponse()
+            {
+                ok      = true,
+                message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_ACTIVATED_TRIAL_SUCCESSFULLY%#")
+            });
         }
     }
 }

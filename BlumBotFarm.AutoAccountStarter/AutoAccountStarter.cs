@@ -11,6 +11,7 @@ namespace BlumBotFarm.AutoAccountStarter
         private readonly AccountRepository _accountRepository;
         private readonly TaskRepository    _taskRepository;
         private readonly TaskScheduler     _taskScheduler;
+
         private HashSet<int> _workingAccounts;
 
         public AutoAccountStarter()
@@ -32,7 +33,8 @@ namespace BlumBotFarm.AutoAccountStarter
             foreach (var account in _accountRepository.GetAll())
             {
                 if (!string.IsNullOrEmpty(account.ProviderToken) && !string.IsNullOrEmpty(account.RefreshToken) &&
-                    !_workingAccounts.Contains(account.Id))
+                    !_workingAccounts.Contains(account.Id) &&
+                    (!account.IsTrial || DateTime.UtcNow < account.TrialExpires))
                 {
                     _workingAccounts.Add(account.Id);
                 }
@@ -50,13 +52,14 @@ namespace BlumBotFarm.AutoAccountStarter
 
         private async Task ProcessAsync()
         {
-            var accounts = _accountRepository.GetAll();
-            var tasks    = _taskRepository.GetAll();
+            var accounts  = _accountRepository.GetAll();
+            var tasks     = _taskRepository.GetAll();
             Random random = new();
 
             foreach (var account in accounts)
             {
-                if (!_workingAccounts.Contains(account.Id) && !string.IsNullOrEmpty(account.ProviderToken))
+                if (!_workingAccounts.Contains(account.Id) && !string.IsNullOrEmpty(account.ProviderToken) &&
+                    (!account.IsTrial || DateTime.UtcNow < account.TrialExpires))
                 {
                     var task = tasks.FirstOrDefault(t => t.AccountId == account.Id && t.TaskType == "DailyCheckJob");
                     if (task == null) continue;

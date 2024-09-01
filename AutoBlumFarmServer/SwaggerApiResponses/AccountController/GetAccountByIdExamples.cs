@@ -25,7 +25,9 @@ namespace AutoBlumFarmServer.SwaggerApiResponses.AccountController
                     TookDailyReward = true,
                     NearestWorkIn   = "06:55:33",
                     CountryCode     = "US",
-                    LastStatus      = "OK"
+                    LastStatus      = "OK",
+                    IsTrial         = false,
+                    TrialExpires    = DateTime.UtcNow
                 }
             });
             yield return SwaggerExample.Create("Minus nearest work in", new ApiObjectResponse<AccountDTO>()
@@ -45,7 +47,9 @@ namespace AutoBlumFarmServer.SwaggerApiResponses.AccountController
                     TookDailyReward = false,
                     NearestWorkIn   = "-00:00:31",
                     CountryCode     = "BY",
-                    LastStatus      = "Can't authenticate"
+                    LastStatus      = "Can't authenticate",
+                    IsTrial         = true,
+                    TrialExpires    = DateTime.UtcNow.AddHours(24 * 6 + 18)
                 },
             });
             yield return SwaggerExample.Create("Empty slot", new ApiObjectResponse<AccountDTO>()
@@ -65,7 +69,9 @@ namespace AutoBlumFarmServer.SwaggerApiResponses.AccountController
                     TookDailyReward = false,
                     NearestWorkIn   = "-",
                     CountryCode     = "CZ",
-                    LastStatus      = ""
+                    LastStatus      = "",
+                    IsTrial         = false,
+                    TrialExpires    = DateTime.UtcNow
                 }
             });
         }
