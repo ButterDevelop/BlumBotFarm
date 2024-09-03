@@ -164,6 +164,18 @@
     "Text": "Siz kiritgan til topilmadi!"
   },
   {
+    "Mask": "#%JOB_TRIAL_EXPIRED%#",
+    "Text": "Sinov muddati tugadi. Iltimos, sotib olishni ko'rib chiqing! <b>Bizda eng yaxshi narxlar, texnik xizmat va qo'llab-quvvatlash mavjud! Rostdan ham!</b>"
+  },
+  {
+    "Mask": "#%MESSAGE_ALREADY_USED_TRIAL%#",
+    "Text": "Siz sinov muddatini allaqachon faollashtirgansiz."
+  },
+  {
+    "Mask": "#%MESSAGE_ACTIVATED_TRIAL_SUCCESSFULLY%#",
+    "Text": "Sinov muddati muvaffaqiyatli faollashtirildi!"
+  },
+  {
     "Mask": "#%baza%#",
     "Text": ""
   }

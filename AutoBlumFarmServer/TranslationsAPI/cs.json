@@ -160,6 +160,18 @@
     "Text": "Jazyk, který jste zadali, nebyl nalezen!"
   },
   {
+    "Mask": "#%JOB_TRIAL_EXPIRED%#",
+    "Text": "Vaše zkušební verze vypršela. Zvažte prosím nákup! <b>Máme nejlepší ceny, technické řešení a služby! Opravdu!</b>"
+  },
+  {
+    "Mask": "#%MESSAGE_ALREADY_USED_TRIAL%#",
+    "Text": "Již jste aktivovali zkušební verzi."
+  },
+  {
+    "Mask": "#%MESSAGE_ACTIVATED_TRIAL_SUCCESSFULLY%#",
+    "Text": "Vaše zkušební verze byla úspěšně aktivována!"
+  },
+  {
     "Mask": "#%baza%#",
     "Text": ""
   }

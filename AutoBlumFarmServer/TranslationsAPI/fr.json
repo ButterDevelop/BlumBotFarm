@@ -164,6 +164,18 @@
     "Text": "La langue que vous avez spécifiée est introuvable!"
   },
   {
+    "Mask": "#%JOB_TRIAL_EXPIRED%#",
+    "Text": "Votre essai a expiré. Veuillez envisager un achat! <b>Nous avons les meilleurs prix, la meilleure technologie et le meilleur service! Sérieusement!</b>"
+  },
+  {
+    "Mask": "#%MESSAGE_ALREADY_USED_TRIAL%#",
+    "Text": "Vous avez déjà activé l'essai."
+  },
+  {
+    "Mask": "#%MESSAGE_ACTIVATED_TRIAL_SUCCESSFULLY%#",
+    "Text": "Votre essai a été activé avec succès!"
+  },
+  {
     "Mask": "#%baza%#",
     "Text": ""
   }

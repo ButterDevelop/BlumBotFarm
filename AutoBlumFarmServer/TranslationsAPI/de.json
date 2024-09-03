@@ -164,6 +164,18 @@
     "Text": "Die von Ihnen angegebene Sprache wurde nicht gefunden!"
   },
   {
+    "Mask": "#%JOB_TRIAL_EXPIRED%#",
+    "Text": "Ihre Testversion ist abgelaufen. Bitte überlegen Sie sich einen Kauf! <b>Wir haben die besten Preise, die beste Technik und den besten Service! Wirklich!</b>"
+  },
+  {
+    "Mask": "#%MESSAGE_ALREADY_USED_TRIAL%#",
+    "Text": "Sie haben die Testversion bereits aktiviert."
+  },
+  {
+    "Mask": "#%MESSAGE_ACTIVATED_TRIAL_SUCCESSFULLY%#",
+    "Text": "Ihre Testversion wurde erfolgreich aktiviert!"
+  },
+  {
     "Mask": "#%baza%#",
     "Text": ""
   }

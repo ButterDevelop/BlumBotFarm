@@ -164,6 +164,18 @@
     "Text": "Nie znaleziono języka, który określiłeś!"
   },
   {
+    "Mask": "#%JOB_TRIAL_EXPIRED%#",
+    "Text": "Twój okres próbny wygasł. Rozważ zakup! <b>Mamy najlepsze ceny, technologię i obsługę! Serio!</b>"
+  },
+  {
+    "Mask": "#%MESSAGE_ALREADY_USED_TRIAL%#",
+    "Text": "Już aktywowałeś okres próbny."
+  },
+  {
+    "Mask": "#%MESSAGE_ACTIVATED_TRIAL_SUCCESSFULLY%#",
+    "Text": "Twój okres próbny został pomyślnie aktywowany!"
+  },
+  {
     "Mask": "#%baza%#",
     "Text": ""
   }
