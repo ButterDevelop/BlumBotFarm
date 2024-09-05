@@ -20,8 +20,7 @@ namespace AutoBlumFarmServer.SwaggerApiResponses.UserController
                     LanguageCode        = "en",
                     OwnReferralCode     = "pKvp3NIdiK",
                     PhotoUrl            = "https://cdn.telegram.org/avatars/avatar176.png",
-                    AccountsBalancesSum = 1185.44,
-                    HadTrial            = true
+                    AccountsBalancesSum = 1185.44
                 }
             });
             yield return SwaggerExample.Create("Without avatar", new ApiObjectResponse<UserDTO>()
@@ -37,8 +36,7 @@ namespace AutoBlumFarmServer.SwaggerApiResponses.UserController
                     LanguageCode        = "en",
                     OwnReferralCode     = "IpiKpKv3Nd",
                     PhotoUrl            = "",
-                    AccountsBalancesSum = 0,
-                    HadTrial            = false
+                    AccountsBalancesSum = 0
                 }
             });
         }

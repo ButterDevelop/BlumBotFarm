@@ -78,7 +78,7 @@ namespace AutoBlumFarmServer.Controllers
                 });
             }
 
-            var currentSlotsAmount = _accountRepository.GetAllFit(a => a.UserId == invoker.Id).Count();
+            var currentSlotsAmount = _accountRepository.GetAllFit(a => a.UserId == invoker.Id && !a.IsTrial).Count();
             decimal priceUsd = GetNextSeveralSlotsPrice(currentSlotsAmount, model.amount);
 
             return Ok(new ApiObjectResponse<PreBuyAccountsSlotsOutputModel>
@@ -121,7 +121,7 @@ namespace AutoBlumFarmServer.Controllers
                 });
             }
 
-            var currentSlotsAmount = _accountRepository.GetAllFit(a => a.UserId == invoker.Id).Count();
+            var currentSlotsAmount = _accountRepository.GetAllFit(a => a.UserId == invoker.Id && !a.IsTrial).Count();
             decimal priceUsd       = GetNextSeveralSlotsPrice(currentSlotsAmount, model.amount);
 
             if (invoker.BalanceUSD - priceUsd < 0)

@@ -11,6 +11,5 @@
         public string  OwnReferralCode     { get; set; } = string.Empty;
         public string  PhotoUrl            { get; set; } = string.Empty;
         public double  AccountsBalancesSum { get; set; }
-        public bool    HadTrial            { get; set; }
     }
 }

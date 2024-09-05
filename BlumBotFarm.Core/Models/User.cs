@@ -17,7 +17,5 @@ namespace BlumBotFarm.Core.Models
         public string   LanguageCode    { get; set; } = "en";
         public string   OwnReferralCode { get; set; } = string.Empty;
         public DateTime CreatedAt       { get; set; }
-
-        public bool     HadTrial        { get; set; } = false;
     }
 }

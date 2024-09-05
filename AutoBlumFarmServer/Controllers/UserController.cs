@@ -74,8 +74,7 @@ namespace AutoBlumFarmServer.Controllers
                 BalanceUSD          = invoker.BalanceUSD,
                 LanguageCode        = invoker.LanguageCode,
                 OwnReferralCode     = invoker.OwnReferralCode,
-                AccountsBalancesSum = accountsBalancesSum,
-                HadTrial            = invoker.HadTrial
+                AccountsBalancesSum = accountsBalancesSum
             };
 
             return Ok(new ApiObjectResponse<UserDTO>()
@@ -229,15 +228,13 @@ namespace AutoBlumFarmServer.Controllers
                 message = "No auth."
             });
 
-            if (invoker.HadTrial) return BadRequest(new ApiMessageResponse
+            // Trial only if user has no accounts (trial or normal)
+            var accounts = _accountRepository.GetAllFit(a => a.UserId == invoker.Id && !a.IsTrial).Count();
+            if (accounts > 0) return BadRequest(new ApiMessageResponse
             {
                 ok      = false,
                 message = TranslationHelper.Instance.Translate(invoker.LanguageCode, "#%MESSAGE_ALREADY_USED_TRIAL%#")
             });
-
-            // Set trial mode to user
-            invoker.HadTrial = true;
-            _userRepository.Update(invoker);
 
             // Adding account in trial mode
             Account account = new()
