@@ -83,7 +83,7 @@ namespace BlumBotFarm.GameClient
             Log.Information("GameApiUtilsService PlayGamesForAllTickets: started playing for all tickets " +
                             $"for an account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}, tickets: {account.Tickets}");
 
-            int attempts = account.Tickets * 2;
+            int attempts = account.IsTrial ? (account.Tickets <= 20 ? account.Tickets : 20) : (account.Tickets * 2);
             while (attempts-- > 0 && account.Tickets > 0)
             {
                 (ApiResponse createGameResponse, string gameId) = gameApiClient.StartGame(account);

@@ -230,5 +230,46 @@
   {
     "Mask": "#%JOB_LAST_STATUS_IN_THE_QUEUE%#",
     "Text": "В очереди"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_TITLE_CONFIRM%#",
+    "Text": "Подтвердить активацию"
+  },
+  {
+    "Mask": "#%MODAL_MESSAGE_MORE_INFORMATION%#",
+    "Text": "Больше информации в закрепах нашего канала в TG"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_MESSAGE_INFORM%#",
+    "Text": "Хотите активировать 7-дневную бесплатную пробную версию?"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_BUTTON_IS_ACTIVE%#",
+    "Text": "Пробная версия активирована"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_BUTTON_ACTIVATE%#",
+    "Text": "Активировать пробную версию"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_TRIAL_EXPIRES%#",
+    "Text": "Срок действия пробной версии истекает"
+  },
+  {
+    "Mask": "#%No%#",
+    "Text": "Нет"
+  },
+  {
+    "Mask": "#%Yes%#",
+    "Text": "Да"
+  },
+  {
+    "Mask": "#%LABEL_PAYMENT_PANEL_FRAGMENT_PAYMENT%#",
+    "Text": "Вы можете купить звезды за TON на официальной платформе Telegram Fragment на 30% дешевле"
+  },
+  {
+    "Mask": "#%LABEL_EMPTY_ACCOUNT_SCROLL_BOX_ITEM_TRIAL_ACCOUNT%#",
+    "Text": "Добавьте свой пробный аккаунт"
   }
+
 ]

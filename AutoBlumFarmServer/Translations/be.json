@@ -230,5 +230,45 @@
   {
     "Mask": "#%JOB_LAST_STATUS_IN_THE_QUEUE%#",
     "Text": "У чарзе"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_TITLE_CONFIRM%#",
+    "Text": "Пацвердзіць актывацыю"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_MESSAGE_INFORM%#",
+    "Text": "Жадаеце актываваць 7-дзённую бясплатную пробную версію?"
+  },
+  {
+    "Mask": "#%MODAL_MESSAGE_MORE_INFORMATION%#",
+    "Text": "Больш інфармацыі ў запінах нашага канала ў TG"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_BUTTON_IS_ACTIVE%#",
+    "Text": "Пробная версія актыўная"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_BUTTON_ACTIVATE%#",
+    "Text": "Актываваць пробную версію"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_TRIAL_EXPIRES%#",
+    "Text": "Тэрмін дзеяння пробнай версіі скончыцца"
+  },
+  {
+    "Mask": "#%No%#",
+    "Text": "Не"
+  },
+  {
+    "Mask": "#%Yes%#",
+    "Text": "Так"
+  },
+  {
+    "Mask": "#%LABEL_PAYMENT_PANEL_FRAGMENT_PAYMENT%#",
+    "Text": "Вы можаце набыць зоркі за TON на афіцыйнай платформе Telegram Fragment на 30% танней"
+  },
+  {
+    "Mask": "#%LABEL_EMPTY_ACCOUNT_SCROLL_BOX_ITEM_TRIAL_ACCOUNT%#",
+    "Text": "Дадайце свой пробны рахунак"
   }
 ]

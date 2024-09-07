@@ -230,5 +230,45 @@
   {
     "Mask": "#%JOB_LAST_STATUS_IN_THE_QUEUE%#",
     "Text": "W kolejce"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_TITLE_CONFIRM%#",
+    "Text": "Potwierdź aktywację"
+  },
+  {
+    "Mask": "#%MODAL_MESSAGE_MORE_INFORMATION%#",
+    "Text": "Więcej informacji w przypiętych wiadomościach na naszym kanale TG"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_MESSAGE_INFORM%#",
+    "Text": "Czy chcesz aktywować 7-dniowy bezpłatny okres próbny?"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_BUTTON_IS_ACTIVE%#",
+    "Text": "Okres próbny jest aktywny"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_BUTTON_ACTIVATE%#",
+    "Text": "Aktywuj okres próbny"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_TRIAL_EXPIRES%#",
+    "Text": "Okres próbny wygasa"
+  },
+  {
+    "Mask": "#%No%#",
+    "Text": "Nie"
+  },
+  {
+    "Mask": "#%Yes%#",
+    "Text": "Tak"
+  },
+  {
+    "Mask": "#%LABEL_PAYMENT_PANEL_FRAGMENT_PAYMENT%#",
+    "Text": "Możesz kupić Gwiazdy za TON na oficjalnej platformie Telegram Fragment o 30% taniej"
+  },
+  {
+    "Mask": "#%LABEL_EMPTY_ACCOUNT_SCROLL_BOX_ITEM_TRIAL_ACCOUNT%#",
+    "Text": "Dodaj swoje konto próbne"
   }
 ]

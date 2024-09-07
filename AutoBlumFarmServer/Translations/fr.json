@@ -230,5 +230,45 @@
   {
     "Mask": "#%JOB_LAST_STATUS_IN_THE_QUEUE%#",
     "Text": "En attente"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_TITLE_CONFIRM%#",
+    "Text": "Confirmer l'activation"
+  },
+  {
+    "Mask": "#%MODAL_MESSAGE_MORE_INFORMATION%#",
+    "Text": "Plus d'informations dans les messages épinglés de notre chaîne TG"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_MESSAGE_INFORM%#",
+    "Text": "Voulez-vous activer l'essai gratuit de 7 jours?"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_BUTTON_IS_ACTIVE%#",
+    "Text": "L'essai est actif"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_BUTTON_ACTIVATE%#",
+    "Text": "ACTIVER L'ESSAI"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_TRIAL_EXPIRES%#",
+    "Text": "L'essai expire"
+  },
+  {
+    "Mask": "#%No%#",
+    "Text": "Non"
+  },
+  {
+    "Mask": "#%Yes%#",
+    "Text": "Oui"
+  },
+  {
+    "Mask": "#%LABEL_PAYMENT_PANEL_FRAGMENT_PAYMENT%#",
+    "Text": "Vous pouvez acheter des étoiles avec TON sur la plateforme Telegram Fragment officielle avec 30% de réduction"
+  },
+  {
+    "Mask": "#%LABEL_EMPTY_ACCOUNT_SCROLL_BOX_ITEM_TRIAL_ACCOUNT%#",
+    "Text": "Ajoutez votre compte d'essai"
   }
 ]

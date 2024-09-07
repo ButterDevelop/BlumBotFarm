@@ -38,7 +38,7 @@ namespace BlumBotFarm.Startup
                 var adminBotClient = new TelegramBotClient(adminBotToken);
                 var userBotClient  = new TelegramBotClient(userBotToken);
 
-                var adminTelegramBot = new TelegramBot.AdminTelegramBot(adminBotClient, adminChatIds);
+                var adminTelegramBot = new TelegramBot.AdminTelegramBot(adminBotClient, userBotClient, adminChatIds);
                 adminTelegramBot.Start();
 
                 var messageProcessor = new MessageProcessor.MessageProcessor(adminBotClient, userBotClient, adminChatIds, new CancellationToken());

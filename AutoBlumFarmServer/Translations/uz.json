@@ -230,5 +230,45 @@
   {
     "Mask": "#%JOB_LAST_STATUS_IN_THE_QUEUE%#",
     "Text": "Navbatda"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_TITLE_CONFIRM%#",
+    "Text": "Faollashtirishni tasdiqlash"
+  },
+  {
+    "Mask": "#%MODAL_MESSAGE_MORE_INFORMATION%#",
+    "Text": "Ko‘proq ma'lumotlar bizning TG kanalimizdagi pin xabarlarda"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_MESSAGE_INFORM%#",
+    "Text": "7 kunlik bepul sinov muddatini faollashtirmoqchimisiz?"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_BUTTON_IS_ACTIVE%#",
+    "Text": "Sinov muddati faollashtirildi"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_BUTTON_ACTIVATE%#",
+    "Text": "Sinov muddatini faollashtirish"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_TRIAL_EXPIRES%#",
+    "Text": "Sinov muddati tugaydi"
+  },
+  {
+    "Mask": "#%No%#",
+    "Text": "Yo'q"
+  },
+  {
+    "Mask": "#%Yes%#",
+    "Text": "Ha"
+  },
+  {
+    "Mask": "#%LABEL_PAYMENT_PANEL_FRAGMENT_PAYMENT%#",
+    "Text": "Siz Telegram Fragment platformasida TON orqali yulduzlarni 30% arzonroqqa sotib olishingiz mumkin"
+  },
+  {
+    "Mask": "#%LABEL_EMPTY_ACCOUNT_SCROLL_BOX_ITEM_TRIAL_ACCOUNT%#",
+    "Text": "Sinov hisobingizni qo‘shing"
   }
 ]

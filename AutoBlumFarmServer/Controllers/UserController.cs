@@ -186,22 +186,26 @@ namespace AutoBlumFarmServer.Controllers
 
             Response.Headers.Append("Cache-Control", "public, max-age=86400"); // 86400 seconds = 24 hours
 
-            var usersPhoto = await _botClient.GetUserProfilePhotosAsync(user.TelegramUserId);
-            if (usersPhoto.TotalCount > 0)
+            try
             {
-                var fileId = usersPhoto.Photos[0][0].FileId;
-                var file   = await _botClient.GetFileAsync(fileId);
-
-                var url    = $"https://api.telegram.org/file/bot{Config.Instance.TELEGRAM_BOT_TOKEN}/{file.FilePath}";
-                using (var httpClient = new HttpClient())
+                var usersPhoto = await _botClient.GetUserProfilePhotosAsync(user.TelegramUserId);
+                if (usersPhoto.TotalCount > 0)
                 {
-                    var photoBytes = await httpClient.GetByteArrayAsync(url);
-                    var stream     = new MemoryStream(photoBytes);
+                    var fileId = usersPhoto.Photos[0][0].FileId;
+                    var file   = await _botClient.GetFileAsync(fileId);
 
-                    // Установка заголовков для кэширования
-                    return File(stream, "image/png");
+                    var url    = $"https://api.telegram.org/file/bot{Config.Instance.TELEGRAM_BOT_TOKEN}/{file.FilePath}";
+                    using (var httpClient = new HttpClient())
+                    {
+                        var photoBytes = await httpClient.GetByteArrayAsync(url);
+                        var stream     = new MemoryStream(photoBytes);
+
+                        // Установка заголовков для кэширования
+                        return File(stream, "image/png");
+                    }
                 }
             }
+            catch { }
 
             var byteArray = Resources.defaultAvatar;
             MemoryStream memoryStream = new(byteArray);

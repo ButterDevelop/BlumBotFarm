@@ -10,7 +10,8 @@ namespace BlumBotFarm.GameClient
     public class GameApiClient
     {
         private const string BASE_GAMING_API_URL                   = "https://game-domain.blum.codes/api/v1/",
-                             BASE_GATEWAY_API_URL                  = "https://gateway.blum.codes/v1/",
+                             BASE_USER_DOMAIN_API_URL              = "https://user-domain.blum.codes/api/v1/",
+                             BASE_WALLET_DOMAIN_API_URL            = "https://wallet-domain.blum.codes/api/v1/",
                              HTML_PAGE_URL                         = "https://telegram.blum.codes/",
                              ABOUT_ME_REQUEST_ENDPOINT             = "user/me",
                              GET_AUTH_BY_PROVIDER_REQUEST_ENDPOINT = "auth/provider/PROVIDER_TELEGRAM_MINI_APP",
@@ -71,7 +72,7 @@ namespace BlumBotFarm.GameClient
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
             var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
-                await HTTPController.SendRequestAsync(BASE_GATEWAY_API_URL + ABOUT_ME_REQUEST_ENDPOINT,
+                await HTTPController.SendRequestAsync(BASE_USER_DOMAIN_API_URL + ABOUT_ME_REQUEST_ENDPOINT,
                                                       RequestType.GET, account.Proxy, headers,
                                                       parameters: null, parametersString: null, parametersContentType: null, referer: null,
                                                       account.UserAgent)
@@ -113,7 +114,7 @@ namespace BlumBotFarm.GameClient
             string parametersContentType = "application/json";
 
             var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
-                await HTTPController.SendRequestAsync(BASE_GATEWAY_API_URL + GET_AUTH_BY_PROVIDER_REQUEST_ENDPOINT,
+                await HTTPController.SendRequestAsync(BASE_USER_DOMAIN_API_URL + GET_AUTH_BY_PROVIDER_REQUEST_ENDPOINT,
                                                       RequestType.POST, account.Proxy, headers,
                                                       parameters: null, parametersString, parametersContentType, referer: null,
                                                       account.UserAgent)
@@ -162,7 +163,7 @@ namespace BlumBotFarm.GameClient
             string parametersContentType = "application/json";
 
             var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
-                await HTTPController.SendRequestAsync(BASE_GATEWAY_API_URL + REFRESH_AUTH_REQUEST_ENDPOINT,
+                await HTTPController.SendRequestAsync(BASE_USER_DOMAIN_API_URL + REFRESH_AUTH_REQUEST_ENDPOINT,
                                                       RequestType.POST, account.Proxy, headers,
                                                       parameters: null, parametersString, parametersContentType, referer: null,
                                                       account.UserAgent)
@@ -539,7 +540,7 @@ namespace BlumBotFarm.GameClient
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
             var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
-                                     await HTTPController.SendRequestAsync(BASE_GATEWAY_API_URL + FRIENDS_BALANCE_REQUEST_ENDPOINT,
+                                     await HTTPController.SendRequestAsync(BASE_USER_DOMAIN_API_URL + FRIENDS_BALANCE_REQUEST_ENDPOINT,
                                                                 RequestType.GET, account.Proxy, headers,
                                                                 parameters: null, parametersString: null, parametersContentType: null, referer: null,
                                                                 account.UserAgent)
@@ -582,7 +583,7 @@ namespace BlumBotFarm.GameClient
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
             var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
-                                     await HTTPController.SendRequestAsync(BASE_GATEWAY_API_URL + FRIENDS_CLAIM_REQUEST_ENDPOINT,
+                                     await HTTPController.SendRequestAsync(BASE_USER_DOMAIN_API_URL + FRIENDS_CLAIM_REQUEST_ENDPOINT,
                                                                 RequestType.POST, account.Proxy, headers,
                                                                 parameters: null, parametersString: null, parametersContentType: null, referer: null,
                                                                 account.UserAgent)

@@ -230,5 +230,45 @@
   {
     "Mask": "#%JOB_LAST_STATUS_IN_THE_QUEUE%#",
     "Text": "في قائمة الانتظار"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_TITLE_CONFIRM%#",
+    "Text": "تأكيد التفعيل"
+  },
+  {
+    "Mask": "#%MODAL_MESSAGE_MORE_INFORMATION%#",
+    "Text": "مزيد من المعلومات في المثبتات على قناتنا في تيليجرام"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_MESSAGE_INFORM%#",
+    "Text": "هل تريد تفعيل النسخة التجريبية المجانية لمدة 7 أيام؟"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_BUTTON_IS_ACTIVE%#",
+    "Text": "التجربة مفعّلة"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_BUTTON_ACTIVATE%#",
+    "Text": "تفعيل التجربة"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_TRIAL_EXPIRES%#",
+    "Text": "تاريخ انتهاء التجربة"
+  },
+  {
+    "Mask": "#%No%#",
+    "Text": "لا"
+  },
+  {
+    "Mask": "#%Yes%#",
+    "Text": "نعم"
+  },
+  {
+    "Mask": "#%LABEL_PAYMENT_PANEL_FRAGMENT_PAYMENT%#",
+    "Text": "يمكنك شراء النجوم باستخدام TON على منصة Fragment الرسمية لتليجرام بخصم 30%"
+  },
+  {
+    "Mask": "#%LABEL_EMPTY_ACCOUNT_SCROLL_BOX_ITEM_TRIAL_ACCOUNT%#",
+    "Text": "أضف حسابك التجريبي"
   }
 ]

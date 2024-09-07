@@ -16,6 +16,7 @@ namespace BlumBotFarm.TelegramBot
 {
     public class AdminTelegramBot
     {
+        private readonly ITelegramBotClient    adminBotClient;
         private readonly ITelegramBotClient    botClient;
         private readonly long[]                adminChatIds;
         private readonly AccountRepository     accountRepository;
@@ -26,8 +27,9 @@ namespace BlumBotFarm.TelegramBot
         private readonly ReferralRepository    referralRepository;
         private readonly TaskScheduler         taskScheduler;
 
-        public AdminTelegramBot(TelegramBotClient botClient, long[] adminChatIds)
+        public AdminTelegramBot(TelegramBotClient adminBotClient, TelegramBotClient botClient, long[] adminChatIds)
         {
+            this.adminBotClient   = adminBotClient;
             this.botClient        = botClient;
             this.adminChatIds     = adminChatIds;
 
@@ -49,18 +51,18 @@ namespace BlumBotFarm.TelegramBot
             {
                 AllowedUpdates = [UpdateType.Message]
             };
-            botClient.StartReceiving(HandleUpdateAsync, HandleErrorAsync, receiverOptions, cancellationToken: CancellationToken.None);
+            adminBotClient.StartReceiving(HandleUpdateAsync, HandleErrorAsync, receiverOptions, cancellationToken: CancellationToken.None);
         }
 
         public async Task SendMessageToAdmins(string message)
         {
             foreach (var adminChatId in adminChatIds)
             {
-                await botClient.SendTextMessageAsync(adminChatId, message, null, ParseMode.Html);
+                await adminBotClient.SendTextMessageAsync(adminChatId, message, null, ParseMode.Html);
             }
         }
 
-        private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        private async Task HandleUpdateAsync(ITelegramBotClient adminBotClient, Update update, CancellationToken cancellationToken)
         {
             if (update.Message is null) return;
 
@@ -102,7 +104,7 @@ namespace BlumBotFarm.TelegramBot
             switch (command)
             {
                 case "/start":
-                    await botClient.SendTextMessageAsync(message.Chat, "Hello. You are admin. You can see the whole list of commands by typing '/'.\n" +
+                    await adminBotClient.SendTextMessageAsync(message.Chat, "Hello. You are admin. You can see the whole list of commands by typing '/'.\n" +
                                                                        $"Your Telegram Chat Id with me is: <code>{message.Chat.Id}</code>",
                                                                        null, ParseMode.Html);
                     break;
@@ -115,30 +117,30 @@ namespace BlumBotFarm.TelegramBot
 
                         if (!int.TryParse(parts[3], out int userId))
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "Something wrong with <b>UserId</b>.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "Something wrong with <b>UserId</b>.", null, ParseMode.Html);
                             return;
                         }
                         if (userRepository.GetById(userId) == null)
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "No such <b>UserId</b> in the database!", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "No such <b>UserId</b> in the database!", null, ParseMode.Html);
                             return;
                         }
 
                         if (username is null || refreshToken is null || proxy is null)
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "Something went wrong with your data, please, try again.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "Something went wrong with your data, please, try again.", null, ParseMode.Html);
                             return;
                         }
 
                         var account = accountRepository.GetAllFit(user => user.CustomUsername == username).FirstOrDefault();
                         if (account != null)
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "The account with this username <b>already exists</b>.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "The account with this username <b>already exists</b>.", null, ParseMode.Html);
                             return;
                         }
 
                         await AddAccount(username, refreshToken, proxy, userId);
-                        await botClient.SendTextMessageAsync(message.Chat, $"Account <b>{username}</b> added successfully.", null, ParseMode.Html);
+                        await adminBotClient.SendTextMessageAsync(message.Chat, $"Account <b>{username}</b> added successfully.", null, ParseMode.Html);
 
                         Log.Information($"Account {username} added successfully.");
                     }
@@ -152,24 +154,24 @@ namespace BlumBotFarm.TelegramBot
 
                         if (!int.TryParse(parts[4], out int timezoneOffset))
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "Something wrong with <b>Timezone Offset</b>.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "Something wrong with <b>Timezone Offset</b>.", null, ParseMode.Html);
                             return;
                         }
 
                         if (!int.TryParse(parts[5], out int userId))
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "Something wrong with <b>UserId</b>.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "Something wrong with <b>UserId</b>.", null, ParseMode.Html);
                             return;
                         }
                         if (userRepository.GetById(userId) == null)
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "No such <b>UserId</b> in the database!", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "No such <b>UserId</b> in the database!", null, ParseMode.Html);
                             return;
                         }
 
                         if (username is null || accessToken is null || refreshToken is null || proxy is null)
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "Something went wrong with your data, please, try again.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "Something went wrong with your data, please, try again.", null, ParseMode.Html);
                             return;
                         }
 
@@ -177,24 +179,24 @@ namespace BlumBotFarm.TelegramBot
                         var account = accountRepository.GetAllFit(user => user.CustomUsername == username).FirstOrDefault();
                         if (account != null)
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "The account with this username <b>already exists</b>.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "The account with this username <b>already exists</b>.", null, ParseMode.Html);
                             return;
                         }
 
                         await AddAccount(username, accessToken, refreshToken, proxy, timezoneOffset, userId);
-                        await botClient.SendTextMessageAsync(message.Chat, $"Account <b>{username}</b> added successfully.", null, ParseMode.Html);
+                        await adminBotClient.SendTextMessageAsync(message.Chat, $"Account <b>{username}</b> added successfully.", null, ParseMode.Html);
 
                         Log.Information($"Account {username} added successfully.");
                     }
                     else
                     {
-                        await botClient.SendTextMessageAsync(message.Chat, "Usage: /addaccount <username> <accessToken> <refreshToken> <timezoneOffset> <userId> [<proxy>]\n" +
+                        await adminBotClient.SendTextMessageAsync(message.Chat, "Usage: /addaccount <username> <accessToken> <refreshToken> <timezoneOffset> <userId> [<proxy>]\n" +
                                                                            "Or: /addaccount <username> <refreshToken> <userId> [<proxy>]");
                     }
                     break;
                 case "/stats":
                     var stats = GetStatistics();
-                    await botClient.SendTextMessageAsync(message.Chat, stats, null, ParseMode.Html);
+                    await adminBotClient.SendTextMessageAsync(message.Chat, stats, null, ParseMode.Html);
                     break;
                 case "/proxy":
                     if (parts.Length == 2 || parts.Length == 3)
@@ -207,7 +209,7 @@ namespace BlumBotFarm.TelegramBot
                                             accountsProxy.FirstOrDefault(user => user.BlumUsername   == username);
                         if (account == null)
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "The account with this username <b>does not exist</b>.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "The account with this username <b>does not exist</b>.", null, ParseMode.Html);
                             return;
                         }
 
@@ -217,17 +219,17 @@ namespace BlumBotFarm.TelegramBot
                         if (proxy == null)
                         {
                             Log.Information($"Proxy for account {username} has been removed.");
-                            await botClient.SendTextMessageAsync(message.Chat, $"Proxy for account <b>{username}</b> has been <b>removed</b>.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, $"Proxy for account <b>{username}</b> has been <b>removed</b>.", null, ParseMode.Html);
                         }
                         else
                         {
                             Log.Information($"Proxy for account {username} has been updated to {proxy}.");
-                            await botClient.SendTextMessageAsync(message.Chat, $"Proxy for account <b>{username}</b> has been updated to <b>{proxy}</b>.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, $"Proxy for account <b>{username}</b> has been updated to <b>{proxy}</b>.", null, ParseMode.Html);
                         }
                     }
                     else
                     {
-                        await botClient.SendTextMessageAsync(message.Chat, "Usage: /proxy <username> [<proxy>]");
+                        await adminBotClient.SendTextMessageAsync(message.Chat, "Usage: /proxy <username> [<proxy>]");
                     }
                     break;
                 case "/todayresults":
@@ -266,13 +268,13 @@ namespace BlumBotFarm.TelegramBot
 
                         if (messageToSendTodayResults.Length >= 2048) // TG message length limit is 4096
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, messageToSendTodayResults.ToString(), null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, messageToSendTodayResults.ToString(), null, ParseMode.Html);
 
                             messageToSendTodayResults.Clear();
                         }
                     }
 
-                    await botClient.SendTextMessageAsync(message.Chat, messageToSendTodayResults.ToString(), null, ParseMode.Html);
+                    await adminBotClient.SendTextMessageAsync(message.Chat, messageToSendTodayResults.ToString(), null, ParseMode.Html);
 
                     break;
                 case "/info":
@@ -282,7 +284,7 @@ namespace BlumBotFarm.TelegramBot
 
                         if (string.IsNullOrEmpty(username))
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "The username <b>is empty</b>.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "The username <b>is empty</b>.", null, ParseMode.Html);
                             return;
                         }
 
@@ -291,7 +293,7 @@ namespace BlumBotFarm.TelegramBot
                                            accountsInfo.FirstOrDefault(user => user.BlumUsername   == username);
                         if (account == null)
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "The account with this username <b>does not exist</b>.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "The account with this username <b>does not exist</b>.", null, ParseMode.Html);
                             return;
                         }
 
@@ -299,7 +301,7 @@ namespace BlumBotFarm.TelegramBot
                         var dailyReward   = dailyRewardRepository.GetAllFit(dr => dr.AccountId == account.Id && dr.CreatedAt >= todayDateInfo)
                                                                  .FirstOrDefault();
 
-                        await botClient.SendTextMessageAsync(message.Chat, 
+                        await adminBotClient.SendTextMessageAsync(message.Chat, 
                                                                 $"You called info.\n" +
                                                                 $"Id: <b>{account.Id}</b>\n" + 
                                                                 $"Custom username: <code>{account.CustomUsername}</code>\n" +
@@ -319,7 +321,7 @@ namespace BlumBotFarm.TelegramBot
                     }
                     else
                     {
-                        await botClient.SendTextMessageAsync(message.Chat, "Usage: /info <username>");
+                        await adminBotClient.SendTextMessageAsync(message.Chat, "Usage: /info <username>");
                     }
                     break;
                 case "/unspenttickets":
@@ -353,13 +355,13 @@ namespace BlumBotFarm.TelegramBot
 
                         if (messageToSendTickets.Length >= 2048) // TG message length limit is 4096
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, messageToSendTickets.ToString(), null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, messageToSendTickets.ToString(), null, ParseMode.Html);
 
                             messageToSendTickets.Clear();
                         }
                     }
 
-                    await botClient.SendTextMessageAsync(message.Chat, messageToSendTickets.ToString(), null, ParseMode.Html);
+                    await adminBotClient.SendTextMessageAsync(message.Chat, messageToSendTickets.ToString(), null, ParseMode.Html);
 
                     break;
                 case "/jobsinfo":
@@ -389,13 +391,13 @@ namespace BlumBotFarm.TelegramBot
 
                         if (messageToSendJobsInfo.Length >= 2048) // TG message length limit is 4096
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, messageToSendJobsInfo.ToString(), null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, messageToSendJobsInfo.ToString(), null, ParseMode.Html);
 
                             messageToSendJobsInfo.Clear();
                         }
                     }
 
-                    await botClient.SendTextMessageAsync(message.Chat, messageToSendJobsInfo.ToString(), null, ParseMode.Html);
+                    await adminBotClient.SendTextMessageAsync(message.Chat, messageToSendJobsInfo.ToString(), null, ParseMode.Html);
 
                     break;
                 case "/accountsinfo":
@@ -411,13 +413,13 @@ namespace BlumBotFarm.TelegramBot
 
                         if (messageToSendAccounts.Length >= 2048) // TG message length limit is 4096
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, messageToSendAccounts.ToString(), null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, messageToSendAccounts.ToString(), null, ParseMode.Html);
 
                             messageToSendAccounts.Clear();
                         }
                     }
 
-                    await botClient.SendTextMessageAsync(message.Chat, messageToSendAccounts.ToString(), null, ParseMode.Html);
+                    await adminBotClient.SendTextMessageAsync(message.Chat, messageToSendAccounts.ToString(), null, ParseMode.Html);
 
                     break;
                 case "/newsletter":
@@ -427,7 +429,7 @@ namespace BlumBotFarm.TelegramBot
                         var telegramChannelName = parts[1];
                         if (string.IsNullOrEmpty(telegramChannelName))
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "Empty <b>TelegramChannelName</b>!", parseMode: ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "Empty <b>TelegramChannelName</b>!", parseMode: ParseMode.Html);
                             return;
                         }
                         if (!telegramChannelName.First().Equals('@')) telegramChannelName = '@' + telegramChannelName;
@@ -435,13 +437,13 @@ namespace BlumBotFarm.TelegramBot
                         // Working with TelegramPostId
                         if (!int.TryParse(parts[2], out int telegramPostId))
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "Wrong <b>TelegramPostId</b>!", parseMode: ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "Wrong <b>TelegramPostId</b>!", parseMode: ParseMode.Html);
                             return;
                         }
 
                         // Doing newsletter
-                        var users             = userRepository.GetAll();
-                        int exceptionCount    = 0;
+                        var users          = userRepository.GetAll();
+                        int exceptionCount = 0;
                         List<string> arrExceptionsLogs = [];
                         foreach (var user in users)
                         {
@@ -462,9 +464,9 @@ namespace BlumBotFarm.TelegramBot
                         string exceptionsLogs = string.Join("\n", arrExceptionsLogs.Distinct());
 
                         // Sending answer to admin
-                        await botClient.SendTextMessageAsync(message.Chat, 
+                        await adminBotClient.SendTextMessageAsync(message.Chat, 
                             $"<b>Sent newsletters.</b>\n" +
-                            $"Channel <b>{telegramChannelName}</b>, TelegramPostId: <code>{telegramPostId}.</code>\n" +
+                            $"Channel <b>{telegramChannelName}</b>, TelegramPostId: <code>{telegramPostId}</code>.\n" +
                             $"<b>{exceptionCount}</b> exceptions out of <b>{users.Count()}</b> messages.\n" +
                             $"Exceptions logs:\n<code>{exceptionsLogs}</code>.",
                         parseMode: ParseMode.Html);
@@ -476,7 +478,7 @@ namespace BlumBotFarm.TelegramBot
                     }
                     else
                     {
-                        await botClient.SendTextMessageAsync(message.Chat, "Usage: /newsletter @<TelegramChannelName> <TelegramPostId>");
+                        await adminBotClient.SendTextMessageAsync(message.Chat, "Usage: /newsletter @<TelegramChannelName> <TelegramPostId>");
                     }
 
                     break;
@@ -492,7 +494,7 @@ namespace BlumBotFarm.TelegramBot
 
                         if (string.IsNullOrEmpty(username))
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "The username <b>is empty</b>.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "The username <b>is empty</b>.", null, ParseMode.Html);
                             return;
                         }
 
@@ -501,7 +503,7 @@ namespace BlumBotFarm.TelegramBot
                                                 accountsAuthCheck.FirstOrDefault(user => user.BlumUsername   == username);
                         if (account == null)
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "The account with this username <b>does not exist</b>.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "The account with this username <b>does not exist</b>.", null, ParseMode.Html);
                             return;
                         }
 
@@ -510,25 +512,25 @@ namespace BlumBotFarm.TelegramBot
                         var result = GameApiUtilsService.AuthCheck(account, accountRepository, new GameApiClient());
                         if (result == ApiResponse.Success)
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, $"Auth check for <b>{username}</b> succeeded.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, $"Auth check for <b>{username}</b> succeeded.", null, ParseMode.Html);
                             Log.Error($"TelegramBot: Auth check for {username} succeeded.");
                         }
                         else
                         if (result == ApiResponse.Error)
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, $"Auth check for <b>{username}</b> RETURNED FAILURE.\n" +
+                            await adminBotClient.SendTextMessageAsync(message.Chat, $"Auth check for <b>{username}</b> RETURNED FAILURE.\n" +
                                                                                "Probably because of proxy.", null, ParseMode.Html);
                             Log.Error($"TelegramBot: Auth check for {username} RETURNED FAILURE. Probably because of proxy.");
                         }
                         else
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, $"Auth check for <b>{username}</b> RETURNED FAILURE.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, $"Auth check for <b>{username}</b> RETURNED FAILURE.", null, ParseMode.Html);
                             Log.Error($"TelegramBot: Auth check for {username} RETURNED FAILURE.");
                         }
                     }
                     else
                     {
-                        await botClient.SendTextMessageAsync(message.Chat, "Usage: /authcheck <username>");
+                        await adminBotClient.SendTextMessageAsync(message.Chat, "Usage: /authcheck <username>");
                     }
                     break;
                 case "/forcedailyjobtoguyswithtickets":
@@ -555,7 +557,7 @@ namespace BlumBotFarm.TelegramBot
 
                         if (string.IsNullOrEmpty(username))
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "The username <b>is empty</b>.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "The username <b>is empty</b>.", null, ParseMode.Html);
                             return;
                         }
 
@@ -567,7 +569,7 @@ namespace BlumBotFarm.TelegramBot
                                                     accountsForceDailyJob.FirstOrDefault(user => user.BlumUsername   == username);
                         if (account == null)
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "The account with this username <b>does not exist</b>.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "The account with this username <b>does not exist</b>.", null, ParseMode.Html);
                             return;
                         }
 
@@ -578,7 +580,7 @@ namespace BlumBotFarm.TelegramBot
                     }
                     else
                     {
-                        await botClient.SendTextMessageAsync(message.Chat, "Usage: /forcedailyjob <username>");
+                        await adminBotClient.SendTextMessageAsync(message.Chat, "Usage: /forcedailyjob <username>");
                     }
                     break;
                 case "/forcedailyjobforeveryone":
@@ -610,7 +612,7 @@ namespace BlumBotFarm.TelegramBot
                     }
                     else
                     {
-                        await botClient.SendTextMessageAsync(message.Chat, "Delete all tasks returned failure. Cancelling.", null, ParseMode.Html);
+                        await adminBotClient.SendTextMessageAsync(message.Chat, "Delete all tasks returned failure. Cancelling.", null, ParseMode.Html);
                         Log.Information("Delete all tasks returned failure. Cancelling.");
                     }
                     break;
@@ -622,7 +624,7 @@ namespace BlumBotFarm.TelegramBot
 
                         if (username is null || refreshToken is null)
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "Something went wrong with your data, please, try again.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "Something went wrong with your data, please, try again.", null, ParseMode.Html);
                             return;
                         }
 
@@ -631,20 +633,20 @@ namespace BlumBotFarm.TelegramBot
                                                    accountsRefreshToken.FirstOrDefault(user => user.BlumUsername   == username);
                         if (account == null)
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "The account with this username <b>does not exist</b>.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "The account with this username <b>does not exist</b>.", null, ParseMode.Html);
                             return;
                         }
 
                         account.RefreshToken = refreshToken;
                         accountRepository.Update(account);
 
-                        await botClient.SendTextMessageAsync(message.Chat, $"<b>{username}</b>'s refresh token updated successfully.", null, ParseMode.Html);
+                        await adminBotClient.SendTextMessageAsync(message.Chat, $"<b>{username}</b>'s refresh token updated successfully.", null, ParseMode.Html);
 
                         Log.Information($"{username}'s refresh token updated successfully.");
                     }
                     else
                     {
-                        await botClient.SendTextMessageAsync(message.Chat, "Usage: /refreshtoken <username> <refreshToken>");
+                        await adminBotClient.SendTextMessageAsync(message.Chat, "Usage: /refreshtoken <username> <refreshToken>");
                     }
                     break;
                 case "/providertoken":
@@ -655,7 +657,7 @@ namespace BlumBotFarm.TelegramBot
 
                         if (username is null || providerToken is null)
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "Something went wrong with your data, please, try again.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "Something went wrong with your data, please, try again.", null, ParseMode.Html);
                             return;
                         }
 
@@ -664,20 +666,20 @@ namespace BlumBotFarm.TelegramBot
                                                     accountsProviderToken.FirstOrDefault(user => user.BlumUsername   == username);
                         if (account == null)
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "The account with this username <b>does not exist</b>.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "The account with this username <b>does not exist</b>.", null, ParseMode.Html);
                             return;
                         }
 
                         account.ProviderToken = providerToken;
                         accountRepository.Update(account);
 
-                        await botClient.SendTextMessageAsync(message.Chat, $"<b>{username}</b>'s provider token updated successfully.", null, ParseMode.Html);
+                        await adminBotClient.SendTextMessageAsync(message.Chat, $"<b>{username}</b>'s provider token updated successfully.", null, ParseMode.Html);
 
                         Log.Information($"{username}'s provider token updated successfully.");
                     }
                     else
                     {
-                        await botClient.SendTextMessageAsync(message.Chat, "Usage: /providertoken <username> <providertoken>");
+                        await adminBotClient.SendTextMessageAsync(message.Chat, "Usage: /providertoken <username> <providertoken>");
                     }
                     break;
                 case "/restartapp":
@@ -696,14 +698,14 @@ namespace BlumBotFarm.TelegramBot
 
                         if (!long.TryParse(TGidString, out long tgUserId))
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "Something went wrong with User ID, please, try again.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "Something went wrong with User ID, please, try again.", null, ParseMode.Html);
                             return;
                         }
 
                         var user = userRepository.GetAllFit(u => u.TelegramUserId == tgUserId).FirstOrDefault();
                         if (user == null)
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, "The user with this TG ID <b>does not exist</b>.", null, ParseMode.Html);
+                            await adminBotClient.SendTextMessageAsync(message.Chat, "The user with this TG ID <b>does not exist</b>.", null, ParseMode.Html);
                             return;
                         }
 
@@ -714,12 +716,12 @@ namespace BlumBotFarm.TelegramBot
 
                             if (!decimal.TryParse(newBalanceString, out decimal newBalance))
                             {
-                                await botClient.SendTextMessageAsync(message.Chat, "Can't parse new balance.", null, ParseMode.Html);
+                                await adminBotClient.SendTextMessageAsync(message.Chat, "Can't parse new balance.", null, ParseMode.Html);
                                 return;
                             }
                             if (sha256hashOfNewBalance is null)
                             {
-                                await botClient.SendTextMessageAsync(message.Chat, "Something is wrong with your hash.", null, ParseMode.Html);
+                                await adminBotClient.SendTextMessageAsync(message.Chat, "Something is wrong with your hash.", null, ParseMode.Html);
                                 return;
                             }
 
@@ -727,7 +729,7 @@ namespace BlumBotFarm.TelegramBot
                             var userHashBytes = Convert.FromHexString(sha256hashOfNewBalance.ToLower());
                             if (!ourHashBytes.SequenceEqual(userHashBytes))
                             {
-                                await botClient.SendTextMessageAsync(message.Chat, "Wrong hash.", null, ParseMode.Html);
+                                await adminBotClient.SendTextMessageAsync(message.Chat, "Wrong hash.", null, ParseMode.Html);
                                 return;
                             }
 
@@ -741,18 +743,18 @@ namespace BlumBotFarm.TelegramBot
                         }
                         else
                         {
-                            await botClient.SendTextMessageAsync(message.Chat, $"<b>{tgUserId}</b>'s USD balance is <b>{user.BalanceUSD}</b>.", 
+                            await adminBotClient.SendTextMessageAsync(message.Chat, $"<b>{tgUserId}</b>'s USD balance is <b>{user.BalanceUSD}</b>.", 
                                                                                null, ParseMode.Html);
                         }
                     }
                     else
                     {
-                        await botClient.SendTextMessageAsync(message.Chat, "Usage: /userusdbalance <tgUserId>\n" +
+                        await adminBotClient.SendTextMessageAsync(message.Chat, "Usage: /userusdbalance <tgUserId>\n" +
                                                                            "Or: /userusdbalance <tgUserId> <newBalance> <sha256hashOfNewBalance>");
                     }
                     break;
                 default:
-                    await botClient.SendTextMessageAsync(message.Chat, "Unknown command.", null, ParseMode.Html);
+                    await adminBotClient.SendTextMessageAsync(message.Chat, "Unknown command.", null, ParseMode.Html);
                     break;
             }
         }
@@ -860,7 +862,8 @@ namespace BlumBotFarm.TelegramBot
             return $"<b>CZ time:</b> <code>{DateTime.UtcNow.AddHours(2):dd.MM.yyyy HH:mm:ss}</code>\n" +
                    $"<b>MSK time:</b> <code>{DateTime.UtcNow.AddHours(3):dd.MM.yyyy HH:mm:ss}</code>\n\n" +
                    $"Total accounts: <b>{accounts.Count()}</b>\n" +
-                   $"Trial accounts: <b>{accounts.Where(a => a.IsTrial).Count()}</b>\n\n" +
+                   $"Trial accounts: <b>{accounts.Where(a => a.IsTrial).Count()}</b>\n" +
+                   $"Working trial accounts: <b>{accounts.Where(a => a.IsTrial && !string.IsNullOrEmpty(a.ProviderToken)).Count()}</b>\n\n" +
                    $"Total balance: <b>{totalBalance:N2}</b> ฿\n" +
                    $"Total tickets: <b>{totalTickets}</b>\n" +
                    $"Daily rewards today: <b>{doneCount}</b>/<b>{wholeCount}</b>\n" +
@@ -869,7 +872,7 @@ namespace BlumBotFarm.TelegramBot
                    $"Whole referrals: <b>{referralsInfo.Count()}</b>";
         }
 
-        private Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
+        private Task HandleErrorAsync(ITelegramBotClient adminBotClient, Exception exception, CancellationToken cancellationToken)
         {
             Log.Error($"Telegram Bot HandleErrorAsync: {exception}");
             return Task.CompletedTask;

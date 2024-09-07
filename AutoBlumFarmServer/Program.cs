@@ -37,14 +37,14 @@ var botToken       = Config.Instance.TELEGRAM_BOT_TOKEN;
 var adminChatIds   = AppConfig.BotSettings.AdminChatIds;
 if (botToken != null && adminChatIds != null)
 {
-    //var adminTelegramBot = new TelegramBot(botToken, adminChatIds,
-    //                                       Config.Instance.TG_STARS_PAYMENT_STAR_USD_PRICE,
-    //                                       Config.Instance.REFERRAL_BALANCE_BONUS_PERCENT,
-    //                                       Config.Instance.SERVER_DOMAIN,
-    //                                       Config.Instance.TELEGRAM_PUBLIC_BOT_NAME,
-    //                                       Config.Instance.TELEGRAM_TECH_SUPPORT_GROUP_CHAT_ID,
-    //                                       Config.Instance.TELEGRAM_CHANNEL_NAME);
-    //adminTelegramBot.Start();
+    var adminTelegramBot = new TelegramBot(botToken, adminChatIds,
+                                           Config.Instance.TG_STARS_PAYMENT_STAR_USD_PRICE,
+                                           Config.Instance.REFERRAL_BALANCE_BONUS_PERCENT,
+                                           Config.Instance.SERVER_DOMAIN,
+                                           Config.Instance.TELEGRAM_PUBLIC_BOT_NAME,
+                                           Config.Instance.TELEGRAM_TECH_SUPPORT_GROUP_CHAT_ID,
+                                           Config.Instance.TELEGRAM_CHANNEL_NAME);
+    adminTelegramBot.Start();
 
     Log.Information("Started Telegram bot.");
 }

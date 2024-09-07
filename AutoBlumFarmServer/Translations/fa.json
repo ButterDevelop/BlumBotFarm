@@ -230,5 +230,45 @@
   {
     "Mask": "#%JOB_LAST_STATUS_IN_THE_QUEUE%#",
     "Text": "در صف"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_TITLE_CONFIRM%#",
+    "Text": "تأیید فعال‌سازی"
+  },
+  {
+    "Mask": "#%MODAL_MESSAGE_MORE_INFORMATION%#",
+    "Text": "اطلاعات بیشتر در پین‌های کانال تلگرام ما"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_MESSAGE_INFORM%#",
+    "Text": "آیا می‌خواهید دوره آزمایشی 7 روزه رایگان را فعال کنید؟"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_BUTTON_IS_ACTIVE%#",
+    "Text": "دوره آزمایشی فعال است"
+  },
+  {
+    "Mask": "#%TRIAL_BUTTON_MODAL_MESSAGE_BUTTON_ACTIVATE%#",
+    "Text": "فعالسازی دوره آزمایشی"
+  },
+  {
+    "Mask": "#%LABEL_ACCOUNT_INFO_MODAL_TRIAL_EXPIRES%#",
+    "Text": "تاریخ انقضای دوره آزمایشی"
+  },
+  {
+    "Mask": "#%No%#",
+    "Text": "خیر"
+  },
+  {
+    "Mask": "#%Yes%#",
+    "Text": "بله"
+  },
+  {
+    "Mask": "#%LABEL_PAYMENT_PANEL_FRAGMENT_PAYMENT%#",
+    "Text": "می‌توانید ستاره‌ها را با TON در پلتفرم رسمی Fragment تلگرام با 30% تخفیف خریداری کنید"
+  },
+  {
+    "Mask": "#%LABEL_EMPTY_ACCOUNT_SCROLL_BOX_ITEM_TRIAL_ACCOUNT%#",
+    "Text": "حساب آزمایشی خود را اضافه کنید"
   }
 ]
