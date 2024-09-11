@@ -25,7 +25,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlumBotFarm.AutoAccountStar
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlumBotFarm.Translation", "BlumBotFarm.Translation\BlumBotFarm.Translation.csproj", "{A925C2B0-AA9C-455D-9BBA-0EAE1C29AF7E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlumBotFarm.CacheUpdater", "BlumBotFarm.CacheUpdater\BlumBotFarm.CacheUpdater.csproj", "{19381EF9-22A4-47E8-BF74-290317129274}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlumBotFarm.CacheUpdater", "BlumBotFarm.CacheUpdater\BlumBotFarm.CacheUpdater.csproj", "{19381EF9-22A4-47E8-BF74-290317129274}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WalletConnectProxyServer", "WalletConnectProxyServer\WalletConnectProxyServer.csproj", "{D8AA6B74-030E-4C84-89AF-86527565FD08}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -81,6 +83,10 @@ Global
 		{19381EF9-22A4-47E8-BF74-290317129274}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{19381EF9-22A4-47E8-BF74-290317129274}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{19381EF9-22A4-47E8-BF74-290317129274}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D8AA6B74-030E-4C84-89AF-86527565FD08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D8AA6B74-030E-4C84-89AF-86527565FD08}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D8AA6B74-030E-4C84-89AF-86527565FD08}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D8AA6B74-030E-4C84-89AF-86527565FD08}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
