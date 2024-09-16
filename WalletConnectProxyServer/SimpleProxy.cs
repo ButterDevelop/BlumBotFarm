@@ -1,13 +1,16 @@
 ﻿using BlumBotFarm.Core;
 using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Repositories;
+using BlumBotFarm.GameClient;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Text.RegularExpressions;
 using Titanium.Web.Proxy;
 using Titanium.Web.Proxy.EventArguments;
 using Titanium.Web.Proxy.Models;
@@ -19,6 +22,7 @@ namespace WalletConnectProxyServer
     public class SimpleProxy
     {
         private static readonly string[] WHITE_LIST_HOSTS = ["blum.codes", "bridge", "2ip", "ipify"];
+        private static readonly string[] BLACK_LIST_HOSTS = ["posthog", "sentry", "tganalytics"];
 
         private readonly AccountRepository _accountRepository;
         private readonly ProxyServer       _proxyServer;
@@ -29,6 +33,8 @@ namespace WalletConnectProxyServer
         private int                       _proxyPort;
         private HttpClient?               _httpClient;
         private Account                   _account;
+
+        private GameApiClient             _gameApiClient;
 
         private readonly ConcurrentDictionary<string, X509Certificate2> _certificates;
 
@@ -46,10 +52,10 @@ namespace WalletConnectProxyServer
 
             _certificates = [];
 
+            _gameApiClient = new();
+
             // Инициализация ProxyServer из Titanium.Web.Proxy
             _proxyServer = new();
-
-            ChangeAccountId(_currentAccountId);
         }
 
         // Метод для запуска прокси-сервера
@@ -103,10 +109,59 @@ namespace WalletConnectProxyServer
             {
                 throw new Exception("Unknown account or missing proxy configuration or missing access token.");
             }
+            else
+            {
+                // Обновляем аутентификацию, если нужно
+                if (GameApiUtilsService.AuthCheck(account, _accountRepository, _gameApiClient) == ApiResponse.Unauthorized)
+                {
+                    MessageBox.Show("No AUTH for this account!!!", "Wallet Connect Proxy Server", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    account = _accountRepository.GetById(account.Id);
+                
+                    if (account == null)
+                    {
+                        throw new Exception("Account is NULL after reauth and getting it from DB!");
+                    }
+                    else
+                    {
+                        _account = account;
+                    }
+                }
+            }
 
-            _account = account;
-
+            // Генерируем HttpClient (нужно для перехвата ответа через внешний прокси, если используется)
             _httpClient = GenerateClient(account.Proxy);
+
+            // Если не используется HttpClient (значит, не надо перехватывать и менять ответ сервера), то используем встроенный UpstreamProxy
+            try
+            {
+                Regex proxyRegex = new("(.*)://(.*):(.*)@(.*):(.*)");
+                var match = proxyRegex.Match(account.Proxy);
+                if (match.Success)
+                {
+                    ExternalProxyType protocol = ExternalProxyType.Http;
+                    switch (match.Groups[1].Value)
+                    {
+                        case "socks4": protocol = ExternalProxyType.Socks4; break;
+                        case "socks5": protocol = ExternalProxyType.Socks5; break;
+                    }
+
+                    var proxy = new ExternalProxy
+                    {
+                        HostName  = match.Groups[2].Value,
+                        Port      = int.Parse(match.Groups[3].Value),
+                        UserName  = match.Groups[4].Value,
+                        Password  = match.Groups[5].Value,
+                        ProxyType = protocol
+                    };
+
+                    _proxyServer.UpStreamHttpProxy  = proxy;
+                    _proxyServer.UpStreamHttpsProxy = proxy;
+                }
+            }
+            catch { }
 
             Debug.WriteLine($"Changed account id to {_currentAccountId}.");
         }
@@ -120,16 +175,24 @@ namespace WalletConnectProxyServer
 
             Debug.WriteLine($"Captured request: {url}");
 
+            // Пример: обработка заголовков для обхода CORS
+            e.HttpClient.Request.Headers.RemoveHeader("Access-Control-Allow-Origin");
+            e.HttpClient.Request.Headers.RemoveHeader("Access-Control-Allow-Methods");
+            e.HttpClient.Request.Headers.AddHeader("Access-Control-Allow-Origin", "*");
+            e.HttpClient.Request.Headers.AddHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+
             // Меняем заголовок Authorization, если он есть
             string headerName = "Authorization";
-            if (e.HttpClient.Response.Headers.Any(h => h.Name == headerName))
+            if (e.HttpClient.Request.Headers.Any(h => h.Name == headerName))
             {
                 e.HttpClient.Request.Headers.RemoveHeader(headerName);
-                e.HttpClient.Request.Headers.AddHeader(headerName, _account.AccessToken);
+                e.HttpClient.Request.Headers.AddHeader(headerName, "Bearer " + _account.AccessToken);
             }
 
+            return;
+
             // Конвертируем Titanium.Web.Proxy запрос в HttpRequestMessage
-            var httpRequestMessage = ConvertToHttpRequestMessage(e);
+            var httpRequestMessage = await ConvertToHttpRequestMessageAsync(e);
 
             try
             {
@@ -139,7 +202,9 @@ namespace WalletConnectProxyServer
                 // Чтение возможно сжатого контента
                 var contentBytes = await responseMessage.Content.ReadAsByteArrayAsync();
 
-                if (responseMessage.Content.Headers.ContentType?.MediaType?.StartsWith("text/") == true)
+                if (responseMessage.Content.Headers.ContentType?.MediaType?.StartsWith("text/") == true ||
+                    responseMessage.Content.Headers.ContentType?.MediaType?.StartsWith("application/javascript") == true ||
+                    responseMessage.Content.Headers.ContentType?.MediaType?.StartsWith("application/json") == true)
                 {
                     // Проверяем, используется ли сжатие
                     if (responseMessage.Content.Headers.ContentEncoding.Contains("gzip"))
@@ -163,8 +228,11 @@ namespace WalletConnectProxyServer
                     // Декодируем содержимое
                     var contentString = encoding.GetString(contentBytes);
 
+                    // Убираем integrity
+                    contentString = Regex.Replace(contentString, @"\s*integrity=[""'][^""']*[""']", "", RegexOptions.IgnoreCase);
+
                     // Изменение строки
-                    //contentString = contentString.Replace("Windows 11", "Дурова арестуют во Франции в 2024 году.");
+                    contentString = contentString.Replace("s: \"Home\"", "s: \"MitM\"");
 
                     // Если нужно вернуть контент в байтах (например, для e.Ok()), конвертируем обратно
                     contentBytes = encoding.GetBytes(contentString);
@@ -175,6 +243,12 @@ namespace WalletConnectProxyServer
                     .Union(responseMessage.Content.Headers)
                     .Select(header => new HttpHeader(header.Key, string.Join(" ", header.Value)))
                     .ToList();
+
+                // Добавляем CORS заголовки в ответ
+                headers.RemoveAll(h => h.Name == "Access-Control-Allow-Origin");
+                headers.RemoveAll(h => h.Name == "Access-Control-Allow-Methods");
+                headers.Add(new HttpHeader("Access-Control-Allow-Origin", "*"));
+                headers.Add(new HttpHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS"));
 
                 e.Ok(contentBytes, headers);
             }
@@ -201,7 +275,7 @@ namespace WalletConnectProxyServer
             return null;
         }
 
-        private static HttpRequestMessage ConvertToHttpRequestMessage(SessionEventArgs e)
+        private static async Task<HttpRequestMessage> ConvertToHttpRequestMessageAsync(SessionEventArgs e)
         {
             // Определяем HTTP-метод
             var method = new HttpMethod(e.HttpClient.Request.Method);
@@ -220,10 +294,7 @@ namespace WalletConnectProxyServer
                 if (!httpRequestMessage.Headers.TryAddWithoutValidation(header.Name, header.Value))
                 {
                     // Добавляем заголовки, которые не являются стандартными
-                    if (httpRequestMessage.Content == null)
-                    {
-                        httpRequestMessage.Content = new StringContent(string.Empty); // Пустой контент для заголовков
-                    }
+                    httpRequestMessage.Content ??= new StringContent(string.Empty); // Пустой контент для заголовков
                     httpRequestMessage.Content.Headers.TryAddWithoutValidation(header.Name, header.Value);
                 }
             }
@@ -231,7 +302,7 @@ namespace WalletConnectProxyServer
             // Если есть тело запроса, добавляем его в HttpRequestMessage
             if (e.HttpClient.Request.HasBody)
             {
-                var bodyBytes = e.HttpClient.Request.Body;
+                var bodyBytes = await e.GetRequestBody();
                 httpRequestMessage.Content = new ByteArrayContent(bodyBytes);
 
                 // Копируем заголовки для контента
@@ -253,6 +324,11 @@ namespace WalletConnectProxyServer
         private static Task OnBeforeTunnelConnectRequest(object sender, TunnelConnectSessionEventArgs e)
         {
             string hostname = e.HttpClient.Request.RequestUri.Host;
+
+            if (BLACK_LIST_HOSTS.Any(hostname.Contains))
+            {
+                e.DenyConnect = true;
+            }
 
             if (!WHITE_LIST_HOSTS.Any(hostname.Contains))
             {

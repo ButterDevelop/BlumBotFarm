@@ -49,11 +49,12 @@
             // numericUpDownAccountId
             // 
             numericUpDownAccountId.Location = new Point(204, 149);
+            numericUpDownAccountId.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
             numericUpDownAccountId.Name = "numericUpDownAccountId";
             numericUpDownAccountId.Size = new Size(180, 31);
             numericUpDownAccountId.TabIndex = 2;
             numericUpDownAccountId.TextAlign = HorizontalAlignment.Center;
-            numericUpDownAccountId.Value = new decimal(new int[] { 1, 0, 0, 0 });
+            numericUpDownAccountId.Value = new decimal(new int[] { 116, 0, 0, 0 });
             // 
             // buttonChangeId
             // 

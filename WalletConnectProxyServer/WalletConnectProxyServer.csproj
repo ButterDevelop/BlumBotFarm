@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BlumBotFarm.Core\BlumBotFarm.Core.csproj" />
     <ProjectReference Include="..\BlumBotFarm.Database\BlumBotFarm.Database.csproj" />
+    <ProjectReference Include="..\BlumBotFarm.GameClient\BlumBotFarm.GameClient.csproj" />
   </ItemGroup>
 
   <ItemGroup>
