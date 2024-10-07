@@ -4,7 +4,6 @@ using BlumBotFarm.Database.Repositories;
 using BlumBotFarm.GameClient;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography;
@@ -21,7 +20,7 @@ namespace WalletConnectProxyServer
 {
     public class SimpleProxy
     {
-        private static readonly string[] WHITE_LIST_HOSTS = ["blum.codes", "bridge", "2ip", "ipify"];
+        private static readonly string[] WHITE_LIST_HOSTS = ["blum.codes", "bridge"]; // "2ip", "ipify"];
         private static readonly string[] BLACK_LIST_HOSTS = ["posthog", "sentry", "tganalytics"];
 
         private readonly AccountRepository _accountRepository;
@@ -35,6 +34,8 @@ namespace WalletConnectProxyServer
         private Account                   _account;
 
         private GameApiClient             _gameApiClient;
+
+        private bool                      _isWorkingNow;
 
         private readonly ConcurrentDictionary<string, X509Certificate2> _certificates;
 
@@ -54,6 +55,8 @@ namespace WalletConnectProxyServer
 
             _gameApiClient = new();
 
+            _isWorkingNow = false;
+
             // Инициализация ProxyServer из Titanium.Web.Proxy
             _proxyServer = new();
         }
@@ -61,6 +64,13 @@ namespace WalletConnectProxyServer
         // Метод для запуска прокси-сервера
         public void Start()
         {
+            if (_isWorkingNow)
+            {
+                Debug.WriteLine($"Proxy server is already started.");
+                return;
+            }
+            _isWorkingNow = true;
+
             _explicitEndPoint = new ExplicitProxyEndPoint(IPAddress.Parse("127.0.0.1"), _proxyPort);
 
             _explicitEndPoint.BeforeTunnelConnectRequest += OnBeforeTunnelConnectRequest;
@@ -82,6 +92,13 @@ namespace WalletConnectProxyServer
         // Метод для остановки прокси-сервера
         public void Stop()
         {
+            if (!_isWorkingNow)
+            {
+                Debug.WriteLine($"Proxy server is already stopped.");
+                return;
+            }
+            _isWorkingNow = false;
+
             if (_explicitEndPoint != null)
             {
                 _explicitEndPoint.BeforeTunnelConnectRequest -= OnBeforeTunnelConnectRequest;
@@ -111,25 +128,35 @@ namespace WalletConnectProxyServer
             }
             else
             {
-                // Обновляем аутентификацию, если нужно
-                if (GameApiUtilsService.AuthCheck(account, _accountRepository, _gameApiClient) == ApiResponse.Unauthorized)
+                Stop();
+
+                Task.Run(() =>
                 {
-                    MessageBox.Show("No AUTH for this account!!!", "Wallet Connect Proxy Server", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                else
-                {
-                    account = _accountRepository.GetById(account.Id);
-                
-                    if (account == null)
+                    // Обновляем аутентификацию, если нужно
+                    if (GameApiUtilsService.AuthCheck(account, _accountRepository, _gameApiClient) == ApiResponse.Unauthorized)
                     {
-                        throw new Exception("Account is NULL after reauth and getting it from DB!");
+                        MessageBox.Show("No AUTH for this account!!!", "Wallet Connect Proxy Server", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                     else
                     {
-                        _account = account;
+                        account = _accountRepository.GetById(account.Id);
+
+                        if (account == null)
+                        {
+                            throw new Exception("Account is NULL after reauth and getting it from DB!");
+                        }
+                        else
+                        {
+                            _account = account;
+                        }
                     }
-                }
+                });
+
+                Thread.Sleep(10000);
+
+                Start();
             }
+            _account = _accountRepository.GetById(account.Id) ?? _account;
 
             // Генерируем HttpClient (нужно для перехвата ответа через внешний прокси, если используется)
             _httpClient = GenerateClient(account.Proxy);
@@ -330,7 +357,11 @@ namespace WalletConnectProxyServer
                 e.DenyConnect = true;
             }
 
-            if (!WHITE_LIST_HOSTS.Any(hostname.Contains))
+            string url = e.HttpClient.Request.RequestUriString;
+
+            if (!WHITE_LIST_HOSTS.Any(hostname.Contains) || 
+                url.Contains(".js") || url.Contains(".css") || url.Contains(".png") ||
+                url.Contains(".jpg") || url.Contains(".jpeg") || url.Contains(".mp4") || url.Contains(".svg"))
             {
                 e.DecryptSsl = false;
             }
