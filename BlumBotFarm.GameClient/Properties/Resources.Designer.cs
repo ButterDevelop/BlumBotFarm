@@ -59,5 +59,14 @@ namespace BlumBotFarm.GameClient.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на let t;const W=Array(128).fill(void 0);function U(A){return W[A]}W.push(void 0,null,!0,!1);let SA=W.length;function np(A){A&lt;132||(W[A]=SA,SA=A)}function L(A){let I=U(A);return np(A),I}let f=0,_=null;function KA(){return(null===_||0===_.byteLength)&amp;&amp;(_=new Uint8Array(t.memory.buffer)),_}const VA=&quot;u&quot;&gt;typeof TextEncoder?new TextEncoder(&quot;utf-8&quot;):{encode(){throw Error(&quot;TextEncoder not available&quot;)}},Ip=&quot;function&quot;==typeof VA.encodeInto?function(A,I){return VA.encodeInto(A,I)}:function(A,I){let g=VA.encode(A);return [остаток строки не уместился]&quot;;.
+        /// </summary>
+        internal static string payloadForDropGame {
+            get {
+                return ResourceManager.GetString("payloadForDropGame", resourceCulture);
+            }
+        }
     }
 }

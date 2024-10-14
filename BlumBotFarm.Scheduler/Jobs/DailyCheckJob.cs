@@ -12,6 +12,9 @@ namespace BlumBotFarm.Scheduler.Jobs
     {
         private const string REFERRAL_LINK_PREFIX = "t.me/BlumCryptoBot/app?startapp=ref_";
 
+        private static readonly Random StaticRandom = new();
+        private static readonly float  ChanceForPlayingTicketsAndPlayingTasks = 0.2f;
+
         private readonly GameApiClient         gameApiClient;
         private readonly AccountRepository     accountRepository;
         private readonly TaskRepository        taskRepository;
@@ -97,7 +100,7 @@ namespace BlumBotFarm.Scheduler.Jobs
             //}
 
             ApiResponse dailyClaimResponse = ApiResponse.Error, friendsClaimResponse = ApiResponse.Error, getUserInfoResult = ApiResponse.Error;
-            bool startAndClaimAllTasksIsGood = false, isAuthGood = false;
+            bool startAndClaimAllTasksIsGood = false, isAuthGood = false, notChanceForPlaying = false;
 
             // Auth check, first of all
             ApiResponse authCheckResult = ApiResponse.Error;
@@ -140,6 +143,14 @@ namespace BlumBotFarm.Scheduler.Jobs
 
                 // Update account status to "doing work"
                 account.LastStatus = "#%JOB_LAST_STATUS_WORKING_NOW%#";
+
+                // Update account's eligibility for dogs drop
+                var (response, eligibleForDogsDrop) = gameApiClient.EligibleForDogsDrop(account);
+                if (response == ApiResponse.Success && account.IsEligibleForDogsDrop != eligibleForDogsDrop)
+                {
+                    account.IsEligibleForDogsDrop = eligibleForDogsDrop;
+                }
+
                 accountRepository.Update(account);
 
                 // Doing Daily Reward Job
@@ -205,10 +216,24 @@ namespace BlumBotFarm.Scheduler.Jobs
                               $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
                 }
 
-                // Starting and claiming all the tasks
-                startAndClaimAllTasksIsGood = GameApiUtilsService.StartAndClaimAllTasks(account, earningRepository, gameApiClient);
-                Log.Information($"Daily Check Job, ended working with tasks for an account with Id: {account.Id}, " +
-                                $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
+                float randomStaticNumber;
+                lock (StaticRandom)
+                {
+                    randomStaticNumber = StaticRandom.NextSingle();
+                }
+                if (randomStaticNumber < ChanceForPlayingTicketsAndPlayingTasks)
+                {
+                    // Starting and claiming all the tasks
+                    startAndClaimAllTasksIsGood = GameApiUtilsService.StartAndClaimAllTasks(account, earningRepository, gameApiClient);
+                    Log.Information($"Daily Check Job, ended working with tasks for an account with Id: {account.Id}, " +
+                                    $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
+                }
+                else
+                {
+                    Log.Information($"Daily Check Job, we have been told by chances NOT to play for all tickets for an account Id: {account.Id}, " +
+                                    $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}, " +
+                                    $"Balance: {account.Balance}, Tickets: {account.Tickets}.");
+                }
 
                 (ApiResponse responseFriendsBalance, bool canClaim, string referralToken, int referralsCount) 
                     = gameApiClient.FriendsBalance(account);
@@ -243,11 +268,25 @@ namespace BlumBotFarm.Scheduler.Jobs
                     }
                 }
 
-                // Playing games with all the tickets
-                GameApiUtilsService.PlayGamesForAllTickets(account, accountRepository, earningRepository, gameApiClient);
-                Log.Information($"Daily Check Job, ended playing for all tickets for an account Id: {account.Id}, " +
-                                $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}, " +
-                                $"Balance: {account.Balance}, Tickets: {account.Tickets}.");
+                lock (StaticRandom)
+                {
+                    randomStaticNumber = StaticRandom.NextSingle();
+                }
+                if (StaticRandom.NextSingle() < ChanceForPlayingTicketsAndPlayingTasks)
+                {
+                    // Playing games with all the tickets
+                    GameApiUtilsService.PlayGamesForAllTickets(account, accountRepository, earningRepository, gameApiClient);
+                    Log.Information($"Daily Check Job, ended playing for all tickets for an account Id: {account.Id}, " +
+                                    $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}, " +
+                                    $"Balance: {account.Balance}, Tickets: {account.Tickets}.");
+                }
+                else
+                {
+                    notChanceForPlaying = true;
+                    Log.Information($"Daily Check Job, we have been told by chances NOT to play for all tickets for an account Id: {account.Id}, " +
+                                    $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}, " +
+                                    $"Balance: {account.Balance}, Tickets: {account.Tickets}.");
+                }
 
                 account = accountRepository.GetById(accountId);
                 if (account == null)
@@ -281,7 +320,7 @@ namespace BlumBotFarm.Scheduler.Jobs
 
                 // Determine the next run time based on the result
                 if (getUserInfoResult == ApiResponse.Success && 
-                    account.Tickets == 0 && startAndClaimAllTasksIsGood && isAuthGood)
+                    (account.Tickets == 0 || notChanceForPlaying) && startAndClaimAllTasksIsGood && isAuthGood)
                 {
                     Log.Information("Daily Check Job executed SUCCESSFULLY for an account with Id: " +
                                     $"{account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");

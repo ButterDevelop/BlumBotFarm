@@ -1,5 +1,6 @@
 ﻿using BlumBotFarm.Core;
 using BlumBotFarm.Core.Models;
+using Jering.Javascript.NodeJS;
 using Microsoft.CSharp.RuntimeBinder;
 using Newtonsoft.Json.Linq;
 using Serilog;
@@ -9,26 +10,30 @@ namespace BlumBotFarm.GameClient
 {
     public class GameApiClient
     {
-        private const string BASE_GAMING_API_URL                   = "https://game-domain.blum.codes/api/v1/",
-                             BASE_USER_DOMAIN_API_URL              = "https://user-domain.blum.codes/api/v1/",
-                             BASE_WALLET_DOMAIN_API_URL            = "https://wallet-domain.blum.codes/api/v1/",
+        private const string BASE_GAMING_API_URL                   = "https://game-domain.blum.codes/api/",
+                             BASE_USER_DOMAIN_API_URL              = "https://user-domain.blum.codes/api/",
+                             BASE_EARN_DOMAIN_API_URL              = "https://earn-domain.blum.codes/api/",
+                             BASE_WALLET_DOMAIN_API_URL            = "https://wallet-domain.blum.codes/api/",
                              HTML_PAGE_URL                         = "https://telegram.blum.codes/",
-                             ABOUT_ME_REQUEST_ENDPOINT             = "user/me",
-                             GET_AUTH_BY_PROVIDER_REQUEST_ENDPOINT = "auth/provider/PROVIDER_TELEGRAM_MINI_APP",
-                             REFRESH_AUTH_REQUEST_ENDPOINT         = "auth/refresh",
-                             GET_DAILY_REWARD_REQUEST_ENDPOINT     = "daily-reward?offset=",
-                             START_GAME_REQUEST_ENDPOINT           = "game/play",
-                             END_GAME_REQUEST_ENDPOINT             = "game/claim",
-                             GET_USER_INFO_REQUEST_ENDPOINT        = "user/balance",
-                             START_FARMING_REQUEST_ENDPOINT        = "farming/start",
-                             CLAIM_FARMING_REQUEST_ENDPOINT        = "farming/claim",
-                             TASKS_INFO_REQUEST_ENDPOINT           = "tasks",
-                             START_TASK_REQUEST_ENDPOINT           = "tasks/{0}/start",
-                             CLAIM_TASK_REQUEST_ENDPOINT           = "tasks/{0}/claim",
-                             FRIENDS_BALANCE_REQUEST_ENDPOINT      = "friends/balance",
-                             FRIENDS_CLAIM_REQUEST_ENDPOINT        = "friends/claim";
+                             ABOUT_ME_REQUEST_ENDPOINT             = "v1/user/me",
+                             GET_AUTH_BY_PROVIDER_REQUEST_ENDPOINT = "v1/auth/provider/PROVIDER_TELEGRAM_MINI_APP",
+                             REFRESH_AUTH_REQUEST_ENDPOINT         = "v1/auth/refresh",
+                             GET_DAILY_REWARD_REQUEST_ENDPOINT     = "v1/daily-reward?offset=",
+                             START_GAME_REQUEST_ENDPOINT           = "v2/game/play",
+                             END_GAME_REQUEST_ENDPOINT             = "v2/game/claim",
+                             ELIGIBILITY_FOR_DROP_DOGS             = "v2/game/eligibility/dogs_drop",
+                             GET_USER_INFO_REQUEST_ENDPOINT        = "v1/user/balance",
+                             START_FARMING_REQUEST_ENDPOINT        = "v1/farming/start",
+                             CLAIM_FARMING_REQUEST_ENDPOINT        = "v1/farming/claim",
+                             TASKS_INFO_REQUEST_ENDPOINT           = "v1/tasks",
+                             START_TASK_REQUEST_ENDPOINT           = "v1/tasks/{0}/start",
+                             CLAIM_TASK_REQUEST_ENDPOINT           = "v1/tasks/{0}/claim",
+                             FRIENDS_BALANCE_REQUEST_ENDPOINT      = "v1/friends/balance",
+                             FRIENDS_CLAIM_REQUEST_ENDPOINT        = "v1/friends/claim";
 
-        private readonly Dictionary<string, string> _commonHeaders = new Dictionary<string, string>
+        private readonly string _jsPayloadForDropGame = Properties.Resources.payloadForDropGame;
+
+        private readonly Dictionary<string, string> _commonHeaders = new()
         {
             { "Accept",             "application/json, text/plain, */*" },
             { "Sec-fetch-site",     "cross-site" },
@@ -231,7 +236,46 @@ namespace BlumBotFarm.GameClient
             return (ApiResponse.Success, false);
         }
 
-        public (ApiResponse response, string gameId) StartGame(Account account)
+        public (ApiResponse response, bool eligible) EligibleForDogsDrop(Account account)
+        {
+            var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
+
+            var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
+                await HTTPController.SendRequestAsync(BASE_GAMING_API_URL + ELIGIBILITY_FOR_DROP_DOGS,
+                                                      RequestType.GET, account.Proxy, headers,
+                                                      parameters: null, parametersString: null, parametersContentType: null, referer: null,
+                                                      account.UserAgent)
+            );
+            (string? jsonAnswer, HttpStatusCode responseStatusCode) = taskResult.Result;
+
+            if (responseStatusCode == HttpStatusCode.Unauthorized)
+            {
+                Log.Error($"GameApiClient EligibleForDrop (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) responseStatusCode - Unauthorized!");
+                return (ApiResponse.Unauthorized, false);
+            }
+
+            if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
+            {
+                Log.Error($"GameApiClient EligibleForDrop (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) JSON answer: {jsonAnswer}");
+                return (ApiResponse.Error, false);
+            }
+
+            try
+            {
+                dynamic json = JObject.Parse(jsonAnswer.Replace("'", "\\'").Replace("\"", "'"));
+
+                bool eligible = json.eligible;
+
+                return (ApiResponse.Success, eligible);
+            }
+            catch (RuntimeBinderException ex)
+            {
+                Log.Error($"GameApiClient EligibleForDrop (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) Exception: {ex}");
+                return (ApiResponse.Error, false);
+            }
+        }
+
+        public (ApiResponse response, string gameId, Dictionary<string, (int perClick, double probability)> pieces) StartGame(Account account)
         {
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
@@ -246,35 +290,67 @@ namespace BlumBotFarm.GameClient
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
                 Log.Error($"GameApiClient StartGame (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) responseStatusCode - Unauthorized!");
-                return (ApiResponse.Unauthorized, string.Empty);
+                return (ApiResponse.Unauthorized, string.Empty, []);
             }
 
             if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
             {
                 Log.Error($"GameApiClient StartGame (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) JSON answer: {jsonAnswer}");
-                return (ApiResponse.Error, string.Empty);
+                return (ApiResponse.Error, string.Empty, []);
             }
 
             try
             {
                 dynamic json = JObject.Parse(jsonAnswer.Replace("'", "\\'").Replace("\"", "'"));
-
+                
                 string gameId = json.gameId;
 
-                return (ApiResponse.Success, gameId);
+                Dictionary<string, (int perClick, double probability)> resultsPieces = [];
+
+                string[] piecesNames = ["BOMB", "CLOVER", "FREEZE", "DOGS"];
+                if (json["assets"] != null)
+                {
+                    foreach (var pieceName in piecesNames)
+                    {
+                        if (json["assets"][pieceName] != null)
+                        {
+                            try
+                            {
+                                string perClickString    = json["assets"][pieceName]["perClick"];
+                                string probabilityString = json["assets"][pieceName]["probability"];
+
+                                var perClick    = int.Parse(perClickString);
+                                var probability = double.Parse(probabilityString.Replace(",", "."));
+
+                                resultsPieces.Add(pieceName, (perClick, probability));
+                            }
+                            catch { }
+                        }
+                    }
+                }
+
+                return (ApiResponse.Success, gameId, resultsPieces);
             }
             catch (RuntimeBinderException ex)
             {
                 Log.Error($"GameApiClient StartGame (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) Exception: {ex}");
-                return (ApiResponse.Error, string.Empty);
+                return (ApiResponse.Error, string.Empty, []);
             }
         }
 
-        public ApiResponse EndGame(Account account, string gameId, int points)
+        public ApiResponse EndGame(Account account, string gameId, int points, int dogsPoints)
         {
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
-            string parametersString      = $"{{\"gameId\":\"{gameId}\",\"points\":{points}}}";
+            Task<string?> result = StaticNodeJSService.InvokeFromStringAsync<string>(
+                _jsPayloadForDropGame,
+                cacheIdentifier: "jsPayloadForDropGame",
+                args: [gameId, points, account.IsEligibleForDogsDrop, dogsPoints]
+            );
+
+            string payload = result.Result ?? "";
+
+            string parametersString      = $"{{\"payload\":\"{payload}\"}}";
             string parametersContentType = "application/json";
 
             var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
@@ -411,12 +487,12 @@ namespace BlumBotFarm.GameClient
             }
         }
 
-        public (ApiResponse response, List<(string id, string kind, string status)> tasks) GetTasks(Account account)
+        public (ApiResponse response, List<(string id, string kind, string status, string validationType)> tasks) GetTasks(Account account)
         {
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
             var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
-                await HTTPController.SendRequestAsync(BASE_GAMING_API_URL + TASKS_INFO_REQUEST_ENDPOINT,
+                await HTTPController.SendRequestAsync(BASE_EARN_DOMAIN_API_URL + TASKS_INFO_REQUEST_ENDPOINT,
                                                       RequestType.GET, account.Proxy, headers,
                                                       parameters: null, parametersString: null, parametersContentType: null, referer: null,
                                                       account.UserAgent)
@@ -439,21 +515,45 @@ namespace BlumBotFarm.GameClient
             {
                 dynamic jsonArray = JArray.Parse(jsonAnswer.Replace("'", "\\'").Replace("\"", "'"));
 
-                var tasks = new List<(string id, string kind, string status)>();
+                var tasks = new List<(string id, string kind, string status, string validationType)>();
 
-                foreach (var taskType in jsonArray)
+                foreach (var section in jsonArray)
                 {
-                    foreach (var task in taskType.tasks)
+                    if (section["tasks"] != null)
                     {
-                        if (task["subTasks"] is null)
+                        foreach (var task in section.tasks)
                         {
-                            tasks.Add((task["id"].ToString(), task["kind"].ToString(), task["status"].ToString()));
-                        }
-                        else
-                        {
-                            foreach (var subTask in task["subTasks"])
+                            if (task["subTasks"] is null)
                             {
-                                tasks.Add((subTask["id"].ToString(), subTask["kind"].ToString(), subTask["status"].ToString()));
+                                tasks.Add((task["id"].ToString(), task["kind"].ToString(), task["status"].ToString(), task["validationType"].ToString()));
+                            }
+                            else
+                            {
+                                foreach (var subTask in task["subTasks"])
+                                {
+                                    tasks.Add((subTask["id"].ToString(), subTask["kind"].ToString(), subTask["status"].ToString(), subTask["validationType"].ToString()));
+                                }
+                            }
+                        }
+                    }
+
+                    if (section["subSections"] != null)
+                    {
+                        foreach (var subSection in section.subSections)
+                        {
+                            foreach (var task in subSection.tasks)
+                            {
+                                if (task["subTasks"] is null)
+                                {
+                                    tasks.Add((task["id"].ToString(), task["kind"].ToString(), task["status"].ToString(), task["validationType"].ToString()));
+                                }
+                                else
+                                {
+                                    foreach (var subTask in task["subTasks"])
+                                    {
+                                        tasks.Add((subTask["id"].ToString(), subTask["kind"].ToString(), subTask["status"].ToString(), subTask["validationType"].ToString()));
+                                    }
+                                }
                             }
                         }
                     }
@@ -473,7 +573,7 @@ namespace BlumBotFarm.GameClient
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
             var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
-                                     await HTTPController.SendRequestAsync(BASE_GAMING_API_URL + string.Format(START_TASK_REQUEST_ENDPOINT, taskId),
+                                     await HTTPController.SendRequestAsync(BASE_EARN_DOMAIN_API_URL + string.Format(START_TASK_REQUEST_ENDPOINT, taskId),
                                                                 RequestType.POST, account.Proxy, headers,
                                                                 parameters: null, parametersString: null, parametersContentType: null, referer: null,
                                                                 account.UserAgent)
@@ -500,7 +600,7 @@ namespace BlumBotFarm.GameClient
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
             var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
-                                     await HTTPController.SendRequestAsync(BASE_GAMING_API_URL + string.Format(CLAIM_TASK_REQUEST_ENDPOINT, taskId),
+                                     await HTTPController.SendRequestAsync(BASE_EARN_DOMAIN_API_URL + string.Format(CLAIM_TASK_REQUEST_ENDPOINT, taskId),
                                                                 RequestType.POST, account.Proxy, headers,
                                                                 parameters: null, parametersString: null, parametersContentType: null, referer: null,
                                                                 account.UserAgent)
