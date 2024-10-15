@@ -13,12 +13,11 @@ namespace BlumBotFarm.Scheduler.Jobs
         private const string REFERRAL_LINK_PREFIX = "t.me/BlumCryptoBot/app?startapp=ref_";
 
         private static readonly Random StaticRandom = new();
-        private static readonly float  ChanceForPlayingTicketsAndPlayingTasks = 0.2f;
+        private static readonly float  ChanceForPlayingTicketsAndPlayingTasks = 0.1f;
 
         private readonly GameApiClient         gameApiClient;
         private readonly AccountRepository     accountRepository;
         private readonly TaskRepository        taskRepository;
-        private readonly MessageRepository     messageRepository;
         private readonly EarningRepository     earningRepository;
         private readonly DailyRewardRepository dailyRewardRepository;
         private readonly UserRepository        userRepository;
@@ -33,7 +32,6 @@ namespace BlumBotFarm.Scheduler.Jobs
 
             accountRepository      = new AccountRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_ACCOUNT_PATH);
             taskRepository         = new TaskRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_TASK_PATH);
-            messageRepository      = new MessageRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_MESSAGE_PATH);
             earningRepository      = new EarningRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_EARNING_PATH);
             dailyRewardRepository  = new DailyRewardRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_DAILY_REWARDS_PATH);
             userRepository         = new UserRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_USER_PATH);
@@ -335,7 +333,7 @@ namespace BlumBotFarm.Scheduler.Jobs
                 }
                 else
                 {
-                    nextRunTime = DateTime.Now.AddSeconds(randomSecondsNext / 10); // Запланировать задание снова через уменьшенное кол-во времени
+                    nextRunTime = DateTime.Now.AddSeconds(randomSecondsNext / 5); // Запланировать задание снова через уменьшенное кол-во времени
 
                     await TaskScheduler.ScheduleNewTask(taskScheduler, accountId, task, nextRunTime);
 

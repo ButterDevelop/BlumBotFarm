@@ -204,8 +204,12 @@ namespace BlumBotFarm.GameClient
                                 $"for an account Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
             }
 
-            foreach (var (id, kind, status, validationType) in tasks)
+            List<int> taskToClaimIndexes = [];
+
+            for (int index = 0; index < tasks.Count; index++)
             {
+                var (id, kind, status, validationType) = tasks[index];
+
                 if ((kind == "INITIAL" || kind == "ROUTINE") && status == "NOT_STARTED" && validationType == "DEFAULT")
                 {
                     ++wholeCount;
@@ -218,6 +222,8 @@ namespace BlumBotFarm.GameClient
                     }
                     else
                     {
+                        taskToClaimIndexes.Add(index);
+
                         Log.Information($"GameApiUtilsService StartAndClaimAllTasks, started task ({id}, {kind}, {status}) " +
                                         $"for an account Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
                         Thread.Sleep(5000 + random.Next(1000, 2500));
@@ -225,33 +231,13 @@ namespace BlumBotFarm.GameClient
                 }
             }
 
-            if (wholeCount == 1)
-            {
-                Log.Information("GameApiUtilsService StartAndClaimAllTasks, no tasks to start, no need to get tasks list again " +
-                                $"for an account Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
-            }
-            else
-            {
-                Thread.Sleep(10000 + random.Next(100, 1000));
+            Thread.Sleep(10000 + random.Next(100, 1000));
 
-                (response, tasks) = gameApiClient.GetTasks(account);
-                ++wholeCount;
-                if (response != ApiResponse.Success)
-                {
-                    Log.Error($"GameApiUtilsService StartAndClaimAllTasks, error while trying to get tasks list once again " +
-                              $"for an account Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
-                    ++errorsCount;
-                }
-                else
-                {
-                    Log.Information($"GameApiUtilsService StartAndClaimAllTasks, got tasks list once again " +
-                                    $"for an account Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
-                }
-            }
-
-            foreach (var (id, kind, status, validationType) in tasks)
+            for (int index = 0; index < tasks.Count; index++)
             {
-                if (status == "READY_FOR_CLAIM")
+                var (id, kind, status, validationType) = tasks[index];
+
+                if (status == "READY_FOR_CLAIM" || taskToClaimIndexes.Contains(index))
                 {
                     (response, double reward) = gameApiClient.ClaimTask(account, id);
                     ++wholeCount;

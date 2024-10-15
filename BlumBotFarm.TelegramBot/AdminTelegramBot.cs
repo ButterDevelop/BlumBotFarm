@@ -441,40 +441,44 @@ namespace BlumBotFarm.TelegramBot
                             return;
                         }
 
-                        // Doing newsletter
-                        var users          = userRepository.GetAll();
-                        int exceptionCount = 0;
-                        List<string> arrExceptionsLogs = [];
-                        foreach (var user in users)
+                        new Thread(async () =>
                         {
-                            try
+                            // Doing newsletter
+                            var users          = userRepository.GetAll();
+                            int exceptionCount = 0;
+                            List<string> arrExceptionsLogs = [];
+                            foreach (var user in users)
                             {
-                                await botClient.ForwardMessageAsync(chatId:     user.TelegramUserId,
-                                                                    fromChatId: telegramChannelName,
-                                                                    messageId:  telegramPostId);
+                                try
+                                {
+                                    await botClient.ForwardMessageAsync(chatId: user.TelegramUserId,
+                                                                        fromChatId: telegramChannelName,
+                                                                        messageId: telegramPostId);
+                                    Thread.Sleep(1000);
+                                }
+                                catch (Exception ex)
+                                {
+                                    ++exceptionCount;
+                                    arrExceptionsLogs.Add(ex.Message);
+                                }
                             }
-                            catch (Exception ex)
-                            {
-                                ++exceptionCount;
-                                arrExceptionsLogs.Add(ex.Message);
-                            }
-                        }
 
-                        // To avoid doubles
-                        string exceptionsLogs = string.Join("\n", arrExceptionsLogs.Distinct());
+                            // To avoid doubles
+                            string exceptionsLogs = string.Join("\n", arrExceptionsLogs.Distinct());
 
-                        // Sending answer to admin
-                        await adminBotClient.SendTextMessageAsync(message.Chat, 
-                            $"<b>Sent newsletters.</b>\n" +
-                            $"Channel <b>{telegramChannelName}</b>, TelegramPostId: <code>{telegramPostId}</code>.\n" +
-                            $"<b>{exceptionCount}</b> exceptions out of <b>{users.Count()}</b> messages.\n" +
-                            $"Exceptions logs:\n<code>{exceptionsLogs}</code>.",
-                        parseMode: ParseMode.Html);
+                            // Sending answer to admin
+                            await adminBotClient.SendTextMessageAsync(message.Chat,
+                                $"<b>Sent newsletters.</b>\n" +
+                                $"Channel <b>{telegramChannelName}</b>, TelegramPostId: <code>{telegramPostId}</code>.\n" +
+                                $"<b>{exceptionCount}</b> exceptions out of <b>{users.Count()}</b> messages.\n" +
+                                $"Exceptions logs:\n<code>{exceptionsLogs}</code>.",
+                            parseMode: ParseMode.Html);
 
-                        // Logging
-                        Log.Information($"{message.From.Username} called newsletter with " +
-                                        $"TelegramChannelName={telegramChannelName}, TelegramPostId={telegramPostId}. " +
-                                        $"{exceptionCount} exceptions out of {users.Count()} messages. Exceptions logs: {exceptionsLogs}.");
+                            // Logging
+                            Log.Information($"{message.From.Username} called newsletter with " +
+                                            $"TelegramChannelName={telegramChannelName}, TelegramPostId={telegramPostId}. " +
+                                            $"{exceptionCount} exceptions out of {users.Count()} messages. Exceptions logs: {exceptionsLogs}.");
+                        }).Start();
                     }
                     else
                     {
@@ -863,7 +867,8 @@ namespace BlumBotFarm.TelegramBot
                    $"<b>MSK time:</b> <code>{DateTime.UtcNow.AddHours(3):dd.MM.yyyy HH:mm:ss}</code>\n\n" +
                    $"Total accounts: <b>{accounts.Count()}</b>\n" +
                    $"Trial accounts: <b>{accounts.Where(a => a.IsTrial).Count()}</b>\n" +
-                   $"Working trial accounts: <b>{accounts.Where(a => a.IsTrial && !string.IsNullOrEmpty(a.ProviderToken)).Count()}</b>\n\n" +
+                   $"Working trial accounts: <b>{accounts.Where(a => a.IsTrial && !string.IsNullOrEmpty(a.ProviderToken)).Count()}</b>\n" +
+                   $"Dogs eligible accounts: <b>{accounts.Where(a => a.IsEligibleForDogsDrop).Count()}</b>\n\n" +
                    $"Total balance: <b>{totalBalance:N2}</b> ฿\n" +
                    $"Total tickets: <b>{totalTickets}</b>\n" +
                    $"Daily rewards today: <b>{doneCount}</b>/<b>{wholeCount}</b>\n" +
