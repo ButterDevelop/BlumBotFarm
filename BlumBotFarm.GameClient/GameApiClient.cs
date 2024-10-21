@@ -519,11 +519,11 @@ namespace BlumBotFarm.GameClient
 
                 foreach (var section in jsonArray)
                 {
-                    if (section["tasks"] != null)
+                    if (section["tasks"] != null && (section["tasks"]["isHidden"] == null || section["tasks"]["isHidden"] == false))
                     {
                         foreach (var task in section.tasks)
                         {
-                            if (task["subTasks"] is null)
+                            if (task["subTasks"] is null && (task["isHidden"] == null || task["isHidden"] == false))
                             {
                                 tasks.Add((task["id"].ToString(), task["kind"].ToString(), task["status"].ToString(), task["validationType"].ToString()));
                             }
@@ -531,19 +531,22 @@ namespace BlumBotFarm.GameClient
                             {
                                 foreach (var subTask in task["subTasks"])
                                 {
-                                    tasks.Add((subTask["id"].ToString(), subTask["kind"].ToString(), subTask["status"].ToString(), subTask["validationType"].ToString()));
+                                    if (subTask["isHidden"] == null || subTask["isHidden"] == false)
+                                    {
+                                        tasks.Add((subTask["id"].ToString(), subTask["kind"].ToString(), subTask["status"].ToString(), subTask["validationType"].ToString()));
+                                    }
                                 }
                             }
                         }
                     }
 
-                    if (section["subSections"] != null)
+                    if (section["subSections"] != null && (section["subSections"]["isHidden"] == null || section["subSections"]["isHidden"] == false))
                     {
                         foreach (var subSection in section.subSections)
                         {
                             foreach (var task in subSection.tasks)
                             {
-                                if (task["subTasks"] is null)
+                                if (task["subTasks"] is null && (task["isHidden"] == null || task["isHidden"] == false))
                                 {
                                     tasks.Add((task["id"].ToString(), task["kind"].ToString(), task["status"].ToString(), task["validationType"].ToString()));
                                 }
@@ -551,7 +554,10 @@ namespace BlumBotFarm.GameClient
                                 {
                                     foreach (var subTask in task["subTasks"])
                                     {
-                                        tasks.Add((subTask["id"].ToString(), subTask["kind"].ToString(), subTask["status"].ToString(), subTask["validationType"].ToString()));
+                                        if (subTask["isHidden"] == null || subTask["isHidden"] == false)
+                                        {
+                                            tasks.Add((subTask["id"].ToString(), subTask["kind"].ToString(), subTask["status"].ToString(), subTask["validationType"].ToString()));
+                                        }
                                     }
                                 }
                             }

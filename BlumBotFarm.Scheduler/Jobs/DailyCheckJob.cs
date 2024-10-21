@@ -215,23 +215,23 @@ namespace BlumBotFarm.Scheduler.Jobs
                 }
 
                 float randomStaticNumber;
-                lock (StaticRandom)
-                {
-                    randomStaticNumber = StaticRandom.NextSingle();
-                }
-                if (randomStaticNumber < ChanceForPlayingTicketsAndPlayingTasks)
-                {
-                    // Starting and claiming all the tasks
-                    startAndClaimAllTasksIsGood = GameApiUtilsService.StartAndClaimAllTasks(account, earningRepository, gameApiClient);
-                    Log.Information($"Daily Check Job, ended working with tasks for an account with Id: {account.Id}, " +
-                                    $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
-                }
-                else
-                {
-                    Log.Information($"Daily Check Job, we have been told by chances NOT to play for all tickets for an account Id: {account.Id}, " +
-                                    $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}, " +
-                                    $"Balance: {account.Balance}, Tickets: {account.Tickets}.");
-                }
+                //lock (StaticRandom)
+                //{
+                //    randomStaticNumber = StaticRandom.NextSingle();
+                //}
+                //if (randomStaticNumber < ChanceForPlayingTicketsAndPlayingTasks)
+                //{
+                //    // Starting and claiming all the tasks
+                //    startAndClaimAllTasksIsGood = GameApiUtilsService.StartAndClaimAllTasks(account, earningRepository, gameApiClient);
+                //    Log.Information($"Daily Check Job, ended working with tasks for an account with Id: {account.Id}, " +
+                //                    $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
+                //}
+                //else
+                //{
+                //    Log.Information($"Daily Check Job, we have been told by chances NOT to play for all tickets for an account Id: {account.Id}, " +
+                //                    $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}, " +
+                //                    $"Balance: {account.Balance}, Tickets: {account.Tickets}.");
+                //}
 
                 (ApiResponse responseFriendsBalance, bool canClaim, string referralToken, int referralsCount) 
                     = gameApiClient.FriendsBalance(account);
