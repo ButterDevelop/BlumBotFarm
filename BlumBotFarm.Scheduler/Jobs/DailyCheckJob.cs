@@ -13,7 +13,7 @@ namespace BlumBotFarm.Scheduler.Jobs
         private const string REFERRAL_LINK_PREFIX = "t.me/BlumCryptoBot/app?startapp=ref_";
 
         private static readonly Random StaticRandom = new();
-        private static readonly float  ChanceForPlayingTicketsAndPlayingTasks = 0.1f;
+        private static readonly float  ChanceForPlayingTicketsAndPlayingTasks = 0.15f;
 
         private readonly GameApiClient         gameApiClient;
         private readonly AccountRepository     accountRepository;
@@ -98,7 +98,8 @@ namespace BlumBotFarm.Scheduler.Jobs
             //}
 
             ApiResponse dailyClaimResponse = ApiResponse.Error, friendsClaimResponse = ApiResponse.Error, getUserInfoResult = ApiResponse.Error;
-            bool startAndClaimAllTasksIsGood = false, isAuthGood = false, notChanceForPlaying = false;
+            bool startAndClaimAllTasksIsGood = true, isAuthGood = false, notChanceForPlaying = false;
+            int  ticketsToRemainAfterPlaying = 0;
 
             // Auth check, first of all
             ApiResponse authCheckResult = ApiResponse.Error;
@@ -272,8 +273,11 @@ namespace BlumBotFarm.Scheduler.Jobs
                 }
                 if (StaticRandom.NextSingle() < ChanceForPlayingTicketsAndPlayingTasks)
                 {
+                    int playHowMuchTickets      = random.Next(account.Tickets) + 1;
+                    ticketsToRemainAfterPlaying = account.Tickets - playHowMuchTickets;
+
                     // Playing games with all the tickets
-                    GameApiUtilsService.PlayGamesForAllTickets(account, accountRepository, earningRepository, gameApiClient);
+                    GameApiUtilsService.PlayGamesForAllTickets(account, accountRepository, gameApiClient, ticketsToRemainAfterPlaying);
                     Log.Information($"Daily Check Job, ended playing for all tickets for an account Id: {account.Id}, " +
                                     $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}, " +
                                     $"Balance: {account.Balance}, Tickets: {account.Tickets}.");
@@ -318,7 +322,7 @@ namespace BlumBotFarm.Scheduler.Jobs
 
                 // Determine the next run time based on the result
                 if (getUserInfoResult == ApiResponse.Success && 
-                    (account.Tickets == 0 || notChanceForPlaying) && startAndClaimAllTasksIsGood && isAuthGood)
+                    (notChanceForPlaying || account.Tickets == ticketsToRemainAfterPlaying) && startAndClaimAllTasksIsGood && isAuthGood)
                 {
                     Log.Information("Daily Check Job executed SUCCESSFULLY for an account with Id: " +
                                     $"{account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");

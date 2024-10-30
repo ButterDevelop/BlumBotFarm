@@ -77,7 +77,8 @@ namespace BlumBotFarm.GameClient
             return result;
         }
 
-        public static void PlayGamesForAllTickets(Account account, AccountRepository accountRepository, EarningRepository earningRepository, GameApiClient gameApiClient)
+        public static void PlayGamesForAllTickets(Account account, AccountRepository accountRepository, GameApiClient gameApiClient, 
+                                                  int ticketsToRemainAfterPlaying)
         {
             Random random = new();
 
@@ -85,7 +86,7 @@ namespace BlumBotFarm.GameClient
                             $"for an account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}, tickets: {account.Tickets}");
 
             int attempts = account.IsTrial ? (account.Tickets <= 20 ? account.Tickets : 20) : (account.Tickets * 2);
-            while (attempts-- > 0 && account.Tickets > 0)
+            while (attempts-- > 0 && account.Tickets > Math.Max(0, ticketsToRemainAfterPlaying))
             {
                 (ApiResponse createGameResponse, string gameId, Dictionary<string, (int perClick, double probability)> resultPieces) 
                     = gameApiClient.StartGame(account);
