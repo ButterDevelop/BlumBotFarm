@@ -863,15 +863,21 @@ namespace BlumBotFarm.TelegramBot
             var usersInfo     = userRepository.GetAll().OrderBy(acc => acc.Id);
             var referralsInfo = referralRepository.GetAll();
 
+            var nowUtc = DateTime.UtcNow;
+
+            int workingTrialAcccounts   = accounts.Where(a => a.IsTrial && nowUtc <  a.TrialExpires && !string.IsNullOrEmpty(a.ProviderToken)).Count();
+            int notWorkingTrialAccounts = accounts.Where(a => a.IsTrial && nowUtc >= a.TrialExpires && !string.IsNullOrEmpty(a.ProviderToken)).Count();
+
             return $"<b>CZ time:</b> <code>{DateTime.UtcNow.AddHours(2):dd.MM.yyyy HH:mm:ss}</code>\n" +
                    $"<b>MSK time:</b> <code>{DateTime.UtcNow.AddHours(3):dd.MM.yyyy HH:mm:ss}</code>\n\n" +
                    $"Total accounts: <b>{accounts.Count()}</b>\n" +
                    $"Trial accounts: <b>{accounts.Where(a => a.IsTrial).Count()}</b>\n" +
-                   $"Working trial accounts: <b>{accounts.Where(a => a.IsTrial && !string.IsNullOrEmpty(a.ProviderToken)).Count()}</b>\n" +
+                   $"Working trials: <b>{workingTrialAcccounts}</b>\n" +
+                   $"Not working trials: <b>{notWorkingTrialAccounts}</b>\n\n" +
                    $"Dogs eligible accounts: <b>{accounts.Where(a => a.IsEligibleForDogsDrop).Count()}</b>\n\n" +
                    $"Total balance: <b>{totalBalance:N2}</b> ฿\n" +
                    $"Total tickets: <b>{totalTickets}</b>\n" +
-                   $"Daily rewards today: <b>{doneCount}</b>/<b>{wholeCount}</b>\n" +
+                   $"Daily rewards today: <b>{doneCount}</b>/<b>{wholeCount - notWorkingTrialAccounts}</b>\n" +
                    $"Today earnings: ≈<b>{todayEarningsSum:N2}</b> ฿\n\n" +
                    $"Whole users: <b>{usersInfo.Count()}</b>\n" +
                    $"Whole referrals: <b>{referralsInfo.Count()}</b>";

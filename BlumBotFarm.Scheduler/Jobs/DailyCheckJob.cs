@@ -13,7 +13,7 @@ namespace BlumBotFarm.Scheduler.Jobs
         private const string REFERRAL_LINK_PREFIX = "t.me/BlumCryptoBot/app?startapp=ref_";
 
         private static readonly Random StaticRandom = new();
-        private static readonly float  ChanceForPlayingTicketsAndPlayingTasks = 0.3f;
+        private static readonly float  ChanceForPlayingTicketsAndPlayingTasks = 0.5f;
 
         private readonly GameApiClient         gameApiClient;
         private readonly AccountRepository     accountRepository;
