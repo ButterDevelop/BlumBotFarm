@@ -6,13 +6,16 @@ namespace BlumBotFarm.GameClient
 {
     public class GameApiUtilsService
     {
+        private const int FREEZE_HOW_MUCH_SECONDS = 5;
+        private const string CLOVER_NAME = "CLOVER", BOMB_NAME = "BOMB", FREEZE_NAME = "FREEZE";
         private static readonly Random bombRandom = new();
+        private static readonly string[] EXCLUDE_ASSETS_NAMES = [BOMB_NAME, FREEZE_NAME];
 
         private const int MAX_PIECES_PER_GAME                        = 300,
                           BOMB_MINUS_ABS_AMOUNT                      = 100,
                           BOMB_CLICK_CHANCE_PERCENT                  = 2,
                           MIN_AMOUNT_OF_SECONDS_TO_WAIT_IN_DROP_GAME = 35,
-                          MAX_AMOUNT_OF_SECONDS_TO_WAIT_IN_DROP_GAME = 60,
+                          MAX_AMOUNT_OF_SECONDS_TO_WAIT_IN_DROP_GAME = 75,
                           MIN_GAME_POINTS_PERCENT                    = 60,
                           MAX_GAME_POINTS_PERCENT                    = 70,
                           MIN_GAME_POINTS_TRIAL_PERCENT              = 4,
@@ -99,49 +102,62 @@ namespace BlumBotFarm.GameClient
                     int secondsToSleep = random.Next(MIN_AMOUNT_OF_SECONDS_TO_WAIT_IN_DROP_GAME, MAX_AMOUNT_OF_SECONDS_TO_WAIT_IN_DROP_GAME + 1);
                     Thread.Sleep(secondsToSleep * 1000);
 
-                    (int perClick, double probability) cloverObject;
-                    bool hasCloverInfo = resultPieces.TryGetValue("CLOVER", out cloverObject);
-                    if (!hasCloverInfo)
-                    {
-                        cloverObject = (1, 0.95);
-                    }
-
-                    (int perClick, double probability) dogsObject;
-                    bool hasDogsInfo   = resultPieces.TryGetValue("DOGS", out dogsObject);
-                    if (!hasDogsInfo)
-                    {
-                        dogsObject = (5, 0.1);
-                    }
-
-                    double percentForPoints = (account.IsTrial ? random.Next(MIN_GAME_POINTS_TRIAL_PERCENT, MAX_GAME_POINTS_TRIAL_PERCENT + 1) : 
+                    double percentForPoints = (account.IsTrial ? random.Next(MIN_GAME_POINTS_TRIAL_PERCENT, MAX_GAME_POINTS_TRIAL_PERCENT + 1) :
                                                                  random.Next(MIN_GAME_POINTS_PERCENT, MAX_GAME_POINTS_PERCENT + 1)
                                               ) / 100.0;
-                    int maxBpPoints = (int)(percentForPoints * MAX_PIECES_PER_GAME);
+                    int maxPiecesAmount = (int)(percentForPoints * MAX_PIECES_PER_GAME);
 
-                    int bpPoints   = (int)(cloverObject.probability * maxBpPoints * cloverObject.perClick);
-                    int dogsPoints = (int)(dogsObject.probability   * maxBpPoints * dogsObject.perClick);
-
-                    if (!account.IsEligibleForDogsDrop && !hasDogsInfo)
+                    int wholeBpAmount = 0;
+                    Dictionary<string, int> resultsAssets = [];
+                    foreach (var piece in resultPieces)
                     {
-                        // With a 1-2% we are clicking on the bomb. Lock because Random is not thread safe
-                        lock (bombRandom)
+                        string assetName = piece.Key;
+
+                        if (!EXCLUDE_ASSETS_NAMES.Contains(assetName))
                         {
-                            if (bombRandom.Next(0, 100) < BOMB_CLICK_CHANCE_PERCENT)
-                            {
-                                bpPoints -= BOMB_MINUS_ABS_AMOUNT;
-                                if (bpPoints < 0) bpPoints = 0;
-                                Log.Information($"GameApiUtilsService PlayGamesForAllTickets: Bomb worked with chance of {BOMB_CLICK_CHANCE_PERCENT}% for an " +
-                                                $"account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}. " +
-                                                $"Total points: {bpPoints}, bomb minus amount: {BOMB_MINUS_ABS_AMOUNT}");
-                            }
+                            var (perClick, probability) = piece.Value;
+
+                            int amount = (int)(probability * maxPiecesAmount);
+
+                            wholeBpAmount += amount * perClick;
+
+                            resultsAssets.Add(assetName, amount);
                         }
                     }
 
-                    var endGameResponse = gameApiClient.EndGame(account, gameId, bpPoints, dogsPoints);
+                    // Adding excluded assets separately with 0 value to work further
+                    foreach (var excludedAsset in EXCLUDE_ASSETS_NAMES)
+                    {
+                        resultsAssets.Add(excludedAsset, 0);
+                    }
+
+                    // With a 1-2% we are clicking on the bomb. Lock because Random is not thread safe
+                    lock (bombRandom)
+                    {
+                        if (bombRandom.Next(0, 100) < BOMB_CLICK_CHANCE_PERCENT && resultsAssets.ContainsKey(CLOVER_NAME))
+                        {
+                            resultsAssets[BOMB_NAME] += 1;
+                            resultsAssets[CLOVER_NAME] -= Math.Min(BOMB_MINUS_ABS_AMOUNT, resultsAssets[CLOVER_NAME]);
+
+                            Log.Information($"GameApiUtilsService PlayGamesForAllTickets: Bomb worked with chance of {BOMB_CLICK_CHANCE_PERCENT}% for an " +
+                                            $"account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}. " +
+                                            $"Total points: {resultsAssets[CLOVER_NAME]}, bomb minus amount: {BOMB_MINUS_ABS_AMOUNT}");
+                        }
+                    }
+
+                    // Adding how much freeze we clicked
+                    int freezeAmount = (secondsToSleep - MIN_AMOUNT_OF_SECONDS_TO_WAIT_IN_DROP_GAME) / FREEZE_HOW_MUCH_SECONDS;
+                    resultsAssets[FREEZE_NAME] = freezeAmount;
+
+                    // Joining full assets string for logs
+                    string allAssetsString = string.Join(", ", resultsAssets.Select(r => r.Key + ": " + r.Value));
+
+                    var endGameResponse = gameApiClient.EndGame(account, gameId, wholeBpAmount, resultsAssets);
                     if (endGameResponse == ApiResponse.Success)
                     {
-                        Log.Information($"GameApiUtilsService PlayGamesForAllTickets: successfully ended a game with id {gameId} and points {bpPoints}, " +
-                                        $"is eligibile for dogs drop: {account.IsEligibleForDogsDrop}, dogs points: {dogsPoints}, " +
+                        Log.Information($"GameApiUtilsService PlayGamesForAllTickets: successfully ended a game with id {gameId} " +
+                                        $"and points [{allAssetsString}], " +
+                                        $"is eligibile for dogs drop: {account.IsEligibleForDogsDrop}, " +
                                         $"for an account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}");
 
                         // Updating user info
@@ -170,7 +186,7 @@ namespace BlumBotFarm.GameClient
                     }
                     else
                     {
-                        Log.Error($"GameApiUtilsService PlayGamesForAllTickets: error in ending a game with id {gameId}, points {bpPoints} " +
+                        Log.Error($"GameApiUtilsService PlayGamesForAllTickets: error in ending a game with id {gameId}, points [{allAssetsString}] " +
                                   $"for an account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}, " +
                                   $"Is Eligible for Dogs Drop: {account.IsEligibleForDogsDrop}. " +
                                   $"Server answer: {endGameResponse}, attempts: {attempts}, tickets: {account.Tickets}");

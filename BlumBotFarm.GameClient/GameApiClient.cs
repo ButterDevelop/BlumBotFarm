@@ -307,24 +307,29 @@ namespace BlumBotFarm.GameClient
 
                 Dictionary<string, (int perClick, double probability)> resultsPieces = [];
 
-                string[] piecesNames = ["BOMB", "CLOVER", "FREEZE", "DOGS"];
+                // Проверяем, что assets существует
                 if (json["assets"] != null)
                 {
-                    foreach (var pieceName in piecesNames)
+                    // Перебираем все ключи в assets
+                    foreach (var asset in json["assets"])
                     {
-                        if (json["assets"][pieceName] != null)
+                        try
                         {
-                            try
-                            {
-                                string perClickString    = json["assets"][pieceName]["perClick"];
-                                string probabilityString = json["assets"][pieceName]["probability"];
+                            string pieceName         = asset.Name;
+                            string perClickString    = asset.Value["perClick"];
+                            string probabilityString = asset.Value["probability"];
 
-                                var perClick    = int.Parse(perClickString);
-                                var probability = double.Parse(probabilityString.Replace(",", "."));
+                            // Парсим значения в нужные типы
+                            var perClick    = int.Parse(perClickString);
+                            var probability = double.Parse(probabilityString.Replace(",", "."));
 
-                                resultsPieces.Add(pieceName, (perClick, probability));
-                            }
-                            catch { }
+                            // Добавляем в словарь
+                            resultsPieces.Add(pieceName, (perClick, probability));
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error($"GameApiClient StartGame (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) Exception: {ex}");
+                            return (ApiResponse.Error, string.Empty, []);
                         }
                     }
                 }
@@ -338,14 +343,14 @@ namespace BlumBotFarm.GameClient
             }
         }
 
-        public ApiResponse EndGame(Account account, string gameId, int points, int dogsPoints)
+        public ApiResponse EndGame(Account account, string gameId, int wholeBpAmount, Dictionary<string, int> resultsAssets)
         {
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
             Task<string?> result = StaticNodeJSService.InvokeFromStringAsync<string>(
                 _jsPayloadForDropGame,
                 cacheIdentifier: "jsPayloadForDropGame",
-                args: [gameId, points, account.IsEligibleForDogsDrop, dogsPoints]
+                args: [gameId, wholeBpAmount, resultsAssets.Keys.ToArray(), resultsAssets.Values.ToArray()]
             );
 
             string payload = result.Result ?? "";

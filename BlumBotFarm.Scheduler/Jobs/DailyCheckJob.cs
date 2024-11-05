@@ -13,12 +13,11 @@ namespace BlumBotFarm.Scheduler.Jobs
         private const string REFERRAL_LINK_PREFIX = "t.me/BlumCryptoBot/app?startapp=ref_";
 
         private static readonly Random StaticRandom = new();
-        private static readonly float  ChanceForPlayingTicketsAndPlayingTasks = 0.5f;
+        private static readonly float  ChanceForPlayingTicketsAndPlayingTasks = 0.6f;
 
         private readonly GameApiClient         gameApiClient;
         private readonly AccountRepository     accountRepository;
         private readonly TaskRepository        taskRepository;
-        private readonly EarningRepository     earningRepository;
         private readonly DailyRewardRepository dailyRewardRepository;
         private readonly UserRepository        userRepository;
         private readonly TaskScheduler         taskScheduler;
@@ -32,7 +31,6 @@ namespace BlumBotFarm.Scheduler.Jobs
 
             accountRepository      = new AccountRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_ACCOUNT_PATH);
             taskRepository         = new TaskRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_TASK_PATH);
-            earningRepository      = new EarningRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_EARNING_PATH);
             dailyRewardRepository  = new DailyRewardRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_DAILY_REWARDS_PATH);
             userRepository         = new UserRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_USER_PATH);
             taskScheduler          = new TaskScheduler();
@@ -90,12 +88,6 @@ namespace BlumBotFarm.Scheduler.Jobs
                             $"BlumUsername: {account.BlumUsername}");
 
             Random random = new();
-
-            // Getting the frontend part
-            //if (!gameApiClient.GetMainPageHTML(account))
-            //{
-            //    Log.Warning($"Daily Check Job, GetMainPageHTML: returned FALSE for an account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
-            //}
 
             ApiResponse dailyClaimResponse = ApiResponse.Error, friendsClaimResponse = ApiResponse.Error, getUserInfoResult = ApiResponse.Error;
             bool startAndClaimAllTasksIsGood = true, isAuthGood = false, notChanceForPlaying = false;
