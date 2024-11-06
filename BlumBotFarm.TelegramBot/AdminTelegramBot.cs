@@ -767,8 +767,8 @@ namespace BlumBotFarm.TelegramBot
                     {
                         await adminBotClient.SendTextMessageAsync(message.Chat, 
                             "<b>Config now:</b>\n" +
-                            $"EnablePlayingForTickets: <b>{configModel.EnablePlayingForTickets}</b>" + 
-                            $"EnableExecutingTasks: <b>{configModel.EnableExecutingTasks}</b>" + 
+                            $"EnablePlayingForTickets: <b>{configModel.EnablePlayingForTickets}</b>\n" + 
+                            $"EnableExecutingTasks: <b>{configModel.EnableExecutingTasks}</b>\n" + 
                             $"ChanceForPlayingTicketsAndPlayingTasks: <b>{configModel.ChanceForPlayingTicketsAndPlayingTasks:N3}</b>",
                             null, ParseMode.Html
                         );
@@ -806,8 +806,8 @@ namespace BlumBotFarm.TelegramBot
                         configModelRepository.Update(configModel);
 
                         string info = "<b>Updated config: </b>\n" +
-                            $"EnablePlayingForTickets: <b>{configModel.EnablePlayingForTickets}</b>" +
-                            $"EnableExecutingTasks: <b>{configModel.EnableExecutingTasks}</b>" +
+                            $"EnablePlayingForTickets: <b>{configModel.EnablePlayingForTickets}</b>\n" +
+                            $"EnableExecutingTasks: <b>{configModel.EnableExecutingTasks}</b>\n" +
                             $"ChanceForPlayingTicketsAndPlayingTasks: <b>{configModel.ChanceForPlayingTicketsAndPlayingTasks:N3}</b>";
 
                         Log.Information($"Updated config by {message.From.Username}: {info.Replace("<b>", "").Replace("</b>", "")}");
