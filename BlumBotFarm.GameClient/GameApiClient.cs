@@ -72,7 +72,7 @@ namespace BlumBotFarm.GameClient
             return answer != null && answer.Length > 0 && responseStatusCode == HttpStatusCode.OK;
         }
 
-        public (ApiResponse response, string blumUsername) GetAboutMeInfo(Account account)
+        public (ApiResponse response, string blumUsername, string blumAccountId) GetAboutMeInfo(Account account)
         {
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
@@ -87,27 +87,28 @@ namespace BlumBotFarm.GameClient
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
                 Log.Error($"GameApiClient GetAboutMeInfo (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) responseStatusCode - Unauthorized!");
-                return (ApiResponse.Unauthorized, string.Empty);
+                return (ApiResponse.Unauthorized, string.Empty, string.Empty);
             }
 
             if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
             {
                 Log.Error($"GameApiClient GetAboutMeInfo (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) JSON answer: {jsonAnswer}");
-                return (ApiResponse.Error, string.Empty);
+                return (ApiResponse.Error, string.Empty, string.Empty);
             }
 
             try
             {
                 dynamic json = JObject.Parse(jsonAnswer.Replace("'", "\\'").Replace("\"", "'"));
 
-                string username = json.username;
+                string username  = json.username;
+                string accountId = json.id.id;
 
-                return (ApiResponse.Success, username);
+                return (ApiResponse.Success, username, accountId);
             }
             catch (RuntimeBinderException ex)
             {
                 Log.Error($"GameApiClient GetAboutMeInfo (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) Exception: {ex}");
-                return (ApiResponse.Error, string.Empty);
+                return (ApiResponse.Error, string.Empty, string.Empty);
             }
         }
 

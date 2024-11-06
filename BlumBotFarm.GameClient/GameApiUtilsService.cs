@@ -23,7 +23,7 @@ namespace BlumBotFarm.GameClient
 
         public static ApiResponse AuthCheck(Account account, AccountRepository accountRepository, GameApiClient gameApiClient)
         {
-            (var result, string blumUsername) = gameApiClient.GetAboutMeInfo(account);
+            (var result, string blumUsername, string blumAccountId) = gameApiClient.GetAboutMeInfo(account);
 
             if (result == ApiResponse.Unauthorized)
             {
@@ -68,13 +68,23 @@ namespace BlumBotFarm.GameClient
                                     $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}");
                 }
 
+                if (string.IsNullOrEmpty(account.BlumAccountId) && !string.IsNullOrEmpty(blumAccountId))
+                {
+                    account.BlumAccountId = blumAccountId;
+                    accountRepository.Update(account);
+
+                    Log.Information($"GameApiUtilsService AuthCheck: updated Blum Account Id for account with Id: {account.Id}, " +
+                                    $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}, BlumAccountId: {account.BlumAccountId}");
+                }
+
                 Log.Information($"GameApiUtilsService AuthCheck: auth is actual for account with Id: {account.Id}, " +
-                                $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}");
+                                $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}, BlumAccountId: {account.BlumAccountId}");
             }
             else
             {
                 Log.Information("GameApiUtilsService AuthCheck: can't get auth (probably smth is wrong with proxy) " +
-                                $"for account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}");
+                                $"for account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, " +
+                                $"BlumUsername: {account.BlumUsername}, BlumAccountId: {account.BlumAccountId}");
             }
 
             return result;

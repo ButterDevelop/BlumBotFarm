@@ -79,6 +79,7 @@ namespace AutoBlumFarmServer
         public string MONGO_DAILY_REWARDS_PATH    => _configuration["DatabaseSettings:MongoTableNames:MONGO_DAILY_REWARDS_PATH"] ?? "";
         public string MONGO_STARS_PAYMENT_PATH    => _configuration["DatabaseSettings:MongoTableNames:MONGO_STARS_PAYMENT_PATH"] ?? "";
         public string MONGO_FEEDBACK_MESSAGE_PATH => _configuration["DatabaseSettings:MongoTableNames:MONGO_FEEDBACK_MESSAGE_PATH"] ?? "";
+        public string MONGO_CONFIG_MODEL_PATH     => _configuration["DatabaseSettings:MongoTableNames:MONGO_CONFIG_MODEL_PATH"] ?? "";
 
         private void ParseProxySellerGeo()
         {

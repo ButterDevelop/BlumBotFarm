@@ -2,6 +2,7 @@
 using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Repositories;
 using BlumBotFarm.GameClient;
+using Microsoft.Extensions.Configuration.EnvironmentVariables;
 using Serilog;
 using System.Security.Cryptography;
 using System.Text;
@@ -25,6 +26,7 @@ namespace BlumBotFarm.TelegramBot
         private readonly DailyRewardRepository dailyRewardRepository;
         private readonly UserRepository        userRepository;
         private readonly ReferralRepository    referralRepository;
+        private readonly ConfigModelRepository configModelRepository;
         private readonly TaskScheduler         taskScheduler;
 
         public AdminTelegramBot(TelegramBotClient adminBotClient, TelegramBotClient botClient, long[] adminChatIds)
@@ -42,6 +44,7 @@ namespace BlumBotFarm.TelegramBot
             dailyRewardRepository = new DailyRewardRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_DAILY_REWARDS_PATH);
             userRepository        = new UserRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_USER_PATH);
             referralRepository    = new ReferralRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_REFERRAL_PATH);
+            configModelRepository = new ConfigModelRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_CONFIG_MODEL_PATH);
             taskScheduler         = new TaskScheduler();
         }
 
@@ -755,6 +758,71 @@ namespace BlumBotFarm.TelegramBot
                     {
                         await adminBotClient.SendTextMessageAsync(message.Chat, "Usage: /userusdbalance <tgUserId>\n" +
                                                                            "Or: /userusdbalance <tgUserId> <newBalance> <sha256hashOfNewBalance>");
+                    }
+                    break;
+                case "/config":
+                    var configModel = configModelRepository.GetOrAddConfigModel();
+
+                    if (parts.Length == 1)
+                    {
+                        await adminBotClient.SendTextMessageAsync(message.Chat, 
+                            "<b>Config now:</b>\n" +
+                            $"EnablePlayingForTickets: <b>{configModel.EnablePlayingForTickets}</b>" + 
+                            $"EnableExecutingTasks: <b>{configModel.EnableExecutingTasks}</b>" + 
+                            $"ChanceForPlayingTicketsAndPlayingTasks: <b>{configModel.ChanceForPlayingTicketsAndPlayingTasks:N3}</b>",
+                            null, ParseMode.Html
+                        );
+                    }
+                    else
+                    if (parts.Length == 4)
+                    {
+                        if (!bool.TryParse(parts[1], out bool enablePlayingForTickets))
+                        {
+                            await adminBotClient.SendTextMessageAsync(message.Chat, 
+                                "Something went wrong with <b>EnablePlayingForTickets</b>, please, try again.", null, ParseMode.Html
+                            );
+                            return;
+                        }
+
+                        if (!bool.TryParse(parts[2], out bool enableExecutingTasks))
+                        {
+                            await adminBotClient.SendTextMessageAsync(message.Chat,
+                                "Something went wrong with <b>EnableExecutingTasks</b>, please, try again.", null, ParseMode.Html
+                            );
+                            return;
+                        }
+
+                        if (!float.TryParse(parts[3].Replace(",", "."), out float chanceForPlayingTicketsAndPlayingTasks))
+                        {
+                            await adminBotClient.SendTextMessageAsync(message.Chat,
+                                "Something went wrong with <b>EnableExecutingTasks</b>, please, try again.", null, ParseMode.Html
+                            );
+                            return;
+                        }
+
+                        configModel.EnablePlayingForTickets                = enablePlayingForTickets;
+                        configModel.EnableExecutingTasks                   = enableExecutingTasks;
+                        configModel.ChanceForPlayingTicketsAndPlayingTasks = chanceForPlayingTicketsAndPlayingTasks;
+                        configModelRepository.Update(configModel);
+
+                        string info = "<b>Updated config: </b>\n" +
+                            $"EnablePlayingForTickets: <b>{configModel.EnablePlayingForTickets}</b>" +
+                            $"EnableExecutingTasks: <b>{configModel.EnableExecutingTasks}</b>" +
+                            $"ChanceForPlayingTicketsAndPlayingTasks: <b>{configModel.ChanceForPlayingTicketsAndPlayingTasks:N3}</b>";
+
+                        Log.Information($"Updated config by {message.From.Username}: {info.Replace("<b>", "").Replace("</b>", "")}");
+
+                        await adminBotClient.SendTextMessageAsync(message.Chat,
+                            info,
+                            null, ParseMode.Html
+                        );
+                    }
+                    else
+                    {
+                        await adminBotClient.SendTextMessageAsync(message.Chat, 
+                            "Usage: /config <EnablePlayingForTickets> <EnableExecutingTasks> <ChanceForPlayingTicketsAndPlayingTasks>\n" +
+                            "Or: /config"
+                        );
                     }
                     break;
                 default:

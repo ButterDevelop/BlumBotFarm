@@ -13,13 +13,14 @@ namespace BlumBotFarm.Scheduler.Jobs
         private const string REFERRAL_LINK_PREFIX = "t.me/BlumCryptoBot/app?startapp=ref_";
 
         private static readonly Random StaticRandom = new();
-        private static readonly float  ChanceForPlayingTicketsAndPlayingTasks = 0.6f;
 
         private readonly GameApiClient         gameApiClient;
         private readonly AccountRepository     accountRepository;
         private readonly TaskRepository        taskRepository;
         private readonly DailyRewardRepository dailyRewardRepository;
         private readonly UserRepository        userRepository;
+        private readonly EarningRepository     earningRepository;
+        private readonly ConfigModelRepository configModelRepository;
         private readonly TaskScheduler         taskScheduler;
 
         public DailyCheckJob()
@@ -33,6 +34,8 @@ namespace BlumBotFarm.Scheduler.Jobs
             taskRepository         = new TaskRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_TASK_PATH);
             dailyRewardRepository  = new DailyRewardRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_DAILY_REWARDS_PATH);
             userRepository         = new UserRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_USER_PATH);
+            earningRepository      = new EarningRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_EARNING_PATH);
+            configModelRepository  = new ConfigModelRepository(dbConnectionString, databaseName, AppConfig.DatabaseSettings.MONGO_CONFIG_MODEL_PATH);
             taskScheduler          = new TaskScheduler();
         }
 
@@ -88,6 +91,8 @@ namespace BlumBotFarm.Scheduler.Jobs
                             $"BlumUsername: {account.BlumUsername}");
 
             Random random = new();
+
+            var configModel = configModelRepository.GetOrAddConfigModel();
 
             ApiResponse dailyClaimResponse = ApiResponse.Error, friendsClaimResponse = ApiResponse.Error, getUserInfoResult = ApiResponse.Error;
             bool startAndClaimAllTasksIsGood = true, isAuthGood = false, notChanceForPlaying = false;
@@ -208,23 +213,26 @@ namespace BlumBotFarm.Scheduler.Jobs
                 }
 
                 float randomStaticNumber;
-                //lock (StaticRandom)
-                //{
-                //    randomStaticNumber = StaticRandom.NextSingle();
-                //}
-                //if (randomStaticNumber < ChanceForPlayingTicketsAndPlayingTasks)
-                //{
-                //    // Starting and claiming all the tasks
-                //    startAndClaimAllTasksIsGood = GameApiUtilsService.StartAndClaimAllTasks(account, earningRepository, gameApiClient);
-                //    Log.Information($"Daily Check Job, ended working with tasks for an account with Id: {account.Id}, " +
-                //                    $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
-                //}
-                //else
-                //{
-                //    Log.Information($"Daily Check Job, we have been told by chances NOT to play for all tickets for an account Id: {account.Id}, " +
-                //                    $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}, " +
-                //                    $"Balance: {account.Balance}, Tickets: {account.Tickets}.");
-                //}
+                if (configModel.EnableExecutingTasks)
+                {
+                    lock (StaticRandom)
+                    {
+                        randomStaticNumber = StaticRandom.NextSingle();
+                    }
+                    if (randomStaticNumber < configModel.ChanceForPlayingTicketsAndPlayingTasks)
+                    {
+                        // Starting and claiming all the tasks
+                        startAndClaimAllTasksIsGood = GameApiUtilsService.StartAndClaimAllTasks(account, earningRepository, gameApiClient);
+                        Log.Information($"Daily Check Job, ended working with tasks for an account with Id: {account.Id}, " +
+                                        $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
+                    }
+                    else
+                    {
+                        Log.Information($"Daily Check Job, we have been told by chances NOT to play for all tickets for an account Id: {account.Id}, " +
+                                        $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}, " +
+                                        $"Balance: {account.Balance}, Tickets: {account.Tickets}.");
+                    }
+                }
 
                 (ApiResponse responseFriendsBalance, bool canClaim, string referralToken, int referralsCount) 
                     = gameApiClient.FriendsBalance(account);
@@ -259,27 +267,30 @@ namespace BlumBotFarm.Scheduler.Jobs
                     }
                 }
 
-                lock (StaticRandom)
+                if (configModel.EnablePlayingForTickets)
                 {
-                    randomStaticNumber = StaticRandom.NextSingle();
-                }
-                if (StaticRandom.NextSingle() < ChanceForPlayingTicketsAndPlayingTasks)
-                {
-                    int playHowMuchTickets      = random.Next(account.Tickets) + 1;
-                    ticketsToRemainAfterPlaying = account.Tickets - playHowMuchTickets;
+                    lock (StaticRandom)
+                    {
+                        randomStaticNumber = StaticRandom.NextSingle();
+                    }
+                    if (StaticRandom.NextSingle() < configModel.ChanceForPlayingTicketsAndPlayingTasks)
+                    {
+                        int playHowMuchTickets      = random.Next(account.Tickets) + 1;
+                        ticketsToRemainAfterPlaying = account.Tickets - playHowMuchTickets;
 
-                    // Playing games with all the tickets
-                    GameApiUtilsService.PlayGamesForAllTickets(account, accountRepository, gameApiClient, ticketsToRemainAfterPlaying);
-                    Log.Information($"Daily Check Job, ended playing for all tickets for an account Id: {account.Id}, " +
-                                    $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}, " +
-                                    $"Balance: {account.Balance}, Tickets: {account.Tickets}.");
-                }
-                else
-                {
-                    notChanceForPlaying = true;
-                    Log.Information($"Daily Check Job, we have been told by chances NOT to play for all tickets for an account Id: {account.Id}, " +
-                                    $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}, " +
-                                    $"Balance: {account.Balance}, Tickets: {account.Tickets}.");
+                        // Playing games with all the tickets
+                        GameApiUtilsService.PlayGamesForAllTickets(account, accountRepository, gameApiClient, ticketsToRemainAfterPlaying);
+                        Log.Information($"Daily Check Job, ended playing for all tickets for an account Id: {account.Id}, " +
+                                        $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}, " +
+                                        $"Balance: {account.Balance}, Tickets: {account.Tickets}.");
+                    }
+                    else
+                    {
+                        notChanceForPlaying = true;
+                        Log.Information($"Daily Check Job, we have been told by chances NOT to play for all tickets for an account Id: {account.Id}, " +
+                                        $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}, " +
+                                        $"Balance: {account.Balance}, Tickets: {account.Tickets}.");
+                    }
                 }
 
                 account = accountRepository.GetById(accountId);

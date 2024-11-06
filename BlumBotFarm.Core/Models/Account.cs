@@ -6,6 +6,7 @@
         public int      UserId                { get; set; }
         public string   CustomUsername        { get; set; } = string.Empty;
         public string   BlumUsername          { get; set; } = string.Empty;
+        public string   BlumAccountId         { get; set; } = string.Empty;
         public double   Balance               { get; set; } = 0;
         public int      Tickets               { get; set; } = 0;
         public int      ReferralsCount        { get; set; } = 0;

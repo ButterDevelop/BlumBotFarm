@@ -47,6 +47,7 @@ namespace BlumBotFarm.Core
             public static string MONGO_DAILY_REWARDS_PATH    => Configuration["DatabaseSettings:MongoTableNames:MONGO_DAILY_REWARDS_PATH"] ?? "";
             public static string MONGO_STARS_PAYMENT_PATH    => Configuration["DatabaseSettings:MongoTableNames:MONGO_STARS_PAYMENT_PATH"] ?? "";
             public static string MONGO_FEEDBACK_MESSAGE_PATH => Configuration["DatabaseSettings:MongoTableNames:MONGO_FEEDBACK_MESSAGE_PATH"] ?? "";
+            public static string MONGO_CONFIG_MODEL_PATH     => Configuration["DatabaseSettings:MongoTableNames:MONGO_CONFIG_MODEL_PATH"] ?? "";
         }
     }
 }
