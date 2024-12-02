@@ -915,23 +915,24 @@ namespace BlumBotFarm.TelegramBot
 
         private string GetStatistics()
         {
-            var accounts     = accountRepository.GetAll();
-            var totalBalance = accounts.Select(a => a.Balance).DefaultIfEmpty(0).Sum();
-            var totalTickets = accounts.Select(a => a.Tickets).DefaultIfEmpty(0).Sum();
-
+            var nowUtc        = DateTime.UtcNow;
             var todayDateTime = DateTime.Today;
+
+            var accounts           = accountRepository.GetAll();
+            var onlyActiveAccounts = accounts.Where(a => !string.IsNullOrEmpty(a.ProviderToken) && (!a.IsTrial || nowUtc < a.TrialExpires));
+
+            var totalBalance       = onlyActiveAccounts.Select(a => a.Balance).DefaultIfEmpty(0).Sum();
+            var totalTickets       = onlyActiveAccounts.Select(a => a.Tickets).DefaultIfEmpty(0).Sum();
 
             var dailyRewardsToday = dailyRewardRepository.GetAllFit(dr => dr.CreatedAt >= todayDateTime).DistinctBy(dr => dr.AccountId);
             int doneCount         = dailyRewardsToday.Count(),
-                wholeCount        = accounts.Count(acc => !string.IsNullOrEmpty(acc.ProviderToken));
+                wholeWorkingCount = onlyActiveAccounts.Count();
 
             var todayEarnings    = earningRepository.GetAllFit(earning => earning.Created > todayDateTime);
             var todayEarningsSum = todayEarnings.Select(earning => earning.Total).DefaultIfEmpty(0).Sum();
 
             var usersInfo     = userRepository.GetAll().OrderBy(acc => acc.Id);
             var referralsInfo = referralRepository.GetAll();
-
-            var nowUtc = DateTime.UtcNow;
 
             int workingTrialAcccounts   = accounts.Where(a => a.IsTrial && nowUtc <  a.TrialExpires && !string.IsNullOrEmpty(a.ProviderToken)).Count();
             int notWorkingTrialAccounts = accounts.Where(a => a.IsTrial && nowUtc >= a.TrialExpires && !string.IsNullOrEmpty(a.ProviderToken)).Count();
@@ -945,7 +946,7 @@ namespace BlumBotFarm.TelegramBot
                    $"Dogs eligible accounts: <b>{accounts.Where(a => a.IsEligibleForDogsDrop).Count()}</b>\n\n" +
                    $"Total balance: <b>{totalBalance:N2}</b> ฿\n" +
                    $"Total tickets: <b>{totalTickets}</b>\n" +
-                   $"Daily rewards today: <b>{doneCount}</b>/<b>{wholeCount - notWorkingTrialAccounts}</b>\n" +
+                   $"Daily rewards today: <b>{doneCount}</b>/<b>{wholeWorkingCount}</b>\n" +
                    $"Today earnings: ≈<b>{todayEarningsSum:N2}</b> ฿\n\n" +
                    $"Whole users: <b>{usersInfo.Count()}</b>\n" +
                    $"Whole referrals: <b>{referralsInfo.Count()}</b>";
