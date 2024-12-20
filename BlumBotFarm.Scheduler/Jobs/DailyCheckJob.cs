@@ -94,7 +94,8 @@ namespace BlumBotFarm.Scheduler.Jobs
 
             var configModel = configModelRepository.GetOrAddConfigModel();
 
-            ApiResponse dailyClaimResponse = ApiResponse.Error, friendsClaimResponse = ApiResponse.Error, getUserInfoResult = ApiResponse.Error;
+            ApiResponse dailyRewardInfoResponse = ApiResponse.Error, dailyClaimReward = ApiResponse.Error,
+                        friendsClaimResponse    = ApiResponse.Error, getUserInfoResult = ApiResponse.Error;
             bool startAndClaimAllTasksIsGood = true, isAuthGood = false, notChanceForPlaying = false;
             int  ticketsToRemainAfterPlaying = 0;
 
@@ -150,22 +151,42 @@ namespace BlumBotFarm.Scheduler.Jobs
                 accountRepository.Update(account);
 
                 // Doing Daily Reward Job
-                (dailyClaimResponse, bool sameDay) = gameApiClient.GetDailyReward(account);
-                if (dailyClaimResponse != ApiResponse.Success)
+                (dailyRewardInfoResponse, bool canClaim) = gameApiClient.GetDailyRewardInfo(account);
+                if (dailyRewardInfoResponse != ApiResponse.Success)
                 {
-                    Log.Error($"Daily Check Job, can't take daily reward for some reason for an account with Id: {account.Id}, " +
-                              $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}. Is same day: {sameDay}.");
+                    Log.Error($"Daily Check Job, can't get daily reward info for some reason for an account with Id: {account.Id}, " +
+                              $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
                 }
                 else
                 {
-                    Log.Information($"Daily Check Job, took daily reward for an account with Id: {account.Id}, " +
-                                    $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
+                    Log.Information($"Daily Check Job, got the daily reward info for an account with Id: {account.Id}, " +
+                                    $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}. Can claim: {canClaim}.");
 
-                    dailyRewardRepository.Add(new DailyReward
+                    // Take the reward
+                    if (canClaim)
                     {
-                        AccountId = account.Id,
-                        CreatedAt = DateTime.Now,
-                    });
+                        // Random delay
+                        Thread.Sleep(random.Next(3000, 8000));
+
+                        dailyClaimReward = gameApiClient.TakeDailyReward(account);
+
+                        if (dailyClaimReward == ApiResponse.Success)
+                        {
+                            Log.Information($"Daily Check Job, took daily reward for an account with Id: {account.Id}, " +
+                                            $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
+
+                            dailyRewardRepository.Add(new DailyReward
+                            {
+                                AccountId = account.Id,
+                                CreatedAt = DateTime.Now,
+                            });
+                        }
+                        else
+                        {
+                            Log.Error($"Daily Check Job, can't take daily reward for an account with Id: {account.Id}, " +
+                                      $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
+                        }
+                    }
                 }
 
                 // Updating user info
@@ -234,7 +255,7 @@ namespace BlumBotFarm.Scheduler.Jobs
                     }
                 }
 
-                (ApiResponse responseFriendsBalance, bool canClaim, string referralToken, int referralsCount) 
+                (ApiResponse responseFriendsBalance, bool canClaimFriendsBalance, string referralToken, int referralsCount) 
                     = gameApiClient.FriendsBalance(account);
                 if (responseFriendsBalance == ApiResponse.Success)
                 {
@@ -242,7 +263,7 @@ namespace BlumBotFarm.Scheduler.Jobs
                     account.ReferralLink   = REFERRAL_LINK_PREFIX + referralToken;
                     accountRepository.Update(account);
 
-                    Log.Information($"Daily Check Job, got friends balance (canClaim: {canClaim}, " +
+                    Log.Information($"Daily Check Job, got friends balance (canClaimFriendsBalance: {canClaimFriendsBalance}, " +
                                     $"referralToken: {referralToken}, referralsCount: {referralsCount}) for an account Id: {account.Id}, " +
                                     $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
                 }
@@ -251,7 +272,7 @@ namespace BlumBotFarm.Scheduler.Jobs
                     Log.Warning($"Daily Check Job, can't get friends balance for an account Id: {account.Id}, " +
                                 $"CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}.");
                 }
-                if (responseFriendsBalance != ApiResponse.Success || (responseFriendsBalance == ApiResponse.Success && canClaim))
+                if (responseFriendsBalance != ApiResponse.Success || (responseFriendsBalance == ApiResponse.Success && canClaimFriendsBalance))
                 {
                     // Claiming our possible reward for friends
                     friendsClaimResponse = gameApiClient.ClaimFriends(account);

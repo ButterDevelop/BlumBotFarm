@@ -2,7 +2,6 @@
 using BlumBotFarm.Core.Models;
 using BlumBotFarm.Database.Repositories;
 using BlumBotFarm.GameClient;
-using Microsoft.Extensions.Configuration.EnvironmentVariables;
 using Serilog;
 using System.Security.Cryptography;
 using System.Text;

@@ -18,7 +18,7 @@ namespace BlumBotFarm.GameClient
                              ABOUT_ME_REQUEST_ENDPOINT             = "v1/user/me",
                              GET_AUTH_BY_PROVIDER_REQUEST_ENDPOINT = "v1/auth/provider/PROVIDER_TELEGRAM_MINI_APP",
                              REFRESH_AUTH_REQUEST_ENDPOINT         = "v1/auth/refresh",
-                             GET_DAILY_REWARD_REQUEST_ENDPOINT     = "v1/daily-reward?offset=",
+                             GET_DAILY_REWARD_REQUEST_ENDPOINT     = "v2/daily-reward",
                              START_GAME_REQUEST_ENDPOINT           = "v2/game/play",
                              END_GAME_REQUEST_ENDPOINT             = "v2/game/claim",
                              ELIGIBILITY_FOR_DROP_DOGS             = "v2/game/eligibility/dogs_drop",
@@ -204,12 +204,51 @@ namespace BlumBotFarm.GameClient
             }
         }
 
-        public (ApiResponse response, bool sameDay) GetDailyReward(Account account)
+        public (ApiResponse response, bool canClaim) GetDailyRewardInfo(Account account)
         {
             var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
 
             var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
-                await HTTPController.SendRequestAsync(BASE_GAMING_API_URL + GET_DAILY_REWARD_REQUEST_ENDPOINT + account.TimezoneOffset.ToString(),
+                await HTTPController.SendRequestAsync(BASE_GAMING_API_URL + GET_DAILY_REWARD_REQUEST_ENDPOINT,
+                                                      RequestType.GET, account.Proxy, headers,
+                                                      parameters: null, parametersString: null, parametersContentType: null, referer: null,
+                                                      account.UserAgent)
+            );
+            (string? jsonAnswer, HttpStatusCode responseStatusCode) = taskResult.Result;
+
+            if (responseStatusCode == HttpStatusCode.Unauthorized)
+            {
+                Log.Error($"GameApiClient GetDailyRewardInfo (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) responseStatusCode - Unauthorized!");
+                return (ApiResponse.Unauthorized, false);
+            }
+
+            if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
+            {
+                Log.Error($"GameApiClient GetDailyRewardInfo (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) JSON answer: {jsonAnswer}");
+                return (ApiResponse.Error, false);
+            }
+
+            try
+            {
+                dynamic json = JObject.Parse(jsonAnswer.Replace("'", "\\'").Replace("\"", "'"));
+
+                string claimString = json.claim;
+
+                return (ApiResponse.Success, claimString == "available");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"GameApiClient GetDailyRewardInfo (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) Exception: {ex}");
+                return (ApiResponse.Error, false);
+            }
+        }
+
+        public ApiResponse TakeDailyReward(Account account)
+        {
+            var headers = GetUniqueHeaders(_commonHeaders, account.AccessToken);
+
+            var taskResult = HTTPController.ExecuteFunctionUntilSuccessAsync(async () =>
+                await HTTPController.SendRequestAsync(BASE_GAMING_API_URL + GET_DAILY_REWARD_REQUEST_ENDPOINT,
                                                       RequestType.POST, account.Proxy, headers,
                                                       parameters: null, parametersString: null, parametersContentType: null, referer: null,
                                                       account.UserAgent)
@@ -218,23 +257,29 @@ namespace BlumBotFarm.GameClient
 
             if (responseStatusCode == HttpStatusCode.Unauthorized)
             {
-                Log.Error($"GameApiClient GetDailyReward (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) responseStatusCode - Unauthorized!");
-                return (ApiResponse.Unauthorized, false);
-            }
-
-            if (jsonAnswer != null && jsonAnswer.Contains("same day", StringComparison.CurrentCultureIgnoreCase))
-            {
-                Log.Information($"GameApiClient GetDailyReward (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}). Same day! JSON answer: {jsonAnswer}");
-                return (ApiResponse.Error, true);
+                Log.Error($"GameApiClient TakeDailyReward (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) responseStatusCode - Unauthorized!");
+                return ApiResponse.Unauthorized;
             }
 
             if (jsonAnswer == null || responseStatusCode != HttpStatusCode.OK)
             {
-                Log.Error($"GameApiClient GetDailyReward (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) JSON answer: {jsonAnswer}");
-                return (ApiResponse.Error, false);
+                Log.Error($"GameApiClient TakeDailyReward (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) JSON answer: {jsonAnswer}");
+                return ApiResponse.Error;
             }
 
-            return (ApiResponse.Success, false);
+            try
+            {
+                dynamic json = JObject.Parse(jsonAnswer.Replace("'", "\\'").Replace("\"", "'"));
+
+                bool claimed = json.claimed;
+
+                return claimed ? ApiResponse.Success : ApiResponse.Error;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"GameApiClient TakeDailyReward (Account with Id: {account.Id}, CustomUsername: {account.CustomUsername}, BlumUsername: {account.BlumUsername}) Exception: {ex}");
+                return ApiResponse.Error;
+            }
         }
 
         public (ApiResponse response, bool eligible) EligibleForDogsDrop(Account account)
