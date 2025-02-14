@@ -121,6 +121,7 @@ builder.Services.AddSwaggerExamplesFromAssemblyOf<ChangeLanguageBadExample>();
 builder.Services.AddMemoryCache();
 
 // I don't will joy for this, but I have no time actually to do some patterns like Strategy
+// Future me: it is okay, why not, I do not use services here (BLL) anyway
 var databaseConnection = Config.Instance.MONGO_CONNECTION_STRING;
 var databaseName       = Config.Instance.MONGO_DATABASE_NAME;
 builder.Services.AddScoped(provider => new AccountRepository(databaseConnection, databaseName, Config.Instance.MONGO_ACCOUNT_PATH));
