@@ -24,6 +24,9 @@ In addition to managing its own pool of accounts, **AutoBlumFarm** allows users 
 - **Account & Slot Management:**  
   Users can purchase slots for their accounts. The backend calculates slot prices dynamically based on the number of accounts already owned and automatically provisions new tasks and rewards.
 
+- **Trial Mode:**
+  Users can activate their trial only once and for a couple of days duration. It is completely free and made for user to test the project. The trial mode has lower farming rates.
+
 - **Proxy & Traffic Interception:**  
   The **WalletConnectProxyServer** intercepts HTTP/HTTPS traffic, substitutes the authorization token, and routes connections through user-defined proxies. This enables seamless browser-based control of Telegram sessions on different accounts without reauthentication.
 
