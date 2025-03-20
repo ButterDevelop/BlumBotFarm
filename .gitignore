@@ -3,6 +3,9 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
+# Proxy fix hide (contains private auth info)
+proxy_fix.py
+
 # dotenv files
 .env
 
